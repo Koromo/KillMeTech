@@ -26,12 +26,18 @@ namespace killme
     std::wstring toLowers(const std::wstring& s);
 
     /** Convert to uppers string */
+    /*
     std::string toUppers(const std::string& s);
     std::wstring toUppers(const std::wstring& s);
+    */
 
     /** Returns length */
     size_t strlen(const std::string& s);
     size_t strlen(const std::wstring& s);
+
+    /** Compare strings with lowers */
+    int strcmpLow(const std::string& a, const std::string& b);
+    int strcmpLow(const std::wstring& a, const std::wstring& b);
 }
 
 #endif

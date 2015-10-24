@@ -46,6 +46,7 @@ namespace killme
         return lowers;
     }
 
+    /*
     std::string toUppers(const std::string& s)
     {
         std::string uppers = s;
@@ -59,6 +60,7 @@ namespace killme
         std::transform(std::cbegin(s), std::cend(s), std::begin(uppers), &std::towupper);
         return uppers;
     }
+    */
 
     size_t strlen(const std::string& s)
     {
@@ -68,5 +70,15 @@ namespace killme
     size_t strlen(const std::wstring& s)
     {
         return s.length();
+    }
+
+    int strcmpLow(const std::string& a, const std::string& b)
+    {
+        return std::strcmp(a.c_str(), b.c_str());
+    }
+
+    int strcmpLow(const std::wstring& a, const std::wstring& b)
+    {
+        return std::wcscmp(a.c_str(), b.c_str());
     }
 }
