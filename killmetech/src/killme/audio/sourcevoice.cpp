@@ -1,6 +1,6 @@
 #include "sourcevoice.h"
 #include "audioclip.h"
-#include "exception.h"
+#include "../core/exception.h"
 #include <cassert>
 
 namespace killme

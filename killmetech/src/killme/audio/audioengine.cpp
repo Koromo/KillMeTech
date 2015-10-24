@@ -1,5 +1,5 @@
 #include "audioengine.h"
-#include "exception.h"
+#include "../core/exception.h"
 #include "sourcevoice.h"
 
 namespace killme

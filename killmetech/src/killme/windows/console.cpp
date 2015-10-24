@@ -1,5 +1,5 @@
 #include "console.h"
-#include "exception.h"
+#include "../core/exception.h"
 #include "winsupport.h"
 #include <cstdarg>
 

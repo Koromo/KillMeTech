@@ -1,7 +1,7 @@
 #ifndef _KIKKMEENGINE_H_
 #define _KILLMEENGINE_H_
 
-#include "string.h"
+#include "../core/string.h"
 #include <Windows.h>
 #include <memory>
 #include <type_traits>

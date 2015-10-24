@@ -1,7 +1,7 @@
 #include "eventdispatcher.h"
 #include "event.h"
 #include "eventlistener.h"
-#include "string.h"
+#include "../core/string.h"
 
 namespace killme
 {

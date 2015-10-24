@@ -1,7 +1,7 @@
 #ifndef _KILLME_KEYEVENT_H_
 #define _KILLME_KEYEVENT_H_
 
-#include "event.h"
+#include "../event/event.h"
 
 namespace killme
 {

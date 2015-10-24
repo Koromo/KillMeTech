@@ -1,7 +1,7 @@
 #ifndef _KILLME_AUDIOENGINE_H_
 #define _KILLME_AUDIOENGINE_H_
 
-#include "winsupport.h"
+#include "../windows/winsupport.h"
 #include "xaudiosupport.h"
 #include <XAudio2.h>
 #include <memory>

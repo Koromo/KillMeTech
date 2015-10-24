@@ -1,7 +1,7 @@
 #ifndef _KILLME_CONSOLE_H_
 #define _KILLME_CONSOLE_H_
 
-#include "string.h"
+#include "../core/string.h"
 #include <Windows.h>
 
 namespace killme

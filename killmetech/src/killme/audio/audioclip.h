@@ -1,7 +1,7 @@
 #ifndef _KILLME_AUDIOCLIP_H_
 #define _KILLME_AUDIOCLIP_H_
 
-#include "string.h"
+#include "../core/string.h"
 #include <Windows.h>
 #include <memory>
 

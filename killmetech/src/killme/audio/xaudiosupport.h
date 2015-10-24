@@ -1,7 +1,7 @@
 #ifndef _KILLME_XAUDIOSUPPORT_H_
 #define _KILLME_XAUDIOSUPPORT_H_
 
-#include "exception.h"
+#include "../core/exception.h"
 #include <XAudio2.h>
 #include <memory>
 #include <string>

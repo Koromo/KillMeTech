@@ -1,7 +1,7 @@
 #ifndef _KILLME_WINSUPPORT_H_
 #define _KILLME_WINSUPPORT_H_
 
-#include "exception.h"
+#include "../core/exception.h"
 #include <string>
 #include <memory>
 

@@ -1,10 +1,10 @@
 #include "killmeengine.h"
-#include "winsupport.h"
-#include "exception.h"
-#include "keycode.h"
-#include "keyevent.h"
-#include "audioengine.h"
-#include "eventdispatcher.h"
+#include "../windows/winsupport.h"
+#include "../core/exception.h"
+#include "../input/keycode.h"
+#include "../input/keyevent.h"
+#include "../audio/audioengine.h"
+#include "../event/eventdispatcher.h"
 
 namespace killme
 {
