@@ -19,7 +19,7 @@ namespace killme
         return value;
     }
 
-    /** Root exception class of Kill Me Tech */
+    /** Root exception class of KillMeTech */
     class Exception : public std::exception
     {
     private:
