@@ -39,7 +39,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Users\syouta\Documents\Visual Studio 2013\Projects\killmetech\killmetech\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Users\syouta\Documents\Visual Studio 2013\Projects\killmetech\killmetech\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -72,6 +77,38 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\audio\audioclip.cpp" />
+    <ClCompile Include="src\audio\audioengine.cpp" />
+    <ClCompile Include="src\audio\sourcevoice.cpp" />
+    <ClCompile Include="src\audio\xaudiosupport.cpp" />
+    <ClCompile Include="src\core\exception.cpp" />
+    <ClCompile Include="src\core\fileexception.cpp" />
+    <ClCompile Include="src\core\string.cpp" />
+    <ClCompile Include="src\engine\killmeengine.cpp" />
+    <ClCompile Include="src\event\event.cpp" />
+    <ClCompile Include="src\event\eventdispatcher.cpp" />
+    <ClCompile Include="src\input\keyevent.cpp" />
+    <ClCompile Include="src\windows\console.cpp" />
+    <ClCompile Include="src\windows\winsupport.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\audio\audioclip.h" />
+    <ClInclude Include="src\audio\audioengine.h" />
+    <ClInclude Include="src\audio\sourcevoice.h" />
+    <ClInclude Include="src\audio\xaudiosupport.h" />
+    <ClInclude Include="src\core\exception.h" />
+    <ClInclude Include="src\core\fileexception.h" />
+    <ClInclude Include="src\core\string.h" />
+    <ClInclude Include="src\engine\killmeengine.h" />
+    <ClInclude Include="src\event\event.h" />
+    <ClInclude Include="src\event\eventdispatcher.h" />
+    <ClInclude Include="src\event\eventlistener.h" />
+    <ClInclude Include="src\input\keycode.h" />
+    <ClInclude Include="src\input\keyevent.h" />
+    <ClInclude Include="src\windows\console.h" />
+    <ClInclude Include="src\windows\winsupport.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
