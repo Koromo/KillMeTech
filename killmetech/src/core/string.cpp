@@ -74,11 +74,11 @@ namespace killme
 
     int strcmpLow(const std::string& a, const std::string& b)
     {
-        return std::strcmp(a.c_str(), b.c_str());
+        return std::strcmp(toLowers(a).c_str(), toLowers(b).c_str());
     }
 
     int strcmpLow(const std::wstring& a, const std::wstring& b)
     {
-        return std::wcscmp(a.c_str(), b.c_str());
+        return std::wcscmp(toLowers(a).c_str(), toLowers(b).c_str());
     }
 }
