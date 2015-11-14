@@ -32,7 +32,7 @@ namespace killme
 
     void Console::write(const tchar* str)
     {
-        WriteConsole(outHandle_, str, strlen(str), NULL, NULL);
+        WriteConsole(outHandle_, str, static_cast<DWORD>(strlen(str)), NULL, NULL);
     }
 
     void Console::writef(const tchar* fmt, ...)
