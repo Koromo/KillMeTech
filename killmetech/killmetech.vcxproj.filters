@@ -42,9 +42,6 @@
     <ClCompile Include="src\core\exception.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\fileexception.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\string.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -81,9 +78,6 @@
       <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\core\exception.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\fileexception.h">
       <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\string.h">

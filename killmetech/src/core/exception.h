@@ -35,6 +35,14 @@ namespace killme
         /** Returns message that is same to the Exception::getMessage() */
         const char* what() const;
     };
+
+	/** File relational exception */
+	class FileException : public Exception
+	{
+	public:
+		/** Construct with a message */
+		explicit FileException(const std::string& msg);
+	};
 }
 
 #endif

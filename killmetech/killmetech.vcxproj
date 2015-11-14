@@ -24,7 +24,6 @@
     <ClCompile Include="src\audio\sourcevoice.cpp" />
     <ClCompile Include="src\audio\xaudiosupport.cpp" />
     <ClCompile Include="src\core\exception.cpp" />
-    <ClCompile Include="src\core\fileexception.cpp" />
     <ClCompile Include="src\core\string.cpp" />
     <ClCompile Include="src\engine\killmeengine.cpp" />
     <ClCompile Include="src\event\event.cpp" />
@@ -39,7 +38,6 @@
     <ClInclude Include="src\audio\sourcevoice.h" />
     <ClInclude Include="src\audio\xaudiosupport.h" />
     <ClInclude Include="src\core\exception.h" />
-    <ClInclude Include="src\core\fileexception.h" />
     <ClInclude Include="src\core\string.h" />
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />

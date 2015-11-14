@@ -16,4 +16,9 @@ namespace killme
     {
         return msg_.c_str();
     }
+
+	FileException::FileException(const std::string& msg)
+		: Exception(msg)
+	{
+	}
 }

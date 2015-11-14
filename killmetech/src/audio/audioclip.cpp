@@ -1,6 +1,5 @@
 #include "audioclip.h"
 #include "../core/exception.h"
-#include "../core/fileexception.h"
 #include <memory>
 #include <cassert>
 
