@@ -1,5 +1,5 @@
-#ifndef _KIKKMEENGINE_H_
-#define _KILLMEENGINE_H_
+#ifndef _KILLME_KIKKMEENGINE_H_
+#define _KILLME_KILLMEENGINE_H_
 
 #include "../core/string.h"
 #include <Windows.h>

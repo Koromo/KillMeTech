@@ -39,7 +39,7 @@ namespace killme
 
         // Calculate window size
         const auto style = WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX;
-        RECT rect = {0, 0, width, height};
+        RECT rect = {0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 
         AdjustWindowRect(&rect, style, false);
 
@@ -71,7 +71,7 @@ namespace killme
 
     void KillMeEngine::run()
     {
-        SetWindowLong(window_.get(), GWL_USERDATA, reinterpret_cast<LONG>(this));
+        SetWindowLongPtr(window_.get(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
         ShowWindow(window_.get(), SW_SHOW);
 
         // Game loop
@@ -90,7 +90,7 @@ namespace killme
             }
         }
 
-        SetWindowLong(window_.get(), GWL_USERDATA, 0);
+        SetWindowLongPtr(window_.get(), GWLP_USERDATA, 0);
     }
 
     void KillMeEngine::quit()
@@ -113,7 +113,7 @@ namespace killme
     namespace
     {
         // Convert WINAPI key code to KillMeTech API key code
-        KeyCode toKeyCode(unsigned long vkc)
+        KeyCode toKeyCode(WPARAM vkc)
         {
             switch (vkc)
             {
@@ -154,7 +154,7 @@ namespace killme
 
     LRESULT CALLBACK KillMeEngine::windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
     {
-        const auto engine = reinterpret_cast<KillMeEngine*>(GetWindowLong(window, GWL_USERDATA));
+        const auto engine = reinterpret_cast<KillMeEngine*>(GetWindowLongPtr(window, GWLP_USERDATA));
         if (!engine)
         {
             return DefWindowProc(window, msg, wp, lp);

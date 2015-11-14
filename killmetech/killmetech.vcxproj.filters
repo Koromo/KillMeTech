@@ -1,63 +1,57 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{6a82833a-c298-4c0f-8f03-46a152ee9527}</UniqueIdentifier>
+      <UniqueIdentifier>{10edef9a-7cc6-4c24-864b-7199bc590f51}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\audio">
-      <UniqueIdentifier>{e4f5deff-cd94-4a2c-be54-c4572851de1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\core">
-      <UniqueIdentifier>{0fc4ce5b-1fbb-4765-b3f6-2f0fb3602655}</UniqueIdentifier>
+      <UniqueIdentifier>{ee6d43cf-0a89-4f77-a924-5837ea23e426}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\engine">
-      <UniqueIdentifier>{8416c6f9-c1b9-4b58-b003-21d944b53502}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\event">
-      <UniqueIdentifier>{4c14127f-f80a-4ae6-848a-f999ff38ebe1}</UniqueIdentifier>
+      <UniqueIdentifier>{3292b6dc-bcc5-46d5-9f72-cda6d30b23e2}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\input">
-      <UniqueIdentifier>{9a1ea8a7-f70c-4e86-937c-a80d657a3291}</UniqueIdentifier>
+      <UniqueIdentifier>{f00b0e90-52b6-48d2-ac6a-ddcd3f7376a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\event">
+      <UniqueIdentifier>{0552df4d-d6f2-48c6-b0d4-5e52cc4ca5ed}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\windows">
-      <UniqueIdentifier>{ec85911a-45cd-4327-9d3d-bbab9f897c10}</UniqueIdentifier>
+      <UniqueIdentifier>{208c32dc-ea35-4348-a986-ebaf57f567bc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\renderer">
-      <UniqueIdentifier>{d74f8117-190e-4023-ac84-e8460704c68c}</UniqueIdentifier>
+    <Filter Include="src\core">
+      <UniqueIdentifier>{3fc7afbc-92b1-4109-bd1d-d8a151aad4f8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\audio\sourcevoice.cpp">
+    <ClCompile Include="src\audio\audioclip.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
     <ClCompile Include="src\audio\audioengine.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
-    <ClCompile Include="src\audio\audioclip.cpp">
+    <ClCompile Include="src\audio\sourcevoice.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
     <ClCompile Include="src\audio\xaudiosupport.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\string.cpp">
+    <ClCompile Include="src\engine\killmeengine.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\exception.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\fileexception.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\exception.cpp">
+    <ClCompile Include="src\core\string.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\killmeengine.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\event\eventdispatcher.cpp">
+    <ClCompile Include="src\event\event.cpp">
       <Filter>src\event</Filter>
     </ClCompile>
-    <ClCompile Include="src\event\event.cpp">
+    <ClCompile Include="src\event\eventdispatcher.cpp">
       <Filter>src\event</Filter>
     </ClCompile>
     <ClCompile Include="src\input\keyevent.cpp">
@@ -71,20 +65,20 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\audio\audioengine.h">
-      <Filter>src\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="src\audio\xaudiosupport.h">
-      <Filter>src\audio</Filter>
-    </ClInclude>
     <ClInclude Include="src\audio\audioclip.h">
+      <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audioengine.h">
       <Filter>src\audio</Filter>
     </ClInclude>
     <ClInclude Include="src\audio\sourcevoice.h">
       <Filter>src\audio</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\string.h">
-      <Filter>src\core</Filter>
+    <ClInclude Include="src\audio\xaudiosupport.h">
+      <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\killmeengine.h">
+      <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\core\exception.h">
       <Filter>src\core</Filter>
@@ -92,22 +86,22 @@
     <ClInclude Include="src\core\fileexception.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\killmeengine.h">
-      <Filter>src\engine</Filter>
+    <ClInclude Include="src\core\string.h">
+      <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\event\eventlistener.h">
+    <ClInclude Include="src\event\event.h">
       <Filter>src\event</Filter>
     </ClInclude>
     <ClInclude Include="src\event\eventdispatcher.h">
       <Filter>src\event</Filter>
     </ClInclude>
-    <ClInclude Include="src\event\event.h">
+    <ClInclude Include="src\event\eventlistener.h">
       <Filter>src\event</Filter>
     </ClInclude>
-    <ClInclude Include="src\input\keyevent.h">
+    <ClInclude Include="src\input\keycode.h">
       <Filter>src\input</Filter>
     </ClInclude>
-    <ClInclude Include="src\input\keycode.h">
+    <ClInclude Include="src\input\keyevent.h">
       <Filter>src\input</Filter>
     </ClInclude>
     <ClInclude Include="src\windows\console.h">

@@ -1,5 +1,5 @@
-#ifndef _KILLME_FILE_H_
-#define _KILLME_FILE_H_
+#ifndef _KILLME_FILEEXCEPTION_H_
+#define _KILLME_FILEEXCEPTION_H_
 
 #include "exception.h"
 

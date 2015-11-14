@@ -52,7 +52,7 @@ namespace killme
             XAUDIO2_BUFFER buffer;
             ZeroMemory(&buffer, sizeof(buffer));
             buffer.Flags = XAUDIO2_END_OF_STREAM;
-            buffer.AudioBytes = clip_->getSize();
+            buffer.AudioBytes = static_cast<UINT32>(clip_->getSize());
             buffer.pAudioData = clip_->getData();
             buffer.LoopBegin = XAUDIO2_NO_LOOP_REGION;
             buffer.pContext = this;

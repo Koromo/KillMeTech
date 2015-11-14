@@ -2,7 +2,7 @@
 #define _KILLME_SOURCEVOICE_H_
 
 #include "xaudiosupport.h"
-#include <XAudio2.h>
+#include <xaudio2.h>
 #include <memory>
 
 namespace killme

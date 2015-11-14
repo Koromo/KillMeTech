@@ -3,7 +3,7 @@
 
 #include "../windows/winsupport.h"
 #include "xaudiosupport.h"
-#include <XAudio2.h>
+#include <xaudio2.h>
 #include <memory>
 
 namespace killme

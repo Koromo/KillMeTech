@@ -1,5 +1,5 @@
-#ifndef _KILLME_STRCONV_H_
-#define _KILLME_STRCONV_H_
+#ifndef _KILLME_STRING_H_
+#define _KILLME_STRING_H_
 
 #include <tchar.h>
 #include <string>
