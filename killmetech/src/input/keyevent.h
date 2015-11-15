@@ -7,19 +7,33 @@ namespace killme
 {
     enum class KeyCode;
 
-    /** Key event */
-    class KeyEvent : public Event
+    /** Key pressed event */
+    class KeyPressed : public Event
     {
     private:
         KeyCode key_;
 
     public:
         /** Construct with event key */
-        KeyEvent(KeyCode key, bool pressed);
+        explicit KeyPressed(KeyCode key);
 
         /** Returns pressed key */
         KeyCode getKey() const;
     };
+
+	/** Key Released event */
+	class KeyReleased : public Event
+	{
+	private:
+		KeyCode key_;
+
+	public:
+		/** Construct with event key */
+		explicit KeyReleased(KeyCode key);
+
+		/** Returns pressed key */
+		KeyCode getKey() const;
+	};
 }
 
 #endif

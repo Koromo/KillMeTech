@@ -2,14 +2,25 @@
 
 namespace killme
 {
-    KeyEvent::KeyEvent(KeyCode key, bool pressed)
-        : Event(pressed ? "KeyPressed" : "KeyReleased")
+    KeyPressed::KeyPressed(KeyCode key)
+        : Event("KeyPressed")
         , key_(key)
     {
     }
 
-    KeyCode KeyEvent::getKey() const
+    KeyCode KeyPressed::getKey() const
     {
         return key_;
     }
+
+	KeyReleased::KeyReleased(KeyCode key)
+		: Event("KeyReleased")
+		, key_(key)
+	{
+	}
+
+	KeyCode KeyReleased::getKey() const
+	{
+		return key_;
+	}
 }

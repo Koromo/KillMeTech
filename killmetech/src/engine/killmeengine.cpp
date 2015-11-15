@@ -176,7 +176,14 @@ namespace killme
                 const auto key = toKeyCode(wp);
                 if (key != KeyCode::none)
                 {
-                    engine->eventDispatcher_->dispatch(KeyEvent(key, msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN));
+					if (msg == WM_KEYDOWN || WM_SYSKEYDOWN)
+					{
+						engine->eventDispatcher_->dispatch(KeyPressed(key));
+					}
+					else
+					{
+						engine->eventDispatcher_->dispatch(KeyReleased(key));
+					}
                 }
             }();
             break;
