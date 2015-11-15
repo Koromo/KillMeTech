@@ -60,6 +60,9 @@
     <ClCompile Include="src\windows\winsupport.cpp">
       <Filter>src\windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\input\keycode.cpp">
+      <Filter>src\input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">

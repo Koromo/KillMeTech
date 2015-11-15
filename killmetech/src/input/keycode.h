@@ -13,9 +13,8 @@ namespace killme
         none
     };
 
-    /** KeyCode <-> string converter */
+    /** Returns stringed KeyCode */
     std::string toString(KeyCode code);
-    KeyCode toString(const std::string& str);
 }
 
 #endif

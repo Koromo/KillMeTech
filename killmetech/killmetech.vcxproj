@@ -28,6 +28,7 @@
     <ClCompile Include="src\engine\killmeengine.cpp" />
     <ClCompile Include="src\event\event.cpp" />
     <ClCompile Include="src\event\eventdispatcher.cpp" />
+    <ClCompile Include="src\input\keycode.cpp" />
     <ClCompile Include="src\input\keyevent.cpp" />
     <ClCompile Include="src\windows\console.cpp" />
     <ClCompile Include="src\windows\winsupport.cpp" />
