@@ -8,20 +8,20 @@
 namespace killme
 {
     class Event;
-    class EventListener;
+    class EventHook;
 
     /** Dispatch event for listeners */
     class EventDispatcher
     {
     private:
-        std::unordered_multimap<std::string, std::shared_ptr<EventListener>> listenerMap_;
+        std::unordered_multimap<std::string, std::shared_ptr<EventHook>> hookMap_;
 
     public:
-        /** Add event listener */
-        void addListener(const std::string& type, const std::shared_ptr<EventListener>& listener);
+        /** Add event hook */
+        void addHook(const std::string& type, const std::shared_ptr<EventHook>& hook);
 
-        /** Remove event listener */
-        void removeListener(const std::string& type, const std::shared_ptr<EventListener>& listener);
+        /** Remove event hook */
+        void removeHook(const std::string& type, const std::shared_ptr<EventHook>& hook);
 
         /** Dispatch event */
         void dispatch(const Event& e);

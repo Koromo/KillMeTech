@@ -43,7 +43,7 @@
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />
     <ClInclude Include="src\event\eventdispatcher.h" />
-    <ClInclude Include="src\event\eventlistener.h" />
+    <ClInclude Include="src\event\eventhook.h" />
     <ClInclude Include="src\input\keycode.h" />
     <ClInclude Include="src\input\keyevent.h" />
     <ClInclude Include="src\windows\console.h" />
@@ -53,7 +53,7 @@
     <ProjectGuid>{2AE4C731-4570-42BB-A741-F6125094B135}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>killmetech</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

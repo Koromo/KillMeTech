@@ -92,9 +92,6 @@
     <ClInclude Include="src\event\eventdispatcher.h">
       <Filter>src\event</Filter>
     </ClInclude>
-    <ClInclude Include="src\event\eventlistener.h">
-      <Filter>src\event</Filter>
-    </ClInclude>
     <ClInclude Include="src\input\keycode.h">
       <Filter>src\input</Filter>
     </ClInclude>
@@ -106,6 +103,9 @@
     </ClInclude>
     <ClInclude Include="src\windows\winsupport.h">
       <Filter>src\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\event\eventhook.h">
+      <Filter>src\event</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

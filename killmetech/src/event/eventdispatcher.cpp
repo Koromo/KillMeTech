@@ -1,23 +1,23 @@
 #include "eventdispatcher.h"
 #include "event.h"
-#include "eventlistener.h"
+#include "eventhook.h"
 #include "../core/string.h"
 
 namespace killme
 {
-    void EventDispatcher::addListener(const std::string& type, const std::shared_ptr<EventListener>& listener)
+    void EventDispatcher::addHook(const std::string& type, const std::shared_ptr<EventHook>& hook)
     {
-        listenerMap_.insert({toLowers(type), listener});
+        hookMap_.insert({toLowers(type), hook});
     }
 
-    void EventDispatcher::removeListener(const std::string& type, const std::shared_ptr<EventListener>& listener)
+    void EventDispatcher::removeHook(const std::string& type, const std::shared_ptr<EventHook>& hook)
     {
-        auto range = listenerMap_.equal_range(toLowers(type));
+        auto range = hookMap_.equal_range(toLowers(type));
         while (range.first != range.second)
         {
-            if (range.first->second == listener)
+            if (range.first->second == hook)
             {
-                listenerMap_.erase(range.first);
+                hookMap_.erase(range.first);
                 return;
             }
             ++range.first;
@@ -26,7 +26,7 @@ namespace killme
 
     void EventDispatcher::dispatch(const Event& e)
     {
-        auto range = listenerMap_.equal_range(toLowers(e.getType()));
+        auto range = hookMap_.equal_range(toLowers(e.getType()));
         while (range.first != range.second)
         {
             range.first->second->onEvent(e);

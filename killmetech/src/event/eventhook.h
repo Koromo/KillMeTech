@@ -1,16 +1,16 @@
-#ifndef _KILLME_EVENTLISTENER_H_
-#define _KILLME_EVENTLISTENER_H_
+#ifndef _KILLME_EVENTHOOK_H_
+#define _KILLME_EVENTHOOK_H_
 
 namespace killme
 {
     class Event;
 
-    /** Event listener interface */
-    class EventListener
+    /** Event hook interface */
+    class EventHook
     {
     public:
         /** For drived classes */
-        virtual ~EventListener() = default;
+        virtual ~EventHook() = default;
 
         /** Process event */
         virtual void onEvent(const Event& e) = 0;
