@@ -3,16 +3,13 @@
 
 #include <tchar.h>
 #include <string>
+#include <cstdarg>
 
-/// TODO: comment
-#define KILLME_TEXT(txt) _TEXT(txt)
+// Convert to used character set by application
+#define KILLME_T(s) _TEXT(s)
 
 namespace killme
 {
-    /// TODO: comment
-    using tchar = TCHAR;
-    using tstring = std::basic_string<tchar, std::char_traits<tchar>, std::allocator<tchar>>;
-
     /** Convert to multibyte string */
     std::string narrow(const std::string& s);
     std::string narrow(const std::wstring& s);
@@ -26,18 +23,28 @@ namespace killme
     std::wstring toLowers(const std::wstring& s);
 
     /** Convert to uppers string */
-    /*
     std::string toUppers(const std::string& s);
     std::wstring toUppers(const std::wstring& s);
-    */
+
+    /** Compare strings with lowers */
+    int strcmpLow(const std::string& a, const std::string& b);
+    int strcmpLow(const std::wstring& a, const std::wstring& b);
 
     /** Returns length */
     size_t strlen(const std::string& s);
     size_t strlen(const std::wstring& s);
 
-    /** Compare strings with lowers */
-    int strcmpLow(const std::string& a, const std::string& b);
-    int strcmpLow(const std::wstring& a, const std::wstring& b);
+    /** Store format stirng */
+    int vsprintf(char* buffer, const char* fmt, va_list args);
+    int vsprintf(wchar_t* buffer, const wchar_t* fmt, va_list args);
+
+    // "t" or "T" prefix denote used character set by application
+    using tchar = TCHAR;
+    using tstring = std::basic_string<tchar, std::char_traits<tchar>, std::allocator<tchar>>;
+
+    // Convert to used character set by application
+    tstring toCharSet(const std::string& s);
+    tstring toCharSet(const std::wstring& s);
 }
 
 #endif

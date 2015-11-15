@@ -46,7 +46,6 @@ namespace killme
         return lowers;
     }
 
-    /*
     std::string toUppers(const std::string& s)
     {
         std::string uppers = s;
@@ -60,7 +59,17 @@ namespace killme
         std::transform(std::cbegin(s), std::cend(s), std::begin(uppers), &std::towupper);
         return uppers;
     }
-    */
+
+    int strcmpLow(const std::string& a, const std::string& b)
+    {
+        return std::strcmp(toLowers(a).c_str(), toLowers(b).c_str());
+    }
+
+    int strcmpLow(const std::wstring& a, const std::wstring& b)
+    {
+        return std::wcscmp(toLowers(a).c_str(), toLowers(b).c_str());
+
+    }
 
     size_t strlen(const std::string& s)
     {
@@ -72,13 +81,31 @@ namespace killme
         return s.length();
     }
 
-    int strcmpLow(const std::string& a, const std::string& b)
+    int vsprintf(char* buffer, const char* fmt, va_list args)
     {
-        return std::strcmp(toLowers(a).c_str(), toLowers(b).c_str());
+        return std::vsprintf(buffer, fmt, args);
     }
 
-    int strcmpLow(const std::wstring& a, const std::wstring& b)
+    int vsprintf(wchar_t* buffer, const wchar_t* fmt, va_list args)
     {
-        return std::wcscmp(toLowers(a).c_str(), toLowers(b).c_str());
+        return std::vswprintf(buffer, fmt, args);
+    }
+
+    tstring toCharSet(const std::string& s)
+    {
+#ifdef _UNICODE
+        return widen(s);
+#else
+        return s;
+#endif
+    }
+
+    tstring toCharSet(const std::wstring& s)
+    {
+#ifdef _UNICODE
+        return s;
+#else
+        return narrow(s);
+#endif
     }
 }
