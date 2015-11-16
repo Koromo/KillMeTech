@@ -1,7 +1,6 @@
 #include "killmeengine.h"
 #include "../windows/winsupport.h"
 #include "../core/exception.h"
-#include "../input/keycode.h"
 #include "../input/keyevent.h"
 #include "../audio/audioengine.h"
 #include "../event/eventdispatcher.h"
@@ -11,6 +10,7 @@ namespace killme
     KillMeEngine::KillMeEngine(size_t width, size_t height, const tstring& title)
         : window_(nullptr, DestroyWindow)
         , quit_(false)
+        , keyStatus_()
         , audioEngine_()
         , eventDispatcher_()
     {
@@ -174,17 +174,27 @@ namespace killme
             [=]()
             {
                 const auto key = toKeyCode(wp);
-                if (key != KeyCode::none)
+                if (key == KeyCode::none)
                 {
-					if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
-					{
-						engine->eventDispatcher_->dispatch(KeyPressed(key));
-					}
-					else
-					{
-						engine->eventDispatcher_->dispatch(KeyReleased(key));
-					}
+                    return;
                 }
+
+                auto& status = engine->keyStatus_;
+                if (status.find(key) == std::cend(status))
+                {
+                    status[key] = false;
+                }
+
+				if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && status[key] == false)
+				{
+					engine->eventDispatcher_->dispatch(KeyPressed(key));
+                    status[key] = true;
+				}
+				else if (msg == WM_KEYUP || msg == WM_SYSKEYUP)
+				{
+					engine->eventDispatcher_->dispatch(KeyReleased(key));
+                    status[key] = false;
+				}
             }();
             break;
 
