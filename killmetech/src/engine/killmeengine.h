@@ -2,9 +2,11 @@
 #define _KILLME_KILLMEENGINE_H_
 
 #include "../core/string.h"
+#include "../input/keycode.h"
 #include <Windows.h>
 #include <memory>
 #include <type_traits>
+#include <unordered_map>
 
 namespace killme
 {
@@ -18,6 +20,8 @@ namespace killme
     private:
         std::unique_ptr<std::remove_pointer_t<HWND>, decltype(&DestroyWindow)> window_;
         bool quit_;
+
+        std::unordered_map<KeyCode, bool> keyStatus_;
 
         // Subsystems
         std::shared_ptr<AudioEngine> audioEngine_;
