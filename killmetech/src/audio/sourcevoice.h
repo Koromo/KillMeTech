@@ -10,7 +10,6 @@ namespace killme
     class AudioClip;
 
     /** Transmit audio data to audio device for playing audio */
-    /// TODO: Memory error will occur if we destroy AudioEngine before destroy SourceVoice
     class SourceVoice
     {
     private:

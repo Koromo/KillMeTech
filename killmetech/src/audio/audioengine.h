@@ -26,7 +26,6 @@ namespace killme
         ~AudioEngine();
 
         /** Create source voice */
-        /// TODO: Memoty error will occur if we destroy AudioEngine before destroy SourceVoice
         std::shared_ptr<SourceVoice> createSourceVoice(const std::shared_ptr<const AudioClip>& clip);
     };
 }
