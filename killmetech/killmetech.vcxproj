@@ -28,6 +28,7 @@
     <ClCompile Include="src\engine\killmeengine.cpp" />
     <ClCompile Include="src\event\event.cpp" />
     <ClCompile Include="src\event\eventdispatcher.cpp" />
+    <ClCompile Include="src\input\inputmanager.cpp" />
     <ClCompile Include="src\input\keycode.cpp" />
     <ClCompile Include="src\input\keyevent.cpp" />
     <ClCompile Include="src\windows\console.cpp" />
@@ -44,6 +45,7 @@
     <ClInclude Include="src\event\event.h" />
     <ClInclude Include="src\event\eventdispatcher.h" />
     <ClInclude Include="src\event\eventhook.h" />
+    <ClInclude Include="src\input\inputmanager.h" />
     <ClInclude Include="src\input\keycode.h" />
     <ClInclude Include="src\input\keyevent.h" />
     <ClInclude Include="src\windows\console.h" />
@@ -60,7 +62,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -100,7 +102,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\shared;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>

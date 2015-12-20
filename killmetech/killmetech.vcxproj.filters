@@ -63,12 +63,12 @@
     <ClCompile Include="src\input\keycode.cpp">
       <Filter>src\input</Filter>
     </ClCompile>
+    <ClCompile Include="src\input\inputmanager.cpp">
+      <Filter>src\input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
-      <Filter>src\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="src\audio\audioengine.h">
       <Filter>src\audio</Filter>
     </ClInclude>
     <ClInclude Include="src\audio\sourcevoice.h">
@@ -106,6 +106,12 @@
     </ClInclude>
     <ClInclude Include="src\event\eventhook.h">
       <Filter>src\event</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audioengine.h">
+      <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\input\inputmanager.h">
+      <Filter>src\input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
