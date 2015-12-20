@@ -6,12 +6,12 @@
 #include <Windows.h>
 #include <memory>
 #include <type_traits>
-#include <unordered_map>
 
 namespace killme
 {
     class Console;
     class AudioEngine;
+    class InputManager;
     class EventDispatcher;
 
     /** KillMeTech runtime */
@@ -21,10 +21,9 @@ namespace killme
         std::unique_ptr<std::remove_pointer_t<HWND>, decltype(&DestroyWindow)> window_;
         bool quit_;
 
-        std::unordered_map<KeyCode, bool> keyStatus_;
-
         // Subsystems
         std::shared_ptr<AudioEngine> audioEngine_;
+        std::shared_ptr<InputManager> inputManager_;
         std::shared_ptr<EventDispatcher> eventDispatcher_;
 
     public:

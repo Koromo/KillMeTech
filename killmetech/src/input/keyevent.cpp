@@ -2,8 +2,10 @@
 
 namespace killme
 {
+    const std::string KeyPressed::eventType = "KeyPressed";
+
     KeyPressed::KeyPressed(KeyCode key)
-        : Event("KeyPressed")
+        : Event(KeyPressed::eventType)
         , key_(key)
     {
     }
@@ -13,8 +15,10 @@ namespace killme
         return key_;
     }
 
+    const std::string KeyReleased::eventType = "KeyReleased";
+
 	KeyReleased::KeyReleased(KeyCode key)
-		: Event("KeyReleased")
+		: Event(KeyReleased::eventType)
 		, key_(key)
 	{
 	}

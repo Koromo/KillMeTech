@@ -13,6 +13,9 @@ namespace killme
         none
     };
 
+    /** Num key codes */
+    constexpr size_t NUM_KEY_CODES = static_cast<size_t>(KeyCode::none);
+
     /** Returns stringed KeyCode */
     std::string toString(KeyCode code);
 }

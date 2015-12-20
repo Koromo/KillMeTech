@@ -14,6 +14,9 @@ namespace killme
         KeyCode key_;
 
     public:
+        /** Event type definition */
+        static const std::string eventType;
+
         /** Construct with event key */
         explicit KeyPressed(KeyCode key);
 
@@ -28,6 +31,9 @@ namespace killme
 		KeyCode key_;
 
 	public:
+        /** Event type definition */
+        static const std::string eventType;
+
 		/** Construct with event key */
 		explicit KeyReleased(KeyCode key);
 

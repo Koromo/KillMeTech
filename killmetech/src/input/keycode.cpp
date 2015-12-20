@@ -2,7 +2,7 @@
 #include <cassert>
 
 // For toString()
-#define TO_STRING(key) case KeyCode::key: return #key;
+#define TO_STR(key) case KeyCode::key: return #key;
 
 namespace killme
 {
@@ -10,33 +10,33 @@ namespace killme
     {
         switch (code)
         {
-            TO_STRING(Esc);
-            TO_STRING(A);
-            TO_STRING(B);
-            TO_STRING(C);
-            TO_STRING(D);
-            TO_STRING(E);
-            TO_STRING(F);
-            TO_STRING(G);
-            TO_STRING(H);
-            TO_STRING(I);
-            TO_STRING(J);
-            TO_STRING(K);
-            TO_STRING(L);
-            TO_STRING(M);
-            TO_STRING(N);
-            TO_STRING(O);
-            TO_STRING(P);
-            TO_STRING(Q);
-            TO_STRING(R);
-            TO_STRING(S);
-            TO_STRING(T);
-            TO_STRING(U);
-            TO_STRING(V);
-            TO_STRING(W);
-            TO_STRING(X);
-            TO_STRING(Y);
-            TO_STRING(Z);
+            TO_STR(Esc);
+            TO_STR(A);
+            TO_STR(B);
+            TO_STR(C);
+            TO_STR(D);
+            TO_STR(E);
+            TO_STR(F);
+            TO_STR(G);
+            TO_STR(H);
+            TO_STR(I);
+            TO_STR(J);
+            TO_STR(K);
+            TO_STR(L);
+            TO_STR(M);
+            TO_STR(N);
+            TO_STR(O);
+            TO_STR(P);
+            TO_STR(Q);
+            TO_STR(R);
+            TO_STR(S);
+            TO_STR(T);
+            TO_STR(U);
+            TO_STR(V);
+            TO_STR(W);
+            TO_STR(X);
+            TO_STR(Y);
+            TO_STR(Z);
 
         default:
             assert(false && "Item not found.");
