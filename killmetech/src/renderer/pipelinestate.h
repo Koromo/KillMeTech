@@ -1,7 +1,6 @@
 #ifndef _KILLME_PIPELINESTATE_H_
 #define _KILLME_PIPELINESTATE_H_
 
-#include "shader.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <memory>
@@ -9,6 +8,8 @@
 namespace killme
 {
     class RootSignature;
+    class VertexShader;
+    class PixelShader;
 
     /** For PipelineState creation */
     struct PipelineStateDescription

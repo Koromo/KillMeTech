@@ -1,9 +1,10 @@
 #include "rendersystem.h"
 #include "rendertarget.h"
-#include "vertexbuffer.h"
+#include "vertexdata.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
-#include "shader.h"
+#include "vertexshader.h"
+#include "pixelshader.h"
 #include "commandlist.h"
 #include "d3dsupport.h"
 #include "../core/exception.h"
@@ -242,15 +243,6 @@ namespace killme
 
     std::shared_ptr<PipelineState> RenderSystem::createPipelineState(const PipelineStateDescription& stateDesc)
     {
-        // Define input layout
-        const D3D12_INPUT_ELEMENT_DESC inputElems[] = {
-            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
-        };
-
-        D3D12_INPUT_LAYOUT_DESC inputLayout;
-        inputLayout.pInputElementDescs = inputElems;
-        inputLayout.NumElements = 1;
-
         // Define the rasterizer state
         D3D12_RASTERIZER_DESC rasterizerState;
         ZeroMemory(&rasterizerState, sizeof(rasterizerState));
@@ -285,7 +277,7 @@ namespace killme
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dStateDesc;
         ZeroMemory(&d3dStateDesc, sizeof(d3dStateDesc));
-        d3dStateDesc.InputLayout = inputLayout;
+        d3dStateDesc.InputLayout = stateDesc.vertexShader->getD3DInputLayout();
         d3dStateDesc.pRootSignature = stateDesc.rootSignature->getD3DRootSignature();
         d3dStateDesc.VS = {stateDesc.vertexShader->getByteCode(), stateDesc.vertexShader->getByteCodeSize()};
         d3dStateDesc.PS = {stateDesc.pixelShader->getByteCode(), stateDesc.pixelShader->getByteCodeSize()};

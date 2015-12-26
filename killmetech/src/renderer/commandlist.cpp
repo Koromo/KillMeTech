@@ -1,6 +1,6 @@
 #include "commandlist.h"
 #include "rendertarget.h"
-#include "vertexbuffer.h"
+#include "vertexdata.h"
 #include "rootsignature.h"
 #include "renderstate.h"
 #include "d3dsupport.h"
@@ -47,10 +47,9 @@ namespace killme
         list_->IASetPrimitiveTopology(toD3DPrimitiveTopology(pt));
     }
 
-    void CommandList::setVertexBuffer(const std::shared_ptr<VertexBuffer>& buffer)
+    void CommandList::setVertexBuffers(const VertexBinder& binder)
     {
-        const auto view = buffer->getD3DView();
-        list_->IASetVertexBuffers(0, 1, &view);
+        list_->IASetVertexBuffers(0, binder.numViews, binder.views.data());
     }
 
     void CommandList::setRootSignature(const std::shared_ptr<RootSignature>& signature)

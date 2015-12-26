@@ -9,7 +9,7 @@ namespace killme
     class RenderTarget;
     class Color;
     enum class PrimitiveTopology;
-    class VertexBuffer;
+    struct VertexBinder;
     class RootSignature;
     struct Viewport;
     struct ScissorRect;
@@ -34,8 +34,8 @@ namespace killme
         /** Command of set primitive topology */
         void setPrimitiveTopology(PrimitiveTopology pt);
 
-        /** Command of set vertex buffer */
-        void setVertexBuffer(const std::shared_ptr<VertexBuffer>& buffer);
+        /** Command of set vertex buffers */
+        void setVertexBuffers(const VertexBinder& binder);
 
         /** Command of set root signature */
         void setRootSignature(const std::shared_ptr<RootSignature>& signature);

@@ -35,10 +35,13 @@
     <ClCompile Include="src\renderer\commandlist.cpp" />
     <ClCompile Include="src\renderer\d3dsupport.cpp" />
     <ClCompile Include="src\renderer\pipelinestate.cpp" />
+    <ClCompile Include="src\renderer\pixelshader.cpp" />
     <ClCompile Include="src\renderer\rendersystem.cpp" />
     <ClCompile Include="src\renderer\rendertarget.cpp" />
     <ClCompile Include="src\renderer\rootsignature.cpp" />
-    <ClCompile Include="src\renderer\vertexbuffer.cpp" />
+    <ClCompile Include="src\renderer\shader.cpp" />
+    <ClCompile Include="src\renderer\vertexdata.cpp" />
+    <ClCompile Include="src\renderer\vertexshader.cpp" />
     <ClCompile Include="src\windows\console.cpp" />
     <ClCompile Include="src\windows\winsupport.cpp" />
   </ItemGroup>
@@ -60,12 +63,14 @@
     <ClInclude Include="src\renderer\commandlist.h" />
     <ClInclude Include="src\renderer\d3dsupport.h" />
     <ClInclude Include="src\renderer\pipelinestate.h" />
+    <ClInclude Include="src\renderer\pixelshader.h" />
     <ClInclude Include="src\renderer\renderstate.h" />
     <ClInclude Include="src\renderer\rendersystem.h" />
     <ClInclude Include="src\renderer\rendertarget.h" />
     <ClInclude Include="src\renderer\rootsignature.h" />
     <ClInclude Include="src\renderer\shader.h" />
-    <ClInclude Include="src\renderer\vertexbuffer.h" />
+    <ClInclude Include="src\renderer\vertexdata.h" />
+    <ClInclude Include="src\renderer\vertexshader.h" />
     <ClInclude Include="src\windows\console.h" />
     <ClInclude Include="src\windows\winsupport.h" />
   </ItemGroup>

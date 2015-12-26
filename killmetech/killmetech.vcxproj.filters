@@ -93,7 +93,16 @@
     <ClCompile Include="src\renderer\rootsignature.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\vertexbuffer.cpp">
+    <ClCompile Include="src\renderer\shader.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vertexshader.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\pixelshader.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vertexdata.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -167,10 +176,16 @@
     <ClInclude Include="src\renderer\rootsignature.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\vertexbuffer.h">
+    <ClInclude Include="src\renderer\vertexshader.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\shader.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pixelshader.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vertexdata.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>
