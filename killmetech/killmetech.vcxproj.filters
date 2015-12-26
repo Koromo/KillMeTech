@@ -22,6 +22,12 @@
     <Filter Include="src\core">
       <UniqueIdentifier>{3fc7afbc-92b1-4109-bd1d-d8a151aad4f8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\core\math">
+      <UniqueIdentifier>{8b8356df-593f-466d-91cd-b397100b1d51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer">
+      <UniqueIdentifier>{939c5dc6-ea4e-46a4-afbf-fc46b6a4033b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -65,6 +71,30 @@
     </ClCompile>
     <ClCompile Include="src\input\inputmanager.cpp">
       <Filter>src\input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\math\color.cpp">
+      <Filter>src\core\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\commandlist.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\d3dsupport.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\pipelinestate.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\rendersystem.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\rendertarget.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\rootsignature.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vertexbuffer.cpp">
+      <Filter>src\renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,6 +142,36 @@
     </ClInclude>
     <ClInclude Include="src\input\inputmanager.h">
       <Filter>src\input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\math\color.h">
+      <Filter>src\core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\commandlist.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\d3dsupport.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pipelinestate.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\renderstate.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rendersystem.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rendertarget.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rootsignature.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vertexbuffer.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\shader.h">
+      <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

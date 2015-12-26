@@ -151,6 +151,7 @@ namespace killme
     {
         assert(stride <= size && "Invalid buffer size argments.");
 
+        /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
         // Use upload heap
         D3D12_HEAP_PROPERTIES uploadHeapProps;
         uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
