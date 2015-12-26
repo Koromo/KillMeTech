@@ -22,8 +22,6 @@ namespace killme
         , rtvHeap_()
         , rtvSize_()
         , renderTargets_()
-        , viewport_()
-        , scissorRect_()
         , fence_()
         , fenceEvent_()
         , fenceValue_()
@@ -114,19 +112,6 @@ namespace killme
             renderTargets_[i] = std::make_shared<RenderTarget>(renderTarget, rtv);
             rtv.ptr += rtvSize_;
         }
-
-        // Setup viewport and scissor rect
-        viewport_.Width = static_cast<FLOAT>(clientWidth);
-        viewport_.Height = static_cast<FLOAT>(clientHeight);
-        viewport_.TopLeftX = 0;
-        viewport_.TopLeftY = 0;
-        viewport_.MinDepth = 0;
-        viewport_.MaxDepth = 1;
-
-        scissorRect_.top = 0;
-        scissorRect_.left = 0;
-        scissorRect_.right = clientWidth;
-        scissorRect_.bottom = clientHeight;
 
         // Create command allocator
         ID3D12CommandAllocator* commandAllocator;

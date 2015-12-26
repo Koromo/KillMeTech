@@ -31,8 +31,6 @@ namespace killme
         ComUniquePtr<ID3D12DescriptorHeap> rtvHeap_;
         size_t rtvSize_;
         std::array<std::shared_ptr<RenderTarget>, NUM_BACK_BUFFERS> renderTargets_;
-        D3D12_VIEWPORT viewport_;
-        D3D12_RECT scissorRect_;
         ComUniquePtr<ID3D12Fence> fence_;
         HANDLE fenceEvent_;
         UINT64 fenceValue_;
