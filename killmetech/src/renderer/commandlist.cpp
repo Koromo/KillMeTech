@@ -57,6 +57,11 @@ namespace killme
         list_->SetGraphicsRootSignature(signature->getD3DRootSignature());
     }
 
+    void CommandList::setResourceTable(size_t rootParamIndex, const std::shared_ptr<ResourceHeap>& heap)
+    {
+        list_->SetGraphicsRootDescriptorTable(rootParamIndex, heap->getD3DHeap()->GetGPUDescriptorHandleForHeapStart());
+    }
+
     namespace
     {
         // Convert to Direct3D viewport
@@ -130,7 +135,8 @@ namespace killme
 
     void CommandList::close()
     {
-        enforce<Direct3DException>(SUCCEEDED(list_->Close()), "Failed to close command list.");
+        auto hr = list_->Close();
+        enforce<Direct3DException>(SUCCEEDED(hr), "Failed to close command list." + std::to_string(hr));
     }
 
     void CommandList::draw(size_t numVertices)

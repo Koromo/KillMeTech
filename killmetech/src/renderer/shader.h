@@ -9,6 +9,13 @@
 
 namespace killme
 {
+    /** Shader type definitions */
+    enum class ShaderType
+    {
+        vertex,
+        pixel
+    };
+
     /** Shader basic implementation */
     class BasicShader
     {

@@ -1,6 +1,8 @@
 #include "rendersystem.h"
 #include "rendertarget.h"
 #include "vertexdata.h"
+#include "constantbuffer.h"
+#include "resourceheap.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
 #include "vertexshader.h"
@@ -135,7 +137,7 @@ namespace killme
 
     std::shared_ptr<VertexBuffer> RenderSystem::createVertexBuffer(const void* data, size_t size, size_t stride)
     {
-        assert(stride <= size && "Invalid buffer size argments.");
+        assert(stride <= size && "You need stride <= size.");
 
         /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
         // Use upload heap
@@ -176,36 +178,63 @@ namespace killme
         return std::make_shared<VertexBuffer>(buffer, size, stride);
     }
 
-    std::shared_ptr<RootSignature> RenderSystem::createRootSignature()
+    std::shared_ptr<ConstantBuffer> RenderSystem::createConstantBuffer(size_t dataSize)
     {
-        /*
-        D3D12_DESCRIPTOR_RANGE ranges[1];
-        ZeroMemory(ranges, sizeof(ranges));
-        ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-        ranges[0].BaseShaderRegister = 0;
-        ranges[0].NumDescriptors = 1;
-        ranges[0].RegisterSpace = 0;
-        ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+        /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
+        // Use upload heap
+        D3D12_HEAP_PROPERTIES uploadHeapProps;
+        uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        uploadHeapProps.CreationNodeMask = 1;
+        uploadHeapProps.VisibleNodeMask = 1;
 
-        D3D12_ROOT_PARAMETER rootParams[1];
-        ZeroMemory(rootParams, sizeof(rootParams));
-        rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        rootParams[0].DescriptorTable.pDescriptorRanges = ranges;
-        rootParams[0].DescriptorTable.NumDescriptorRanges = 1;
-        rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-        */
+        const size_t bufferSize = dataSize + 256 - (dataSize % 256);
 
-        D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        ZeroMemory(&rootSignatureDesc, sizeof(rootSignatureDesc));
-        rootSignatureDesc.pParameters = nullptr;
-        rootSignatureDesc.NumParameters = 0;
-        rootSignatureDesc.NumStaticSamplers = 0;
-        rootSignatureDesc.pStaticSamplers = nullptr;
-        rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        D3D12_RESOURCE_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        desc.Alignment = 0;
+        desc.Width = bufferSize;
+        desc.Height = 1;
+        desc.DepthOrArraySize = 1;
+        desc.MipLevels = 1;
+        desc.Format = DXGI_FORMAT_UNKNOWN;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        // Create buffer
+        ID3D12Resource* buffer;
+        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+            "Failed to create constant buffer.");
+
+        return std::make_shared<ConstantBuffer>(buffer, bufferSize, dataSize);
+    }
+
+    std::shared_ptr<ResourceHeap> RenderSystem::createResourceHeap(size_t numResources)
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.NumDescriptors = numResources;
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        ID3D12DescriptorHeap* heap;
+        enforce<Direct3DException>(SUCCEEDED(device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
+            "Failed to create descripter heap.");
+
+        return std::make_shared<ResourceHeap>(heap, desc.Type);
+    }
+
+    std::shared_ptr<RootSignature> RenderSystem::createRootSignature(RootSignatureDescription& desc)
+    {
+        const auto d3dDesc = desc.getD3DDescription();
 
         ID3DBlob* signature;
         ID3DBlob* err;
-        const auto hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &err);
+        const auto hr = D3D12SerializeRootSignature(&d3dDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &err);
         if (FAILED(hr))
         {
             std::string msg = "Failed to serialize root signature.";
@@ -290,6 +319,22 @@ namespace killme
             "Failed to create command list.");
         list->Close();
         return std::make_shared<CommandList>(list);
+    }
+
+    void RenderSystem::storeResource(const std::shared_ptr<ConstantBuffer>& resource, const std::shared_ptr<ResourceHeap>& heap, size_t i)
+    {
+        D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc;
+        viewDesc.BufferLocation = resource->getGPUAddress();
+        viewDesc.SizeInBytes = resource->getBufferSize();
+
+        const auto d3dHeap = heap->getD3DHeap();
+        const auto heapType = heap->getType();
+        const auto offset = device_->GetDescriptorHandleIncrementSize(heapType) * i;
+
+        auto location = d3dHeap->GetCPUDescriptorHandleForHeapStart();
+        location.ptr += offset;
+
+        device_->CreateConstantBufferView(&viewDesc, location);
     }
 
     void RenderSystem::startCommandRecording()

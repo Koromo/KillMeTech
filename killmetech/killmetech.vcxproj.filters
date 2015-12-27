@@ -105,6 +105,12 @@
     <ClCompile Include="src\renderer\vertexdata.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\resourceheap.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\constantbuffer.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -187,6 +193,15 @@
     </ClInclude>
     <ClInclude Include="src\renderer\vertexdata.h">
       <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\resourceheap.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\constantbuffer.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\range.h">
+      <Filter>src\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

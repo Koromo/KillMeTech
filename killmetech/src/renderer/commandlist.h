@@ -1,5 +1,6 @@
 #pragma once
 
+#include "resourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <memory>
@@ -39,6 +40,25 @@ namespace killme
 
         /** Command of set root signature */
         void setRootSignature(const std::shared_ptr<RootSignature>& signature);
+
+        /** Change currently bound resource heaps */
+        template <class Range>
+        void setResourceHeaps(Range heaps, size_t numHeaps)
+        {
+            std::vector<ID3D12DescriptorHeap*> d3dHeaps;
+            d3dHeaps.reserve(numHeaps);
+
+            const auto end = std::cend(heaps);
+            for (auto it = std::cbegin(heaps); it != end; ++it)
+            {
+                d3dHeaps.push_back((*it)->getD3DHeap());
+            }
+
+            list_->SetDescriptorHeaps(numHeaps, d3dHeaps.data());
+        }
+
+        /** Set resource table */
+        void setResourceTable(size_t rootParamIndex, const std::shared_ptr<ResourceHeap>& heap);
 
         /** Command of set viewport */
         void setViewport(const Viewport& vp);

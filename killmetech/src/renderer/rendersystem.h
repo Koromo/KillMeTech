@@ -12,6 +12,9 @@ namespace killme
 {
     class RenderTarget;
     class VertexBuffer;
+    class ConstantBuffer;
+    class ResourceHeap;
+    class RootSignatureDescription;
     class RootSignature;
     struct PipelineStateDescription;
     class PipelineState;
@@ -45,14 +48,23 @@ namespace killme
 		/** Create vertex buffer */
         std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
 
+        /** Create constant buffer */
+        std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t dataSize);
+
+        /** Create resource heap */
+        std::shared_ptr<ResourceHeap> createResourceHeap(size_t numResources);
+
 		/** Create root signature */
-        std::shared_ptr<RootSignature> createRootSignature();
+        std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
 
 		/** Create pileline state */
         std::shared_ptr<PipelineState> createPipelineState(const PipelineStateDescription& stateDesc);
 
         /** Create command list */
         std::shared_ptr<CommandList> createCommandList();
+
+        /** Store resource to resource heap */
+        void storeResource(const std::shared_ptr<ConstantBuffer>& resource, const std::shared_ptr<ResourceHeap>& heap, size_t i);
 
 		/** Start record commands */
         void startCommandRecording();

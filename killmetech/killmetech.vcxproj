@@ -33,11 +33,13 @@
     <ClCompile Include="src\input\keycode.cpp" />
     <ClCompile Include="src\input\keyevent.cpp" />
     <ClCompile Include="src\renderer\commandlist.cpp" />
+    <ClCompile Include="src\renderer\constantbuffer.cpp" />
     <ClCompile Include="src\renderer\d3dsupport.cpp" />
     <ClCompile Include="src\renderer\pipelinestate.cpp" />
     <ClCompile Include="src\renderer\pixelshader.cpp" />
     <ClCompile Include="src\renderer\rendersystem.cpp" />
     <ClCompile Include="src\renderer\rendertarget.cpp" />
+    <ClCompile Include="src\renderer\resourceheap.cpp" />
     <ClCompile Include="src\renderer\rootsignature.cpp" />
     <ClCompile Include="src\renderer\shader.cpp" />
     <ClCompile Include="src\renderer\vertexdata.cpp" />
@@ -52,6 +54,7 @@
     <ClInclude Include="src\audio\xaudiosupport.h" />
     <ClInclude Include="src\core\exception.h" />
     <ClInclude Include="src\core\math\color.h" />
+    <ClInclude Include="src\core\range.h" />
     <ClInclude Include="src\core\string.h" />
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />
@@ -61,7 +64,9 @@
     <ClInclude Include="src\input\keycode.h" />
     <ClInclude Include="src\input\keyevent.h" />
     <ClInclude Include="src\renderer\commandlist.h" />
+    <ClInclude Include="src\renderer\constantbuffer.h" />
     <ClInclude Include="src\renderer\d3dsupport.h" />
+    <ClInclude Include="src\renderer\resourceheap.h" />
     <ClInclude Include="src\renderer\pipelinestate.h" />
     <ClInclude Include="src\renderer\pixelshader.h" />
     <ClInclude Include="src\renderer\renderstate.h" />
