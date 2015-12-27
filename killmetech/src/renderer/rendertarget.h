@@ -6,6 +6,7 @@
 
 namespace killme
 {
+    /// TODO: Now, Resource barrior used by only render target transition
     /** For render target barrior */
     enum class ResourceState
     {
