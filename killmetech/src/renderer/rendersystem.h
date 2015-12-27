@@ -12,6 +12,7 @@ namespace killme
 {
     class RenderTarget;
     class VertexBuffer;
+    class IndexBuffer;
     class ConstantBuffer;
     class ResourceHeap;
     class RootSignatureDescription;
@@ -47,6 +48,9 @@ namespace killme
 
 		/** Create vertex buffer */
         std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
+
+        /** Create vertex buffer */
+        std::shared_ptr<IndexBuffer> createIndexBuffer(const unsigned short* data, size_t size);
 
         /** Create constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t dataSize);

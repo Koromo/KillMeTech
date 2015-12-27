@@ -52,6 +52,12 @@ namespace killme
         list_->IASetVertexBuffers(0, binder.numViews, binder.views.data());
     }
 
+    void CommandList::setIndexBuffer(const std::shared_ptr<IndexBuffer>& buffer)
+    {
+        const auto view = buffer->getD3DView();
+        list_->IASetIndexBuffer(&view);
+    }
+
     void CommandList::setRootSignature(const std::shared_ptr<RootSignature>& signature)
     {
         list_->SetGraphicsRootSignature(signature->getD3DRootSignature());
@@ -142,6 +148,11 @@ namespace killme
     void CommandList::draw(size_t numVertices)
     {
         list_->DrawInstanced(static_cast<UINT>(numVertices), 1, 0, 0);
+    }
+
+    void CommandList::drawIndexed(size_t numIndices)
+    {
+        list_->DrawIndexedInstanced(numIndices, 1, 0, 0, 0);
     }
 
     ID3D12GraphicsCommandList* CommandList::getD3DCommandList()

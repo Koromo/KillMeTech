@@ -26,6 +26,21 @@ namespace killme
         D3D12_VERTEX_BUFFER_VIEW getD3DView();
     };
 
+    /** Index buffer */
+    class IndexBuffer
+    {
+    private:
+        ComUniquePtr<ID3D12Resource> buffer_;
+        D3D12_INDEX_BUFFER_VIEW view_;
+
+    public:
+        /** Construct with indices */
+        IndexBuffer(ID3D12Resource* buffer, size_t size);
+
+        /** Returns Direct3D view */
+        D3D12_INDEX_BUFFER_VIEW getD3DView();
+    };
+
     /** Primitive topology definitions */
     enum class PrimitiveTopology
     {
@@ -51,13 +66,20 @@ namespace killme
         };
 
         std::vector<VertexSemantic> vertexBuffers_;
+        std::shared_ptr<IndexBuffer> indexBuffer_;
 
     public:
         /** Add vertices */
         void addVertices(const std::string& semanticName, size_t semanticIndex, const std::shared_ptr<VertexBuffer>& vertices);
 
+        /** Set indices */
+        void setIndices(const std::shared_ptr<IndexBuffer>& indices);
+
         /** Returns vertex binder */
         VertexBinder getBinder(const std::shared_ptr<const VertexShader>& shader);
+
+        /** Returns index buffer */
+        std::shared_ptr<IndexBuffer> getIndexBuffer();
     };
 }
 

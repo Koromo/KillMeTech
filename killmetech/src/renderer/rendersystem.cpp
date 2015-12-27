@@ -178,6 +178,47 @@ namespace killme
         return std::make_shared<VertexBuffer>(buffer, size, stride);
     }
 
+    std::shared_ptr<IndexBuffer> RenderSystem::createIndexBuffer(const unsigned short* data, size_t size)
+    {
+        /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
+        // Use upload heap
+        D3D12_HEAP_PROPERTIES uploadHeapProps;
+        uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        uploadHeapProps.CreationNodeMask = 1;
+        uploadHeapProps.VisibleNodeMask = 1;
+
+        D3D12_RESOURCE_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        desc.Alignment = 0;
+        desc.Width = size;
+        desc.Height = 1;
+        desc.DepthOrArraySize = 1;
+        desc.MipLevels = 1;
+        desc.Format = DXGI_FORMAT_UNKNOWN;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        // Create buffer
+        ID3D12Resource* buffer;
+        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+            "Failed to create vertex buffer.");
+
+        // Upload data to buffer
+        void* mappedData;
+        enforce<Direct3DException>(SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
+            "Failed to map vertices memory.");
+
+        std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
+        buffer->Unmap(0, nullptr);
+
+        return std::make_shared<IndexBuffer>(buffer, size);
+    }
+
     std::shared_ptr<ConstantBuffer> RenderSystem::createConstantBuffer(size_t dataSize)
     {
         /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.

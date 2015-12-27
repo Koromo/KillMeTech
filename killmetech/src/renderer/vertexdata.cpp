@@ -18,9 +18,28 @@ namespace killme
         return view_;
     }
 
+    IndexBuffer::IndexBuffer(ID3D12Resource* buffer, size_t size)
+        : buffer_(makeComUnique(buffer))
+        , view_()
+    {
+        view_.BufferLocation = buffer_->GetGPUVirtualAddress();
+        view_.SizeInBytes = static_cast<UINT>(size);
+        view_.Format = DXGI_FORMAT_R16_UINT;
+    }
+
+    D3D12_INDEX_BUFFER_VIEW IndexBuffer::getD3DView()
+    {
+        return view_;
+    }
+
     void VertexData::addVertices(const std::string& semanticName, size_t semanticIndex, const std::shared_ptr<VertexBuffer>& vertices)
     {
         vertexBuffers_.push_back({semanticName, semanticIndex, vertices});
+    }
+
+    void VertexData::setIndices(const std::shared_ptr<IndexBuffer>& indices)
+    {
+        indexBuffer_ = indices;
     }
 
     VertexBinder VertexData::getBinder(const std::shared_ptr<const VertexShader>& shader)
@@ -53,5 +72,10 @@ namespace killme
         }
 
         return binder;
+    }
+
+    std::shared_ptr<IndexBuffer> VertexData::getIndexBuffer()
+    {
+        return indexBuffer_;
     }
 }

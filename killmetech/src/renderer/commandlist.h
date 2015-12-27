@@ -11,6 +11,7 @@ namespace killme
     class Color;
     enum class PrimitiveTopology;
     struct VertexBinder;
+    class IndexBuffer;
     class RootSignature;
     struct Viewport;
     struct ScissorRect;
@@ -37,6 +38,9 @@ namespace killme
 
         /** Command of set vertex buffers */
         void setVertexBuffers(const VertexBinder& binder);
+
+        /** Command of set index buffer */
+        void setIndexBuffer(const std::shared_ptr<IndexBuffer>& buffer);
 
         /** Command of set root signature */
         void setRootSignature(const std::shared_ptr<RootSignature>& signature);
@@ -74,6 +78,9 @@ namespace killme
 
         /** Draw call */
         void draw(size_t numVertices);
+
+        /** Draw call with index */
+        void drawIndexed(size_t numIndices);
 
         /** Returns Direct3D command list */
         ID3D12GraphicsCommandList* getD3DCommandList();
