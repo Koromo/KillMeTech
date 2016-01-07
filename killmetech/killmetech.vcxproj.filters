@@ -111,6 +111,18 @@
     <ClCompile Include="src\renderer\constantbuffer.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\math\math.cpp">
+      <Filter>src\core\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\math\matrix44.cpp">
+      <Filter>src\core\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\math\quaternion.cpp">
+      <Filter>src\core\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\math\vector3.cpp">
+      <Filter>src\core\math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -202,6 +214,18 @@
     </ClInclude>
     <ClInclude Include="src\core\range.h">
       <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\math\math.h">
+      <Filter>src\core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\math\matrix44.h">
+      <Filter>src\core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\math\quaternion.h">
+      <Filter>src\core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\math\vector3.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

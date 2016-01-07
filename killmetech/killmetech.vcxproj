@@ -25,6 +25,10 @@
     <ClCompile Include="src\audio\xaudiosupport.cpp" />
     <ClCompile Include="src\core\exception.cpp" />
     <ClCompile Include="src\core\math\color.cpp" />
+    <ClCompile Include="src\core\math\math.cpp" />
+    <ClCompile Include="src\core\math\matrix44.cpp" />
+    <ClCompile Include="src\core\math\quaternion.cpp" />
+    <ClCompile Include="src\core\math\vector3.cpp" />
     <ClCompile Include="src\core\string.cpp" />
     <ClCompile Include="src\engine\killmeengine.cpp" />
     <ClCompile Include="src\event\event.cpp" />
@@ -54,6 +58,10 @@
     <ClInclude Include="src\audio\xaudiosupport.h" />
     <ClInclude Include="src\core\exception.h" />
     <ClInclude Include="src\core\math\color.h" />
+    <ClInclude Include="src\core\math\math.h" />
+    <ClInclude Include="src\core\math\matrix44.h" />
+    <ClInclude Include="src\core\math\quaternion.h" />
+    <ClInclude Include="src\core\math\vector3.h" />
     <ClInclude Include="src\core\range.h" />
     <ClInclude Include="src\core\string.h" />
     <ClInclude Include="src\engine\killmeengine.h" />
