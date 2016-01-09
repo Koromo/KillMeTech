@@ -11,7 +11,7 @@ namespace killme
     {
     public:
         /** Construct with a message */
-        explicit Direct3DException(const std::string& msg);
+        explicit Direct3DException(const std::string& msg) : Exception(msg) {}
     };
 }
 

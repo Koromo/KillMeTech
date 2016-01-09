@@ -22,7 +22,7 @@ namespace killme
 
     VertexShader::VertexShader(ID3DBlob* byteCode)
         : BasicShader(byteCode)
-        , reflectionHolder_()
+        , reflection_()
         , inputElems_()
         , inputLayout_()
     {
@@ -30,7 +30,7 @@ namespace killme
         ID3D12ShaderReflection* reflection;
         enforce<Direct3DException>(SUCCEEDED(D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection))),
             "Failed to get shader reflection.");
-        reflectionHolder_ = makeComUnique(reflection);
+        reflection_ = makeComUnique(reflection);
 
         // Get shader description
         D3D12_SHADER_DESC shaderDesc;

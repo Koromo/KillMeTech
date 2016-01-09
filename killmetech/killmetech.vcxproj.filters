@@ -28,6 +28,9 @@
     <Filter Include="src\renderer">
       <UniqueIdentifier>{939c5dc6-ea4e-46a4-afbf-fc46b6a4033b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\scene">
+      <UniqueIdentifier>{aaddc313-2973-4c91-994f-0a677b91d25c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -39,31 +42,16 @@
     <ClCompile Include="src\audio\sourcevoice.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
-    <ClCompile Include="src\audio\xaudiosupport.cpp">
-      <Filter>src\audio</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\killmeengine.cpp">
       <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\exception.cpp">
-      <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\string.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\event\event.cpp">
-      <Filter>src\event</Filter>
-    </ClCompile>
     <ClCompile Include="src\event\eventdispatcher.cpp">
       <Filter>src\event</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\keyevent.cpp">
-      <Filter>src\input</Filter>
-    </ClCompile>
     <ClCompile Include="src\windows\console.cpp">
-      <Filter>src\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\windows\winsupport.cpp">
       <Filter>src\windows</Filter>
     </ClCompile>
     <ClCompile Include="src\input\keycode.cpp">
@@ -78,37 +66,13 @@
     <ClCompile Include="src\renderer\commandlist.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\d3dsupport.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\pipelinestate.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\rendersystem.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\rendertarget.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\rootsignature.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\shader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\vertexshader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\pixelshader.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\vertexdata.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\resourceheap.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\constantbuffer.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\core\math\math.cpp">
@@ -122,6 +86,33 @@
     </ClCompile>
     <ClCompile Include="src\core\math\vector3.cpp">
       <Filter>src\core\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\mesh.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\material.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenenode.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\camera.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scene.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\rendersystem.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenemanager.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\meshentity.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\sceneentity.cpp">
+      <Filter>src\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -185,9 +176,6 @@
     <ClInclude Include="src\renderer\renderstate.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\rendersystem.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\rendertarget.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
@@ -226,6 +214,33 @@
     </ClInclude>
     <ClInclude Include="src\core\math\vector3.h">
       <Filter>src\core\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\mesh.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\material.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenenode.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scene.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\camera.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenemanager.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rendersystem.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\sceneentity.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\meshentity.h">
+      <Filter>src\scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -33,8 +33,8 @@ namespace killme
         ID3D12Debug* debugController;
         enforce<Direct3DException>(SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))),
             "Failed to ebable the debug layer.");
-        const auto debugControllerHolder = makeComUnique(debugController);
         debugController->EnableDebugLayer();
+        KILLME_SCOPE_EXIT{ debugController->Release(); };
 #endif
 
         // Create the device
@@ -75,12 +75,12 @@ namespace killme
         IDXGIFactory4* factory;
         enforce<Direct3DException>(SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))),
             "Failed to create DXGI factory.");
-        const auto factoryHolder = makeComUnique(factory);
+        KILLME_SCOPE_EXIT{ factory->Release(); };
 
         IDXGISwapChain* swapChain0;
         enforce<Direct3DException>(SUCCEEDED(factory->CreateSwapChain(commandQueue_.get(), &swapChainDesc, &swapChain0)),
             "Failed to create swap chain.");
-        const auto swapChain0Holder = makeComUnique(swapChain0);
+        KILLME_SCOPE_EXIT{ swapChain0->Release(); };
 
         IDXGISwapChain3* swapChain3;
         enforce<Direct3DException>(SUCCEEDED(swapChain0->QueryInterface(IID_PPV_ARGS(&swapChain3))),
@@ -287,7 +287,8 @@ namespace killme
             }
             throw Direct3DException(msg);
         }
-        const auto signatureHolder = makeComUnique(signature);
+
+        KILLME_SCOPE_EXIT{ signature->Release(); };
 
         ID3D12RootSignature* rootSignature;
         enforce<Direct3DException>(SUCCEEDED(device_->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature))),

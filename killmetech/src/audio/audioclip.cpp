@@ -1,6 +1,5 @@
 #include "audioclip.h"
 #include "../core/exception.h"
-#include <memory>
 #include <cassert>
 
 namespace killme
@@ -27,20 +26,6 @@ namespace killme
         return format_;
     }
 
-    namespace
-    {
-        // For hold MMIO handle
-        struct MMIODeleter
-        {
-            void operator()(HMMIO h)
-            {
-                mmioClose(h, 0);
-            }
-        };
-
-        using MmioUniquePtr = std::unique_ptr<std::remove_pointer_t<HMMIO>, MMIODeleter>;
-    }
-
     std::shared_ptr<AudioClip> loadAudio(const tstring& filename)
     {
         // Open file
@@ -49,8 +34,7 @@ namespace killme
             "Failed to open file (" + narrow(filename) + ")."
             );
 
-        // Hold mmio handle for safety
-        const MmioUniquePtr mmioHolder(mmio, MMIODeleter());
+        KILLME_SCOPE_EXIT{ mmioClose(mmio, 0); };
 
         // Discend into RIFF chank
         MMCKINFO riffChunk;
@@ -66,24 +50,23 @@ namespace killme
 
         // Read audio format
         WAVEFORMATEX format;
-        ZeroMemory(&format, sizeof(format));
         auto readSize = mmioRead(mmio, reinterpret_cast<LPSTR>(&format), fmtChunk.cksize);
-        assert(readSize == fmtChunk.cksize && "Failed to read audio format");
+        assert(readSize == fmtChunk.cksize && "Failed to read audio format.");
 
         // Ascend from FMT chack
         mr = mmioAscend(mmio, &fmtChunk, 0);
-        assert(mr == MMSYSERR_NOERROR && "Failed to ascend from fmt chank");
+        assert(mr == MMSYSERR_NOERROR && "Failed to ascend from fmt chank.");
 
         // Discend into DATA chank
         MMCKINFO dataChunk;
         dataChunk.ckid = mmioFOURCC('d', 'a', 't', 'a');
         mr = mmioDescend(mmio, &dataChunk, &riffChunk, MMIO_FINDCHUNK);
-        assert(mr == MMSYSERR_NOERROR && "Failed to descend into data chank");
+        assert(mr == MMSYSERR_NOERROR && "Failed to descend into data chank.");
 
         // Read audio data
         const auto data = new char[dataChunk.cksize];
         readSize = mmioRead(mmio, data, dataChunk.cksize);
-        assert(readSize == dataChunk.cksize && "Failed to read audio data");
+        assert(readSize == dataChunk.cksize && "Failed to read audio data.");
 
         return std::make_shared<AudioClip>(reinterpret_cast<unsigned char*>(data), dataChunk.cksize, format);
     }

@@ -12,7 +12,7 @@ namespace killme
     class VertexShader : public BasicShader
     {
     private:
-        ComUniquePtr<ID3D12ShaderReflection> reflectionHolder_; // Hold for life of string of senamtic name
+        ComUniquePtr<ID3D12ShaderReflection> reflection_;
         std::vector<D3D12_INPUT_ELEMENT_DESC> inputElems_;
         D3D12_INPUT_LAYOUT_DESC inputLayout_;
 

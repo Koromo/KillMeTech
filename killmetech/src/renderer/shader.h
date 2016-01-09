@@ -24,14 +24,14 @@ namespace killme
 
     public:
         /** Construct with a byte code */
-        explicit BasicShader(ID3DBlob* byteCode);
+        explicit BasicShader(ID3DBlob* byteCode) : byteCode_(makeComUnique(byteCode)) {}
 
         /** For drived classes */
         ~BasicShader() = default;
 
         /** Returns shader binary */
-        const void* getByteCode() const;
-        size_t getByteCodeSize() const;
+        const void* getByteCode() const { return byteCode_->GetBufferPointer(); }
+        size_t getByteCodeSize() const { return byteCode_->GetBufferSize(); }
     };
 
     /** Compile shader from file */

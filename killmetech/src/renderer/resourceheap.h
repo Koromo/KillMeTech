@@ -3,7 +3,6 @@
 
 #include "../windows/winsupport.h"
 #include <d3d12.h>
-#include <memory>
 
 namespace killme
 {
@@ -19,13 +18,17 @@ namespace killme
 
     public:
         /** Construct with Direct3D descriptor heap */
-        ResourceHeap(ID3D12DescriptorHeap* heap, D3D12_DESCRIPTOR_HEAP_TYPE type);
+        ResourceHeap(ID3D12DescriptorHeap* heap, D3D12_DESCRIPTOR_HEAP_TYPE type)
+            : heap_(makeComUnique(heap))
+            , type_(type)
+        {
+        }
 
         /** Returns Direct3D descriptor heap type */
-        D3D12_DESCRIPTOR_HEAP_TYPE getType() const;
+        D3D12_DESCRIPTOR_HEAP_TYPE getType() const { return type_; }
 
         /** Returns Direct3D descriptor heap */
-        ID3D12DescriptorHeap* getD3DHeap();
+        ID3D12DescriptorHeap* getD3DHeap() { return heap_.get(); }
     };
 }
 

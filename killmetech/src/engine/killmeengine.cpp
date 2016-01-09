@@ -109,7 +109,6 @@ namespace killme
         return audioEngine_;
     }
 
-
     std::weak_ptr<EventDispatcher> KillMeEngine::getEventDispatcher()
     {
         return eventDispatcher_;

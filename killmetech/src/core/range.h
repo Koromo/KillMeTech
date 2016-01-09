@@ -5,6 +5,7 @@ namespace killme
 {
     namespace detail
     {
+        // For makeRange()
         template <class It>
         class IteratorRange
         {

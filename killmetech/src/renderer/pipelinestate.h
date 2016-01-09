@@ -27,10 +27,10 @@ namespace killme
 
     public:
         /** Construct with a Direct3D pipeline state */
-        explicit PipelineState(ID3D12PipelineState* state);
+        explicit PipelineState(ID3D12PipelineState* state) : state_(makeComUnique(state)) {}
 
         /** Returns Direct3D pipeline state */
-        ID3D12PipelineState* getD3DPipelineState();
+        ID3D12PipelineState* getD3DPipelineState() { return state_.get(); }
     };
 }
 

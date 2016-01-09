@@ -23,13 +23,17 @@ namespace killme
 
     public:
         /** Construct */
-        RenderTarget(ID3D12Resource* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE view);
+        RenderTarget(ID3D12Resource* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE view)
+            : renderTarget_(makeComUnique(renderTarget))
+            , view_(view)
+        {
+        }
 
         /** Returns Direct3D render target */
-        ID3D12Resource* getD3DRenderTarget();
+        ID3D12Resource* getD3DRenderTarget() { return renderTarget_.get(); }
 
         /** Returns Direct3D view */
-        D3D12_CPU_DESCRIPTOR_HANDLE getD3DView();
+        D3D12_CPU_DESCRIPTOR_HANDLE getD3DView() { return view_; }
     };
 }
 

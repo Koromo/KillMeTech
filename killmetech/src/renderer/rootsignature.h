@@ -51,10 +51,10 @@ namespace killme
 
     public:
         /** Construct with a Direct3D root signature */
-        explicit RootSignature(ID3D12RootSignature* rootSignature);
+        explicit RootSignature(ID3D12RootSignature* rootSignature) : rootSignature_(makeComUnique(rootSignature)) {}
 
         /** Returns Direct3D root signature */
-        ID3D12RootSignature* getD3DRootSignature();
+        ID3D12RootSignature* getD3DRootSignature() { return rootSignature_.get(); }
     };
 }
 

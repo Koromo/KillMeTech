@@ -12,7 +12,7 @@ namespace killme
     {
     public:
         /** Construct with a message */
-        explicit WindowsException(const std::string& msg);
+        explicit WindowsException(const std::string& msg) : Exception(msg) {}
     };
 
     namespace detail

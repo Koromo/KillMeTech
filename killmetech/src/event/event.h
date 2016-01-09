@@ -13,13 +13,13 @@ namespace killme
 
     public:
         /** Construct with a event type */
-        explicit Event(const std::string& type);
+        explicit Event(const std::string& type) : type_(type) {}
 
         /** For drived classes */
         virtual ~Event() = default;
 
         /** Returns event type */
-        std::string getType() const;
+        std::string getType() const { return type_; }
     };
 }
 
