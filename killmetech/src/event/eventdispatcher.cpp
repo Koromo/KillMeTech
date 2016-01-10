@@ -26,7 +26,7 @@ namespace killme
 
     void EventDispatcher::dispatch(const Event& e)
     {
-        auto range = hookMap_.equal_range(toLowers(e.getType()));
+        auto range = hookMap_.equal_range(toLowers(eventType(e)));
         while (range.first != range.second)
         {
             range.first->second->onEvent(e);

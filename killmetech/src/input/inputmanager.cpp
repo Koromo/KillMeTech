@@ -1,5 +1,6 @@
 #include "inputmanager.h"
-#include "keyevent.h"
+#include "keyevents.h"
+#include "../event/event.h"
 #include "../event/eventdispatcher.h"
 #include <cassert>
 
@@ -73,7 +74,9 @@ namespace killme
             if (!keyStatus_[i])
             {
                 keyStatus_[i] = true;
-                dispatcher.dispatch(KeyPressed(key));
+                Event keyPressed(keyEvents::keyPressed, 1);
+                keyPressed[0] = key;
+                dispatcher.dispatch(keyPressed);
             }
         }
         else if (msg == WM_KEYUP || msg == WM_SYSKEYUP)
@@ -82,7 +85,9 @@ namespace killme
             if (keyStatus_[i])
             {
                 keyStatus_[i] = false;
-                dispatcher.dispatch(KeyReleased(key));
+                Event keyReleased(keyEvents::keyReleased, 1);
+                keyReleased[0] = key;
+                dispatcher.dispatch(keyReleased);
             }
         }
         else

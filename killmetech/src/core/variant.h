@@ -139,7 +139,7 @@ namespace killme
 /** swap functions */
 namespace killme
 {
-    void swap(killme::Variant& a, killme::Variant& b) noexcept
+    inline void swap(killme::Variant& a, killme::Variant& b) noexcept
     {
         a.swap(b);
     }
@@ -148,7 +148,7 @@ namespace killme
 namespace std
 {
     template<>
-    void swap(killme::Variant& a, killme::Variant& b) noexcept
+    inline void swap(killme::Variant& a, killme::Variant& b) noexcept
     {
         a.swap(b);
     }

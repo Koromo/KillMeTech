@@ -90,7 +90,7 @@
     <ClCompile Include="src\core\exception.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\keyevent.cpp">
+    <ClCompile Include="src\input\keyevents.cpp">
       <Filter>src\input</Filter>
     </ClCompile>
   </ItemGroup>
@@ -120,9 +120,6 @@
       <Filter>src\event</Filter>
     </ClInclude>
     <ClInclude Include="src\input\keycode.h">
-      <Filter>src\input</Filter>
-    </ClInclude>
-    <ClInclude Include="src\input\keyevent.h">
       <Filter>src\input</Filter>
     </ClInclude>
     <ClInclude Include="src\windows\console.h">
@@ -199,6 +196,9 @@
     </ClInclude>
     <ClInclude Include="src\core\variant.h">
       <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\input\keyevents.h">
+      <Filter>src\input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
