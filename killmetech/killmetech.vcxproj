@@ -54,6 +54,7 @@
     <ClInclude Include="src\core\math\vector3.h" />
     <ClInclude Include="src\core\range.h" />
     <ClInclude Include="src\core\string.h" />
+    <ClInclude Include="src\core\variant.h" />
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />
     <ClInclude Include="src\event\eventdispatcher.h" />

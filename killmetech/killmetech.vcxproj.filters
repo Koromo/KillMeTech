@@ -197,5 +197,8 @@
     <ClInclude Include="src\renderer\rendersystem.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\variant.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
