@@ -24,8 +24,6 @@ namespace killme
         KeyCode getKey() const { return key_; }
     };
 
-    const std::string KeyPressed::eventType = "KeyPressed";
-
 	/** Key Released event */
 	class KeyReleased : public Event
 	{
@@ -42,8 +40,6 @@ namespace killme
 		/** Returns pressed key */
         KeyCode getKey() const { return key_; }
 	};
-
-    const std::string KeyReleased::eventType = "KeyReleased";
 }
 
 #endif

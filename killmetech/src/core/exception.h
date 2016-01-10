@@ -33,8 +33,6 @@ namespace killme
             ScopeExit(std::function<void()> fun) : fun_(fun) {}
             ~ScopeExit() { fun_(); }
         };
-
-        std::function<void()> ScopeExit::relay;
     }
 
     /** Returns "value" if it is not 0 object, Otherwise throw exception "E" */

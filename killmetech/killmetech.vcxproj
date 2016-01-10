@@ -22,6 +22,7 @@
     <ClCompile Include="src\audio\audioclip.cpp" />
     <ClCompile Include="src\audio\audioengine.cpp" />
     <ClCompile Include="src\audio\sourcevoice.cpp" />
+    <ClCompile Include="src\core\exception.cpp" />
     <ClCompile Include="src\core\math\color.cpp" />
     <ClCompile Include="src\core\math\math.cpp" />
     <ClCompile Include="src\core\math\matrix44.cpp" />
@@ -32,19 +33,12 @@
     <ClCompile Include="src\event\eventdispatcher.cpp" />
     <ClCompile Include="src\input\inputmanager.cpp" />
     <ClCompile Include="src\input\keycode.cpp" />
+    <ClCompile Include="src\input\keyevent.cpp" />
     <ClCompile Include="src\renderer\commandlist.cpp" />
     <ClCompile Include="src\renderer\rendersystem.cpp" />
     <ClCompile Include="src\renderer\rootsignature.cpp" />
     <ClCompile Include="src\renderer\vertexdata.cpp" />
     <ClCompile Include="src\renderer\vertexshader.cpp" />
-    <ClCompile Include="src\scene\camera.cpp" />
-    <ClCompile Include="src\scene\material.cpp" />
-    <ClCompile Include="src\scene\mesh.cpp" />
-    <ClCompile Include="src\scene\meshentity.cpp" />
-    <ClCompile Include="src\scene\scene.cpp" />
-    <ClCompile Include="src\scene\sceneentity.cpp" />
-    <ClCompile Include="src\scene\scenemanager.cpp" />
-    <ClCompile Include="src\scene\scenenode.cpp" />
     <ClCompile Include="src\windows\console.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -80,14 +74,6 @@
     <ClInclude Include="src\renderer\shader.h" />
     <ClInclude Include="src\renderer\vertexdata.h" />
     <ClInclude Include="src\renderer\vertexshader.h" />
-    <ClInclude Include="src\scene\camera.h" />
-    <ClInclude Include="src\scene\material.h" />
-    <ClInclude Include="src\scene\mesh.h" />
-    <ClInclude Include="src\scene\meshentity.h" />
-    <ClInclude Include="src\scene\scene.h" />
-    <ClInclude Include="src\scene\sceneentity.h" />
-    <ClInclude Include="src\scene\scenemanager.h" />
-    <ClInclude Include="src\scene\scenenode.h" />
     <ClInclude Include="src\windows\console.h" />
     <ClInclude Include="src\windows\winsupport.h" />
   </ItemGroup>
