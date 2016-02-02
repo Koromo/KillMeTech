@@ -14,10 +14,8 @@ namespace killme
         static const std::string model;
 
         /** Construct with a byte code */
-        explicit PixelShader(ID3DBlob* byteCode) : BasicShader(byteCode) {}
+        explicit PixelShader(ID3DBlob* byteCode);
     };
-
-    const std::string PixelShader::model = "ps_5_0";
 }
 
 #endif

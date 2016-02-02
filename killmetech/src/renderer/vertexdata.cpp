@@ -1,5 +1,5 @@
 #include "vertexdata.h"
-#include "vertexshader.h"
+#include "inputlayout.h"
 #include <cassert>
 
 namespace killme
@@ -42,20 +42,20 @@ namespace killme
         indexBuffer_ = indices;
     }
 
-    VertexBinder VertexData::getBinder(const std::shared_ptr<const VertexShader>& shader)
+    VertexBinder VertexData::getBinder(const std::shared_ptr<InputLayout>& layout)
     {
         // Collect vertex buffer views by input layout
-        const auto inputLayout = shader->getD3DInputLayout();
+        const auto d3dLayout = layout->getD3DLayout();
 
         VertexBinder binder;
-        binder.numViews = inputLayout.NumElements;
-        binder.views.resize(inputLayout.NumElements);
+        binder.numViews = d3dLayout.NumElements;
+        binder.views.resize(d3dLayout.NumElements);
 
-        for (size_t i = 0; i < inputLayout.NumElements; ++i)
+        for (size_t i = 0; i < d3dLayout.NumElements; ++i)
         {
             // Find right buffer view by semantic
-            const auto semanticName = inputLayout.pInputElementDescs[i].SemanticName;
-            const auto semanticIndex = inputLayout.pInputElementDescs[i].SemanticIndex;
+            const auto semanticName = d3dLayout.pInputElementDescs[i].SemanticName;
+            const auto semanticIndex = d3dLayout.pInputElementDescs[i].SemanticIndex;
 
             bool found = false;
             for (const auto& vertices : vertexBuffers_)

@@ -4,17 +4,18 @@
 #include "shader.h"
 #include <d3d12.h>
 #include <d3dcompiler.h>
-#include <vector>
+#include <memory>
 
 namespace killme
 {
+    class InputLayout;
+
     /** Vertex shader */
     class VertexShader : public BasicShader
     {
     private:
         ComUniquePtr<ID3D12ShaderReflection> reflection_;
-        std::vector<D3D12_INPUT_ELEMENT_DESC> inputElems_;
-        D3D12_INPUT_LAYOUT_DESC inputLayout_;
+        std::shared_ptr<InputLayout> inputLayout_;
 
     public:
         /** Shader model definition */
@@ -23,9 +24,9 @@ namespace killme
         /** Construct with a byte code */
         explicit VertexShader(ID3DBlob* byteCode);
 
-        /** Returns Direct3D input layout */
+        /** Returns input layout */
         /// NOTE: Input slot start from 0
-        D3D12_INPUT_LAYOUT_DESC getD3DInputLayout() const;
+        std::shared_ptr<InputLayout> getInputLayout() const;
     };
 }
 

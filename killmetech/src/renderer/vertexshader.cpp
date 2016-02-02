@@ -1,4 +1,5 @@
 #include "vertexshader.h"
+#include "inputlayout.h"
 #include "d3dsupport.h"
 #include "../core/exception.h"
 #include <vector>
@@ -23,7 +24,6 @@ namespace killme
     VertexShader::VertexShader(ID3DBlob* byteCode)
         : BasicShader(byteCode)
         , reflection_()
-        , inputElems_()
         , inputLayout_()
     {
         // Get shader reflection
@@ -38,7 +38,7 @@ namespace killme
             "Failed to get shader description.");
 
         // Build input layout
-        inputElems_.resize(shaderDesc.InputParameters);
+        std::vector<D3D12_INPUT_ELEMENT_DESC> elems(shaderDesc.InputParameters);
 
         for (size_t i = 0; i < shaderDesc.InputParameters; ++i)
         {
@@ -46,20 +46,19 @@ namespace killme
             enforce<Direct3DException>(SUCCEEDED(reflection->GetInputParameterDesc(i, &param)),
                 "Failed to get shader input parameter description.");
 
-            inputElems_[i].SemanticName = param.SemanticName;
-            inputElems_[i].SemanticIndex = param.SemanticIndex;
-            inputElems_[i].Format = vertexFormat(param.SemanticName);
-            inputElems_[i].InputSlot = i;
-            inputElems_[i].AlignedByteOffset = 0;
-            inputElems_[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-            inputElems_[i].InstanceDataStepRate = 0;
+            elems[i].SemanticName = param.SemanticName;
+            elems[i].SemanticIndex = param.SemanticIndex;
+            elems[i].Format = vertexFormat(param.SemanticName);
+            elems[i].InputSlot = i;
+            elems[i].AlignedByteOffset = 0;
+            elems[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+            elems[i].InstanceDataStepRate = 0;
         }
 
-        inputLayout_.pInputElementDescs = inputElems_.data();
-        inputLayout_.NumElements = shaderDesc.InputParameters;
+        inputLayout_ = std::make_shared<InputLayout>(std::move(elems));
     }
 
-    D3D12_INPUT_LAYOUT_DESC VertexShader::getD3DInputLayout() const
+    std::shared_ptr<InputLayout> VertexShader::getInputLayout() const
     {
         return inputLayout_;
     }

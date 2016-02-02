@@ -9,7 +9,7 @@
 
 namespace killme
 {
-    class VertexShader;
+    class InputLayout;
 
     /** Vertex buffer */
     class VertexBuffer
@@ -76,7 +76,7 @@ namespace killme
         void setIndices(const std::shared_ptr<IndexBuffer>& indices);
 
         /** Returns vertex binder */
-        VertexBinder getBinder(const std::shared_ptr<const VertexShader>& shader);
+        VertexBinder getBinder(const std::shared_ptr<InputLayout>& layout);
 
         /** Returns index buffer */
         std::shared_ptr<IndexBuffer> getIndexBuffer();

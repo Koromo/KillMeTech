@@ -93,6 +93,9 @@
     <ClCompile Include="src\input\keyevents.cpp">
       <Filter>src\input</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\pixelshader.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -199,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="src\input\keyevents.h">
       <Filter>src\input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\inputlayout.h">
+      <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

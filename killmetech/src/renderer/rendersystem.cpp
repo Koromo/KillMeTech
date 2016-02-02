@@ -7,6 +7,7 @@
 #include "pipelinestate.h"
 #include "vertexshader.h"
 #include "pixelshader.h"
+#include "inputlayout.h"
 #include "commandlist.h"
 #include "d3dsupport.h"
 #include "../core/exception.h"
@@ -333,7 +334,7 @@ namespace killme
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dStateDesc;
         ZeroMemory(&d3dStateDesc, sizeof(d3dStateDesc));
-        d3dStateDesc.InputLayout = stateDesc.vertexShader->getD3DInputLayout();
+        d3dStateDesc.InputLayout = stateDesc.vertexShader->getInputLayout()->getD3DLayout();
         d3dStateDesc.pRootSignature = stateDesc.rootSignature->getD3DRootSignature();
         d3dStateDesc.VS = {stateDesc.vertexShader->getByteCode(), stateDesc.vertexShader->getByteCodeSize()};
         d3dStateDesc.PS = {stateDesc.pixelShader->getByteCode(), stateDesc.pixelShader->getByteCodeSize()};
