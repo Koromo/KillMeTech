@@ -1,7 +1,7 @@
 #ifndef _KILLME_RENDERSYSTEM_H_
 #define _KILLME_RENDERSYSTEM_H_
 
-#include "resourceheap.h"
+#include "gpuresourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -34,9 +34,9 @@ namespace killme
         ComUniquePtr<IDXGISwapChain3> swapChain_;
 
         size_t frameIndex_;
-        std::shared_ptr<ResourceHeap> renderTargetHeap_;
+        std::shared_ptr<GpuResourceHeap> renderTargetHeap_;
         std::array<std::shared_ptr<RenderTarget>, NUM_BACK_BUFFERS> renderTargets_;
-        std::shared_ptr<ResourceHeap> depthStencilHeap_;
+        std::shared_ptr<GpuResourceHeap> depthStencilHeap_;
         std::shared_ptr<DepthStencil> depthStencil_;
 
         ComUniquePtr<ID3D12Fence> fence_;
@@ -62,8 +62,8 @@ namespace killme
         /** Creates a constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t dataSize);
 
-        /** Creates a resource heap */
-        std::shared_ptr<ResourceHeap> createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag);
+        /** Creates a gpu resource heap */
+        std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag);
 
 		/** Creates a root signature */
         std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
@@ -76,7 +76,7 @@ namespace killme
 
         /** Stores a resource to resource heap */
         template <class Resource>
-        void storeResource(const std::shared_ptr<ResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
+        void storeResource(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
         {
             const auto d3dHeap = heap->getD3DHeap();
             const auto heapType = heap->getType();

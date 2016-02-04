@@ -11,7 +11,7 @@ namespace killme
     class RenderSystem;
     class CommandList;
     class ConstantBuffer;
-    class ResourceHeap;
+    class GpuResourceHeap;
 
     /** Scene manager */
     class SceneManager
@@ -23,7 +23,7 @@ namespace killme
         ScissorRect scissorRect_;
         std::shared_ptr<ConstantBuffer> viewProjMatBuffer_;
         std::shared_ptr<ConstantBuffer> worldMatBuffer_;
-        std::shared_ptr<ResourceHeap> transMatrixHeap_;
+        std::shared_ptr<GpuResourceHeap> transMatrixHeap_;
         std::shared_ptr<SceneNode> rootNode_;
 
     public:

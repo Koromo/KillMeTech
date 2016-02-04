@@ -3,7 +3,6 @@
 #include "depthstencil.h"
 #include "vertexdata.h"
 #include "constantbuffer.h"
-#include "resourceheap.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
 #include "vertexshader.h"
@@ -104,7 +103,7 @@ namespace killme
         frameIndex_ = swapChain_->GetCurrentBackBufferIndex();
 
         // Create render targets
-        renderTargetHeap_ = createResourceHeap(NUM_BACK_BUFFERS, ResourceHeapType::renderTarget, ResourceHeapFlag::none);
+        renderTargetHeap_ = createGpuResourceHeap(NUM_BACK_BUFFERS, ResourceHeapType::renderTarget, ResourceHeapFlag::none);
         for (UINT i = 0; i < NUM_BACK_BUFFERS; ++i)
         {
             ID3D12Resource* renderTarget;
@@ -116,7 +115,7 @@ namespace killme
         }
 
         // Create a depth stencil
-        depthStencilHeap_ = createResourceHeap(1, ResourceHeapType::depthStencil, ResourceHeapFlag::none);
+        depthStencilHeap_ = createGpuResourceHeap(1, ResourceHeapType::depthStencil, ResourceHeapFlag::none);
 
         const auto defaultHeapProps = getD3DDefaultHeapProps();
         const auto depthStencilDesc = describeD3DTex2D(clientWidth, clientHeight, DEPTH_STENCIL_FORMAT, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -257,7 +256,7 @@ namespace killme
         }
     }
 
-    std::shared_ptr<ResourceHeap> RenderSystem::createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag)
+    std::shared_ptr<GpuResourceHeap> RenderSystem::createGpuResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
@@ -270,7 +269,7 @@ namespace killme
             SUCCEEDED(device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
             "Failed to create descripter heap.");
 
-        return std::make_shared<ResourceHeap>(heap);
+        return std::make_shared<GpuResourceHeap>(heap);
     }
 
     std::shared_ptr<RootSignature> RenderSystem::createRootSignature(RootSignatureDescription& desc)

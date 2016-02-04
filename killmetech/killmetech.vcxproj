@@ -72,7 +72,7 @@
     <ClInclude Include="src\renderer\depthstencil.h" />
     <ClInclude Include="src\renderer\inputlayout.h" />
     <ClInclude Include="src\renderer\pipelinestate.h" />
-    <ClInclude Include="src\renderer\resourceheap.h" />
+    <ClInclude Include="src\renderer\gpuresourceheap.h" />
     <ClInclude Include="src\renderer\pixelshader.h" />
     <ClInclude Include="src\renderer\renderstate.h" />
     <ClInclude Include="src\renderer\rendersystem.h" />

@@ -161,9 +161,6 @@
     <ClInclude Include="src\renderer\renderstate.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\rendertarget.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\rootsignature.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
@@ -177,9 +174,6 @@
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\vertexdata.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\resourceheap.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\constantbuffer.h">
@@ -247,6 +241,12 @@
     </ClInclude>
     <ClInclude Include="src\audio\audiomanager.h">
       <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\gpuresourceheap.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rendertarget.h">
+      <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

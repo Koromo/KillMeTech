@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "material.h"
 #include "../renderer/rendersystem.h"
-#include "../renderer/resourceheap.h"
+#include "../renderer/gpuresourceheap.h"
 #include "../renderer/constantbuffer.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/rendertarget.h"
@@ -50,7 +50,7 @@ namespace killme
         commandList_ = renderSystem_->createCommandList();
         viewProjMatBuffer_ = renderSystem_->createConstantBuffer(sizeof(ViewProjMatData));
         worldMatBuffer_ = renderSystem_->createConstantBuffer(sizeof(Matrix44));
-        transMatrixHeap_ = renderSystem_->createResourceHeap(2, ResourceHeapType::constantBuffer, ResourceHeapFlag::shaderVisible);
+        transMatrixHeap_ = renderSystem_->createGpuResourceHeap(2, ResourceHeapType::constantBuffer, ResourceHeapFlag::shaderVisible);
         renderSystem_->storeResource(transMatrixHeap_, 0, viewProjMatBuffer_);
         renderSystem_->storeResource(transMatrixHeap_, 1, worldMatBuffer_);
 
@@ -159,8 +159,8 @@ namespace killme
             commandList_->setRootSignature(rootSignature);
 
             const auto heaps = { transMatrixHeap_ };
-            commandList_->setResourceHeaps(makeRange(heaps), 1);
-            commandList_->setResourceTable(0, transMatrixHeap_);
+            commandList_->setGpuResourceHeaps(makeRange(heaps), 1);
+            commandList_->setGpuResourceTable(0, transMatrixHeap_);
 
             commandList_->drawIndexed(indexBuffer->getNumIndices());
             commandList_->resourceBarrior(renderTarget, ResourceState::renderTarget, ResourceState::present);
