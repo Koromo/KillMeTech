@@ -36,9 +36,6 @@
     <ClCompile Include="src\audio\audioclip.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
-    <ClCompile Include="src\audio\audioengine.cpp">
-      <Filter>src\audio</Filter>
-    </ClCompile>
     <ClCompile Include="src\audio\sourcevoice.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
@@ -108,6 +105,9 @@
     <ClCompile Include="src\renderer\d3dsupport.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\audio\audiomanager.cpp">
+      <Filter>src\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -145,9 +145,6 @@
     </ClInclude>
     <ClInclude Include="src\event\eventhook.h">
       <Filter>src\event</Filter>
-    </ClInclude>
-    <ClInclude Include="src\audio\audioengine.h">
-      <Filter>src\audio</Filter>
     </ClInclude>
     <ClInclude Include="src\input\inputmanager.h">
       <Filter>src\input</Filter>
@@ -247,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="src\renderer\depthstencil.h">
       <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audiomanager.h">
+      <Filter>src\audio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

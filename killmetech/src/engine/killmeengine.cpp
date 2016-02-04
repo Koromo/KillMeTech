@@ -1,7 +1,7 @@
 #include "killmeengine.h"
 #include "../windows/winsupport.h"
 #include "../core/exception.h"
-#include "../audio/audioengine.h"
+#include "../audio/audiomanager.h"
 #include "../input/inputmanager.h"
 #include "../event/eventdispatcher.h"
 #include "../scene/scenemanager.h"
@@ -11,7 +11,7 @@ namespace killme
     KillMeEngine::KillMeEngine(size_t width, size_t height, const tstring& title)
         : window_(nullptr, DestroyWindow)
         , quit_(false)
-        , audioEngine_()
+        , audioManager_()
         , inputManager_()
         , eventDispatcher_()
         , sceneManager_()
@@ -58,7 +58,7 @@ namespace killme
         window_.reset(window);
 
         // Initialize audio system
-        audioEngine_ = std::make_shared<AudioEngine>();
+        audioManager_ = std::make_shared<AudioManager>();
 
         // Initialize input system
         inputManager_ = std::make_shared<InputManager>();
@@ -73,7 +73,7 @@ namespace killme
     KillMeEngine::~KillMeEngine()
     {
         sceneManager_.reset();
-        audioEngine_.reset();
+        audioManager_.reset();
         inputManager_.reset();
         eventDispatcher_.reset();
         window_.reset();
@@ -114,9 +114,9 @@ namespace killme
         PostMessage(window_.get(), WM_CLOSE, 0, 0);
     }
 
-    std::shared_ptr<AudioEngine> KillMeEngine::getAudioEngine()
+    std::shared_ptr<AudioManager> KillMeEngine::getAudioManager()
     {
-        return audioEngine_;
+        return audioManager_;
     }
 
     std::shared_ptr<EventDispatcher> KillMeEngine::getEventDispatcher()

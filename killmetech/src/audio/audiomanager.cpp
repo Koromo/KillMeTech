@@ -1,10 +1,10 @@
-#include "audioengine.h"
+#include "audiomanager.h"
 #include "../core/exception.h"
 #include "sourcevoice.h"
 
 namespace killme
 {
-    AudioEngine::AudioEngine()
+    AudioManager::AudioManager()
     {
         // Initialize COM
         enforce<XAudioException>(
@@ -28,7 +28,7 @@ namespace killme
         masteringVoice_ = makeVoiceUnique(masteringVoice);
     }
     
-    AudioEngine::~AudioEngine()
+    AudioManager::~AudioManager()
     {
         xAudio_->StopEngine();
         masteringVoice_.reset();
@@ -36,7 +36,7 @@ namespace killme
         CoUninitialize();
     }
     
-    std::shared_ptr<SourceVoice> AudioEngine::createSourceVoice(const std::shared_ptr<const AudioClip>& clip)
+    std::shared_ptr<SourceVoice> AudioManager::createSourceVoice(const std::shared_ptr<const AudioClip>& clip)
     {
         return std::make_shared<SourceVoice>(xAudio_, clip);
     }

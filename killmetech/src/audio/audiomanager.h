@@ -1,5 +1,5 @@
-#ifndef _KILLME_AUDIOENGINE_H_
-#define _KILLME_AUDIOENGINE_H_
+#ifndef _KILLME_AUDIOMANAGER_H_
+#define _KILLME_AUDIOMANAGER_H_
 
 #include "../windows/winsupport.h"
 #include "xaudiosupport.h"
@@ -12,20 +12,20 @@ namespace killme
     class SourceVoice;
 
     /** Audio core class */
-    class AudioEngine
+    class AudioManager
     {
     private:
         ComSharedPtr<IXAudio2> xAudio_;
         VoiceUniquePtr<IXAudio2MasteringVoice> masteringVoice_;
 
     public:
-        /** Startup audio engine */
-        AudioEngine();
+        /** Startups audio manager */
+        AudioManager();
 
-        /** Shutdown audio engine */
-        ~AudioEngine();
+        /** Shutdowns audio manager */
+        ~AudioManager();
 
-        /** Create source voice */
+        /** Creates source voice */
         std::shared_ptr<SourceVoice> createSourceVoice(const std::shared_ptr<const AudioClip>& clip);
     };
 }

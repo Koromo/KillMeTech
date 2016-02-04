@@ -9,7 +9,7 @@ namespace killme
 {
     class AudioClip;
 
-    /** Transmit audio data to audio device for playing audio */
+    /** Transmit an audio data to an audio device */
     class SourceVoice
     {
     private:
@@ -31,19 +31,19 @@ namespace killme
         bool isPlaying_;
 
     public:
-        /** Construct with a audio clip */
+        /** Constructs with a audio clip */
         SourceVoice(const std::weak_ptr<IXAudio2>& xAudio, const std::shared_ptr<const AudioClip>& clip);
 
-        /** Destruct */
+        /** Destructs */
         ~SourceVoice();
 
-        /** Play audio at once */
+        /** Plays audio at once */
         void play();
 
-        /** Stop audio */
+        /** Stops audio */
         void stop();
 
-        /** Pause audio */
+        /** Pauses audio */
         void pause();
 
         /** Returns true if audio is playing now */

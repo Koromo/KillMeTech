@@ -10,7 +10,7 @@
 namespace killme
 {
     class Console;
-    class AudioEngine;
+    class AudioManager;
     class InputManager;
     class EventDispatcher;
     class SceneManager;
@@ -23,7 +23,7 @@ namespace killme
         bool quit_;
 
         // Subsystems
-        std::shared_ptr<AudioEngine> audioEngine_;
+        std::shared_ptr<AudioManager> audioManager_;
         std::shared_ptr<InputManager> inputManager_;
         std::shared_ptr<EventDispatcher> eventDispatcher_;
         std::shared_ptr<SceneManager> sceneManager_;
@@ -42,7 +42,7 @@ namespace killme
         void quit();
 
         /** Returns audio engine */
-        std::shared_ptr<AudioEngine> getAudioEngine();
+        std::shared_ptr<AudioManager> getAudioManager();
 
         /** Returns event dispatcher */
         std::shared_ptr<EventDispatcher> getEventDispatcher();

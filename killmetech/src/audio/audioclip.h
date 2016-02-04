@@ -7,7 +7,7 @@
 
 namespace killme
 {
-    /** Audio clip abstruction */
+    /** Audio clip */
     class AudioClip
     {
     private:
@@ -16,10 +16,10 @@ namespace killme
         WAVEFORMATEX format_;
 
     public:
-        /** Construct with audio data */
+        /** Constructs with audio data */
         AudioClip(const unsigned char* data, size_t size, const WAVEFORMATEX& format);
 
-        /** Returns audio data */
+        /** Returns an audio data */
         const unsigned char* getData() const;
 
         /** Returns size[byte] of audio data */
@@ -29,7 +29,7 @@ namespace killme
         WAVEFORMATEX getFormat() const;
     };
 
-    /** Load audio from file */
+    /** Load an audio from file */
     std::shared_ptr<AudioClip> loadAudio(const tstring& filename);
 }
 
