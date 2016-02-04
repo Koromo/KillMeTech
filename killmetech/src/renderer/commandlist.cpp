@@ -1,5 +1,6 @@
 #include "commandlist.h"
 #include "rendertarget.h"
+#include "depthstencil.h"
 #include "vertexdata.h"
 #include "rootsignature.h"
 #include "renderstate.h"
@@ -21,10 +22,17 @@ namespace killme
         list_->ClearRenderTargetView(renderTarget->getD3DView(), rgba, 0, nullptr);
     }
 
-    void CommandList::setRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget)
+    void CommandList::clearDepthStencil(const std::shared_ptr<DepthStencil>& depthStencil, float depth)
     {
-        const auto view = renderTarget->getD3DView();
-        list_->OMSetRenderTargets(1, &view, FALSE, nullptr);
+        list_->ClearDepthStencilView(depthStencil->getD3DView(), D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
+    }
+
+    void CommandList::setRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const std::shared_ptr<DepthStencil>& depthStencil)
+    {
+        const auto rtv = renderTarget->getD3DView();
+        const auto dsv = depthStencil->getD3DView();
+
+        list_->OMSetRenderTargets(1, &rtv, TRUE, &dsv);
     }
 
     namespace
@@ -45,11 +53,6 @@ namespace killme
     void CommandList::setPrimitiveTopology(PrimitiveTopology pt)
     {
         list_->IASetPrimitiveTopology(toD3DPrimitiveTopology(pt));
-    }
-
-    void CommandList::setVertexBuffers(const VertexBinder& binder)
-    {
-        list_->IASetVertexBuffers(0, binder.numViews, binder.views.data());
     }
 
     void CommandList::setIndexBuffer(const std::shared_ptr<IndexBuffer>& buffer)

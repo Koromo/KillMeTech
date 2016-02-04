@@ -1,6 +1,7 @@
-#ifndef _RENDERER_RENDERSYSTEM_H_
-#define _RENDERER_RENDERSYSTEM_H_
+#ifndef _KILLME_RENDERSYSTEM_H_
+#define _KILLME_RENDERSYSTEM_H_
 
+#include "resourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -11,10 +12,10 @@
 namespace killme
 {
     class RenderTarget;
+    class DepthStencil;
     class VertexBuffer;
     class IndexBuffer;
     class ConstantBuffer;
-    class ResourceHeap;
     class RootSignatureDescription;
     class RootSignature;
     struct PipelineStateDescription;
@@ -31,10 +32,13 @@ namespace killme
         ComUniquePtr<ID3D12CommandQueue> commandQueue_;
         ComUniquePtr<ID3D12CommandAllocator> commandAllocator_;
         ComUniquePtr<IDXGISwapChain3> swapChain_;
+
         size_t frameIndex_;
-        ComUniquePtr<ID3D12DescriptorHeap> rtvHeap_;
-        size_t rtvSize_;
+        std::shared_ptr<ResourceHeap> renderTargetHeap_;
         std::array<std::shared_ptr<RenderTarget>, NUM_BACK_BUFFERS> renderTargets_;
+        std::shared_ptr<ResourceHeap> depthStencilHeap_;
+        std::shared_ptr<DepthStencil> depthStencil_;
+
         ComUniquePtr<ID3D12Fence> fence_;
         HANDLE fenceEvent_;
         UINT64 fenceValue_;
@@ -46,6 +50,9 @@ namespace killme
         /** Returns current back buffer */
         std::shared_ptr<RenderTarget> getCurrentBackBuffer();
 
+        /** Returns depth stencil */
+        std::shared_ptr<DepthStencil> getDepthStencil();
+
 		/** Create vertex buffer */
         std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
 
@@ -56,7 +63,7 @@ namespace killme
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t dataSize);
 
         /** Create resource heap */
-        std::shared_ptr<ResourceHeap> createResourceHeap(size_t numResources);
+        std::shared_ptr<ResourceHeap> createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag);
 
 		/** Create root signature */
         std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
@@ -68,7 +75,18 @@ namespace killme
         std::shared_ptr<CommandList> createCommandList();
 
         /** Store resource to resource heap */
-        void storeResource(const std::shared_ptr<ConstantBuffer>& resource, const std::shared_ptr<ResourceHeap>& heap, size_t i);
+        template <class Resource>
+        void storeResource(const std::shared_ptr<ResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
+        {
+            const auto d3dHeap = heap->getD3DHeap();
+            const auto heapType = heap->getType();
+            const auto offset = device_->GetDescriptorHandleIncrementSize(heapType) * i;
+
+            auto location = d3dHeap->GetCPUDescriptorHandleForHeapStart();
+            location.ptr += offset;
+
+            resource->createView(device_.get(), location);
+        }
 
 		/** Start record commands */
         void startCommandRecording();

@@ -8,6 +8,19 @@ namespace killme
 {
     class ConstantBuffer;
 
+    enum class ResourceHeapType
+    {
+        renderTarget,
+        depthStencil,
+        constantBuffer
+    };
+
+    enum class ResourceHeapFlag
+    {
+        shaderVisible,
+        none,
+    };
+
     /// TODO: Now, Resource heap used by only constant buffer
     /** Resource heap */
     class ResourceHeap

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertexdata.h"
 #include "resourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -8,10 +9,8 @@
 namespace killme
 {
     class RenderTarget;
+    class DepthStencil;
     class Color;
-    enum class PrimitiveTopology;
-    struct VertexBinder;
-    class IndexBuffer;
     class RootSignature;
     struct Viewport;
     struct ScissorRect;
@@ -30,14 +29,21 @@ namespace killme
         /** Command of clear render target */
         void clearRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const Color& c);
 
-        /** Comand of set render target */
-        void setRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget);
+        /** Command of clear depth stencil */
+        void clearDepthStencil(const std::shared_ptr<DepthStencil>& depthStencil, float depth);
+
+        /** Comand of set render target and depth stencil */
+        void setRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const std::shared_ptr<DepthStencil>& depthStencil);
 
         /** Command of set primitive topology */
         void setPrimitiveTopology(PrimitiveTopology pt);
 
         /** Command of set vertex buffers */
-        void setVertexBuffers(const VertexBinder& binder);
+        template <class Views>
+        void setVertexBuffers(const VertexBinder<Views>& binder)
+        {
+            list_->IASetVertexBuffers(0, binder.numViews, binder.views.data());
+        }
 
         /** Command of set index buffer */
         void setIndexBuffer(const std::shared_ptr<IndexBuffer>& buffer);

@@ -23,9 +23,9 @@ namespace killme
 
     public:
         /** Construct */
-        RenderTarget(ID3D12Resource* renderTarget, D3D12_CPU_DESCRIPTOR_HANDLE view)
+        explicit RenderTarget(ID3D12Resource* renderTarget)
             : renderTarget_(makeComUnique(renderTarget))
-            , view_(view)
+            , view_()
         {
         }
 
@@ -34,6 +34,13 @@ namespace killme
 
         /** Returns Direct3D view */
         D3D12_CPU_DESCRIPTOR_HANDLE getD3DView() { return view_; }
+
+        /** Store resource to heap */
+        void createView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
+        {
+            device->CreateRenderTargetView(renderTarget_.get(), nullptr, location);
+            view_ = location;
+        }
     };
 }
 

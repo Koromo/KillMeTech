@@ -1,5 +1,6 @@
 #include "rendersystem.h"
 #include "rendertarget.h"
+#include "depthstencil.h"
 #include "vertexdata.h"
 #include "constantbuffer.h"
 #include "resourceheap.h"
@@ -16,15 +17,21 @@
 
 namespace killme
 {
+    namespace
+    {
+        const DXGI_FORMAT DEPTH_STENCIL_FORMAT = DXGI_FORMAT_D16_UNORM;
+    }
+
     RenderSystem::RenderSystem(HWND window)
         : device_()
         , commandQueue_()
         , commandAllocator_()
         , swapChain_()
         , frameIndex_()
-        , rtvHeap_()
-        , rtvSize_()
+        , renderTargetHeap_()
         , renderTargets_()
+        , depthStencilHeap_()
+        , depthStencil_()
         , fence_()
         , fenceEvent_()
         , fenceValue_()
@@ -90,31 +97,35 @@ namespace killme
 
         frameIndex_ = swapChain_->GetCurrentBackBufferIndex();
 
-        // Create the descripter heap for render target views
-        D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-        ZeroMemory(&rtvHeapDesc, sizeof(rtvHeapDesc));
-        rtvHeapDesc.NumDescriptors = NUM_BACK_BUFFERS;
-        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-
-        ID3D12DescriptorHeap* rtvHeap;
-        enforce<Direct3DException>(SUCCEEDED(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap))),
-            "Failed to create descripter heap of render target view.");
-        rtvHeap_ = makeComUnique(rtvHeap);
-        rtvSize_ = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-        // Create render target views
-        auto rtv = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+        // Create render targets and depth stencil
+        renderTargetHeap_ = createResourceHeap(NUM_BACK_BUFFERS, ResourceHeapType::renderTarget, ResourceHeapFlag::none);
         for (UINT i = 0; i < NUM_BACK_BUFFERS; ++i)
         {
             ID3D12Resource* renderTarget;
             enforce<Direct3DException>(SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTarget))),
                 "Failed to get back buffer.");
-            device->CreateRenderTargetView(renderTarget, nullptr, rtv);
-
-            renderTargets_[i] = std::make_shared<RenderTarget>(renderTarget, rtv);
-            rtv.ptr += rtvSize_;
+            renderTargets_[i] = std::make_shared<RenderTarget>(renderTarget);
+            storeResource(renderTargetHeap_, i, renderTargets_[i]);
         }
+
+        depthStencilHeap_ = createResourceHeap(1, ResourceHeapType::depthStencil, ResourceHeapFlag::none);
+
+        const auto defaultHeapProps = getD3DDefaultHeapProps();
+        const auto depthStencilDesc = describeD3DTex2D(clientWidth, clientHeight, DEPTH_STENCIL_FORMAT, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+
+        D3D12_CLEAR_VALUE dsClearValue;
+        dsClearValue.Format = DEPTH_STENCIL_FORMAT;
+        dsClearValue.DepthStencil.Depth = 1.0f;
+        dsClearValue.DepthStencil.Stencil = 0;
+
+        ID3D12Resource* depthStencil;
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &depthStencilDesc,
+                D3D12_RESOURCE_STATE_COMMON, &dsClearValue, IID_PPV_ARGS(&depthStencil))),
+            "Failed to create depth stencil.");
+
+        depthStencil_ = std::make_shared<DepthStencil>(depthStencil, DEPTH_STENCIL_FORMAT);
+        storeResource(depthStencilHeap_, 0, depthStencil_);
 
         // Create command allocator
         ID3D12CommandAllocator* commandAllocator;
@@ -136,32 +147,19 @@ namespace killme
         return renderTargets_[frameIndex_];
     }
 
+    std::shared_ptr<DepthStencil> RenderSystem::getDepthStencil()
+    {
+        return depthStencil_;
+    }
+
     std::shared_ptr<VertexBuffer> RenderSystem::createVertexBuffer(const void* data, size_t size, size_t stride)
     {
         assert(stride <= size && "You need stride <= size.");
 
         /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
         // Use upload heap
-        D3D12_HEAP_PROPERTIES uploadHeapProps;
-        uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        uploadHeapProps.CreationNodeMask = 1;
-        uploadHeapProps.VisibleNodeMask = 1;
-
-        D3D12_RESOURCE_DESC desc;
-        ZeroMemory(&desc, sizeof(desc));
-        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        desc.Alignment = 0;
-        desc.Width = size;
-        desc.Height = 1;
-        desc.DepthOrArraySize = 1;
-        desc.MipLevels = 1;
-        desc.Format = DXGI_FORMAT_UNKNOWN;
-        desc.SampleDesc.Count = 1;
-        desc.SampleDesc.Quality = 0;
-        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        const auto uploadHeapProps = getD3DUploadHeapProps();
+        const auto desc = describeD3DBuffer(size);
 
         // Create buffer
         ID3D12Resource* buffer;
@@ -183,26 +181,8 @@ namespace killme
     {
         /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
         // Use upload heap
-        D3D12_HEAP_PROPERTIES uploadHeapProps;
-        uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        uploadHeapProps.CreationNodeMask = 1;
-        uploadHeapProps.VisibleNodeMask = 1;
-
-        D3D12_RESOURCE_DESC desc;
-        ZeroMemory(&desc, sizeof(desc));
-        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        desc.Alignment = 0;
-        desc.Width = size;
-        desc.Height = 1;
-        desc.DepthOrArraySize = 1;
-        desc.MipLevels = 1;
-        desc.Format = DXGI_FORMAT_UNKNOWN;
-        desc.SampleDesc.Count = 1;
-        desc.SampleDesc.Quality = 0;
-        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        const auto uploadHeapProps = getD3DUploadHeapProps();
+        const auto desc = describeD3DBuffer(size);
 
         // Create buffer
         ID3D12Resource* buffer;
@@ -224,44 +204,51 @@ namespace killme
     {
         /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
         // Use upload heap
-        D3D12_HEAP_PROPERTIES uploadHeapProps;
-        uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        uploadHeapProps.CreationNodeMask = 1;
-        uploadHeapProps.VisibleNodeMask = 1;
-
         const size_t bufferSize = dataSize + 256 - (dataSize % 256);
-
-        D3D12_RESOURCE_DESC desc;
-        ZeroMemory(&desc, sizeof(desc));
-        desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        desc.Alignment = 0;
-        desc.Width = bufferSize;
-        desc.Height = 1;
-        desc.DepthOrArraySize = 1;
-        desc.MipLevels = 1;
-        desc.Format = DXGI_FORMAT_UNKNOWN;
-        desc.SampleDesc.Count = 1;
-        desc.SampleDesc.Quality = 0;
-        desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        const auto uploadHeapProps = getD3DUploadHeapProps();
+        const auto desc = describeD3DBuffer(bufferSize);
 
         // Create buffer
         ID3D12Resource* buffer;
         enforce<Direct3DException>(SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create constant buffer.");
 
-        return std::make_shared<ConstantBuffer>(buffer, bufferSize, dataSize);
+        return std::make_shared<ConstantBuffer>(buffer, dataSize);
     }
 
-    std::shared_ptr<ResourceHeap> RenderSystem::createResourceHeap(size_t numResources)
+    namespace
+    {
+        D3D12_DESCRIPTOR_HEAP_TYPE toD3DHeapType(ResourceHeapType type)
+        {
+            switch (type)
+            {
+            case ResourceHeapType::renderTarget: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            case ResourceHeapType::depthStencil: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            case ResourceHeapType::constantBuffer: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            default: assert(false && "Invalid heap type.");
+            }
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // For wannings
+        }
+
+        D3D12_DESCRIPTOR_HEAP_FLAGS toD3DHeapFlag(ResourceHeapFlag flag)
+        {
+            switch (flag)
+            {
+            case ResourceHeapFlag::shaderVisible: return D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            case ResourceHeapFlag::none: return D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            default: assert(false && "Invalid heap flag.");
+            }
+            return D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // For wannings
+        }
+    }
+
+    std::shared_ptr<ResourceHeap> RenderSystem::createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.NumDescriptors = numResources;
-        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.Type = toD3DHeapType(type);
+        desc.Flags = toD3DHeapFlag(flag);
 
         ID3D12DescriptorHeap* heap;
         enforce<Direct3DException>(SUCCEEDED(device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
@@ -332,6 +319,23 @@ namespace killme
             blendState.RenderTarget[i] = defaultRTBlendDesc;
         }
 
+        // Define depth stencil state
+        D3D12_DEPTH_STENCIL_DESC depthStencilState;
+        ZeroMemory(&depthStencilState, sizeof(depthStencilState));
+        depthStencilState.DepthEnable = TRUE;
+        depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+        depthStencilState.StencilEnable = FALSE;
+        depthStencilState.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+        depthStencilState.StencilWriteMask  = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+        depthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+        depthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+        depthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+        depthStencilState.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+        depthStencilState.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+        depthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+        depthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+
         D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dStateDesc;
         ZeroMemory(&d3dStateDesc, sizeof(d3dStateDesc));
         d3dStateDesc.InputLayout = stateDesc.vertexShader->getInputLayout()->getD3DLayout();
@@ -340,8 +344,8 @@ namespace killme
         d3dStateDesc.PS = {stateDesc.pixelShader->getByteCode(), stateDesc.pixelShader->getByteCodeSize()};
         d3dStateDesc.RasterizerState = rasterizerState;
         d3dStateDesc.BlendState = blendState;
-        d3dStateDesc.DepthStencilState.DepthEnable = FALSE;
-        d3dStateDesc.DepthStencilState.StencilEnable = FALSE;
+        d3dStateDesc.DepthStencilState = depthStencilState;
+        d3dStateDesc.DSVFormat = DEPTH_STENCIL_FORMAT;
         d3dStateDesc.SampleMask = UINT_MAX;
         d3dStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         d3dStateDesc.NumRenderTargets = 1;
@@ -352,7 +356,7 @@ namespace killme
         enforce<Direct3DException>(SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dStateDesc, IID_PPV_ARGS(&pipelineState))),
             "Failed to create pipeline state.");
 
-        return std::make_shared<PipelineState>(pipelineState);
+        return std::make_shared<PipelineState>(pipelineState, stateDesc);
     }
 
     std::shared_ptr<CommandList> RenderSystem::createCommandList()
@@ -364,22 +368,6 @@ namespace killme
         return std::make_shared<CommandList>(list);
     }
 
-    void RenderSystem::storeResource(const std::shared_ptr<ConstantBuffer>& resource, const std::shared_ptr<ResourceHeap>& heap, size_t i)
-    {
-        D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc;
-        viewDesc.BufferLocation = resource->getGPUAddress();
-        viewDesc.SizeInBytes = resource->getBufferSize();
-
-        const auto d3dHeap = heap->getD3DHeap();
-        const auto heapType = heap->getType();
-        const auto offset = device_->GetDescriptorHandleIncrementSize(heapType) * i;
-
-        auto location = d3dHeap->GetCPUDescriptorHandleForHeapStart();
-        location.ptr += offset;
-
-        device_->CreateConstantBufferView(&viewDesc, location);
-    }
-
     void RenderSystem::startCommandRecording()
     {
         enforce<Direct3DException>(SUCCEEDED(commandAllocator_->Reset()),
@@ -388,7 +376,8 @@ namespace killme
 
     void RenderSystem::resetCommandList(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipelineState)
     {
-        enforce<Direct3DException>(SUCCEEDED(list->getD3DCommandList()->Reset(commandAllocator_.get(), pipelineState->getD3DPipelineState())),
+        const auto d3dPipeline = pipelineState ? pipelineState->getD3DPipelineState() : nullptr;
+        enforce<Direct3DException>(SUCCEEDED(list->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
             "Faild to reset command list.");
     }
 
@@ -396,10 +385,7 @@ namespace killme
     {
         ID3D12CommandList* d3dLists[] = {list->getD3DCommandList()};
         commandQueue_->ExecuteCommandLists(1, d3dLists);
-    }
 
-    void RenderSystem::presentBackBuffer()
-    {
         // Wait for GPU draw finished
         enforce<Direct3DException>(SUCCEEDED(commandQueue_->Signal(fence_.get(), fenceValue_)),
             "Failed to signal draw end.");
@@ -410,7 +396,10 @@ namespace killme
             WaitForSingleObject(fenceEvent_, INFINITE);
         }
         ++fenceValue_;
+    }
 
+    void RenderSystem::presentBackBuffer()
+    {
         // Flip screen
         enforce<Direct3DException>(SUCCEEDED(swapChain_->Present(1, 0)),
             "Failed to present back buffer.");

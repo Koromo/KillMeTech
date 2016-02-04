@@ -39,6 +39,9 @@ namespace killme
 
         /** Returns Direct3D view */
         D3D12_INDEX_BUFFER_VIEW getD3DView();
+
+        /** Returns count of indes */
+        size_t getNumIndices() const;
     };
 
     /** Primitive topology definitions */
@@ -48,10 +51,19 @@ namespace killme
     };
 
     /** Vertex binder do bind vertices */
+    template <class Views>
     struct VertexBinder
     {
-        std::vector<D3D12_VERTEX_BUFFER_VIEW> views; /// TODO: std::vector
+        Views views; /// TODO: std::vector
         size_t numViews;
+    };
+
+    struct VertexSemantic
+    {
+        static const std::string position;
+        static const std::string color;
+        static const std::string normal;
+        static const std::string texcoord;
     };
 
     /** Vertex data is set of vertices */
@@ -76,7 +88,7 @@ namespace killme
         void setIndices(const std::shared_ptr<IndexBuffer>& indices);
 
         /** Returns vertex binder */
-        VertexBinder getBinder(const std::shared_ptr<InputLayout>& layout);
+        VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> getBinder(const std::shared_ptr<InputLayout>& layout);
 
         /** Returns index buffer */
         std::shared_ptr<IndexBuffer> getIndexBuffer();

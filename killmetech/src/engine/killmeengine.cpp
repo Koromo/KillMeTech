@@ -4,6 +4,7 @@
 #include "../audio/audioengine.h"
 #include "../input/inputmanager.h"
 #include "../event/eventdispatcher.h"
+#include "../scene/scenemanager.h"
 
 namespace killme
 {
@@ -13,6 +14,7 @@ namespace killme
         , audioEngine_()
         , inputManager_()
         , eventDispatcher_()
+        , sceneManager_()
     {
         // Initialize window
         // Register window class
@@ -63,10 +65,14 @@ namespace killme
 
         // Initialize event system
         eventDispatcher_ = std::make_shared<EventDispatcher>();
+
+        // Initialize scene manager
+        sceneManager_ = std::make_shared<SceneManager>(window);
     }
 
     KillMeEngine::~KillMeEngine()
     {
+        sceneManager_.reset();
         audioEngine_.reset();
         inputManager_.reset();
         eventDispatcher_.reset();
@@ -92,6 +98,11 @@ namespace killme
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
+            else
+            {
+                sceneManager_->drawScene();
+                sceneManager_->presentBackBuffer();
+            }
         }
 
         SetWindowLongPtr(window_.get(), GWLP_USERDATA, 0);
@@ -103,14 +114,19 @@ namespace killme
         PostMessage(window_.get(), WM_CLOSE, 0, 0);
     }
 
-    std::weak_ptr<AudioEngine> KillMeEngine::getAudioEngine()
+    std::shared_ptr<AudioEngine> KillMeEngine::getAudioEngine()
     {
         return audioEngine_;
     }
 
-    std::weak_ptr<EventDispatcher> KillMeEngine::getEventDispatcher()
+    std::shared_ptr<EventDispatcher> KillMeEngine::getEventDispatcher()
     {
         return eventDispatcher_;
+    }
+
+    std::shared_ptr<SceneManager> KillMeEngine::getSceneManager()
+    {
+        return sceneManager_;
     }
 
     LRESULT CALLBACK KillMeEngine::windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)

@@ -28,6 +28,9 @@
     <Filter Include="src\renderer">
       <UniqueIdentifier>{939c5dc6-ea4e-46a4-afbf-fc46b6a4033b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\scene">
+      <UniqueIdentifier>{a6025d3b-52ea-499b-8b11-c6db824a8b38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -96,6 +99,15 @@
     <ClCompile Include="src\renderer\pixelshader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\scene\scenemanager.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenenode.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\d3dsupport.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -147,9 +159,6 @@
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\d3dsupport.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\pipelinestate.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\renderstate.h">
@@ -204,6 +213,39 @@
       <Filter>src\input</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\inputlayout.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pipelinestate.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\camera.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\material.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\mesh.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\meshentity.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\sceneentity.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenemanager.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenenode.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenevisitor.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\boxmesh.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\depthstencil.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>

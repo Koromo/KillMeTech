@@ -16,18 +16,22 @@ namespace killme
     {
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
-        size_t bufferSize_;
+        D3D12_RESOURCE_DESC resourceDesc_;
+        D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc_;
         void* mappedData_;
         size_t dataSize_;
 
     public:
         /** Construct with Direct3D buffer */
-        ConstantBuffer(ID3D12Resource* buffer, size_t bufferSize, size_t dataSize)
+        ConstantBuffer(ID3D12Resource* buffer, size_t dataSize)
             : buffer_(makeComUnique(buffer))
-            , bufferSize_(bufferSize)
+            , resourceDesc_(buffer->GetDesc())
+            , viewDesc_()
             , mappedData_()
             , dataSize_(dataSize)
         {
+            viewDesc_.BufferLocation = buffer_->GetGPUVirtualAddress();
+            viewDesc_.SizeInBytes = static_cast<UINT>(resourceDesc_.Width);
             enforce<Direct3DException>(SUCCEEDED(buffer_->Map(0, nullptr, &mappedData_)),
                 "Failed to map constant data.");
         }
@@ -35,11 +39,8 @@ namespace killme
         /** Update buffer data */
         void update(const void* src) { std::memcpy(mappedData_, src, dataSize_); }
 
-        /** Returns GPU buffer location */
-        D3D12_GPU_VIRTUAL_ADDRESS getGPUAddress() { return buffer_->GetGPUVirtualAddress(); }
-
-        /** Returns buffer size */
-        size_t getBufferSize() const { return bufferSize_; }
+        /** Create view to desctiprot heap */
+        void createView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location) { device->CreateConstantBufferView(&viewDesc_, location); }
     };
 }
 

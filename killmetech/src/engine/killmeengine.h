@@ -13,6 +13,7 @@ namespace killme
     class AudioEngine;
     class InputManager;
     class EventDispatcher;
+    class SceneManager;
 
     /** KillMeTech runtime */
     class KillMeEngine
@@ -25,6 +26,7 @@ namespace killme
         std::shared_ptr<AudioEngine> audioEngine_;
         std::shared_ptr<InputManager> inputManager_;
         std::shared_ptr<EventDispatcher> eventDispatcher_;
+        std::shared_ptr<SceneManager> sceneManager_;
 
     public:
         /** Startup with window parameters */
@@ -40,10 +42,13 @@ namespace killme
         void quit();
 
         /** Returns audio engine */
-        std::weak_ptr<AudioEngine> getAudioEngine();
+        std::shared_ptr<AudioEngine> getAudioEngine();
 
         /** Returns event dispatcher */
-        std::weak_ptr<EventDispatcher> getEventDispatcher();
+        std::shared_ptr<EventDispatcher> getEventDispatcher();
+
+        /** Returns scene manager */
+        std::shared_ptr<SceneManager> getSceneManager();
 
     private:
         static LRESULT CALLBACK KillMeEngine::windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp);

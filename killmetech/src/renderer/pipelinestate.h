@@ -24,13 +24,19 @@ namespace killme
     {
     private:
         ComUniquePtr<ID3D12PipelineState> state_;
+        PipelineStateDescription desc_;
 
     public:
         /** Construct with a Direct3D pipeline state */
-        explicit PipelineState(ID3D12PipelineState* state) : state_(makeComUnique(state)) {}
+        PipelineState(ID3D12PipelineState* state, const PipelineStateDescription& desc)
+            : state_(makeComUnique(state))
+            , desc_(desc) {}
 
         /** Returns Direct3D pipeline state */
         ID3D12PipelineState* getD3DPipelineState() { return state_.get(); }
+
+        /** Returns description */
+        PipelineStateDescription describe() const { return desc_; }
     };
 }
 
