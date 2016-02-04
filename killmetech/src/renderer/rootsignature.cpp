@@ -8,6 +8,7 @@ namespace killme
         : param_(param)
         , range_()
     {
+        // Setup range for constant buffers
         range_.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         range_.RegisterSpace = 0;
         range_.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -26,7 +27,7 @@ namespace killme
             case ShaderType::vertex: return D3D12_SHADER_VISIBILITY_VERTEX;
             case ShaderType::pixel: return D3D12_SHADER_VISIBILITY_PIXEL;
             default:
-                assert(false && "Invalid ShaderType.");
+                assert(false && "An invalid ShaderType.");
                 return D3D12_SHADER_VISIBILITY_ALL; // For warnings
             }
         }
@@ -69,5 +70,15 @@ namespace killme
     D3D12_ROOT_SIGNATURE_DESC RootSignatureDescription::getD3DDescription()
     {
         return desc_;
+    }
+
+    RootSignature::RootSignature(ID3D12RootSignature* rootSignature)
+        : rootSignature_(makeComUnique(rootSignature))
+    {
+    }
+
+    ID3D12RootSignature* RootSignature::getD3DRootSignature()
+    {
+        return rootSignature_.get();
     }
 }

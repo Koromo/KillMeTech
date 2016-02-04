@@ -9,38 +9,40 @@
 
 namespace killme
 {
-    /// TODO: GPU is read only?
-    /// TODO: Type UINT or size_t
+    /// TODO: Whether GPU is read only or not
     /** Constant buffer */
     class ConstantBuffer
     {
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
         D3D12_RESOURCE_DESC resourceDesc_;
-        D3D12_CONSTANT_BUFFER_VIEW_DESC viewDesc_;
         void* mappedData_;
         size_t dataSize_;
 
     public:
-        /** Construct with Direct3D buffer */
+        /** Constructs with a Direct3D buffer and size of data */
         ConstantBuffer(ID3D12Resource* buffer, size_t dataSize)
             : buffer_(makeComUnique(buffer))
             , resourceDesc_(buffer->GetDesc())
-            , viewDesc_()
             , mappedData_()
             , dataSize_(dataSize)
         {
-            viewDesc_.BufferLocation = buffer_->GetGPUVirtualAddress();
-            viewDesc_.SizeInBytes = static_cast<UINT>(resourceDesc_.Width);
-            enforce<Direct3DException>(SUCCEEDED(buffer_->Map(0, nullptr, &mappedData_)),
+            enforce<Direct3DException>(
+                SUCCEEDED(buffer_->Map(0, nullptr, &mappedData_)),
                 "Failed to map constant data.");
         }
 
-        /** Update buffer data */
+        /** Updates buffer data */
         void update(const void* src) { std::memcpy(mappedData_, src, dataSize_); }
 
-        /** Create view to desctiprot heap */
-        void createView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location) { device->CreateConstantBufferView(&viewDesc_, location); }
+        /** Creates a Direct3D view to desctipror heap */
+        void createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
+        {
+            D3D12_CONSTANT_BUFFER_VIEW_DESC desc;
+            desc.BufferLocation = buffer_->GetGPUVirtualAddress();
+            desc.SizeInBytes = static_cast<UINT>(resourceDesc_.Width);
+            device->CreateConstantBufferView(&desc, location);
+        }
     };
 }
 

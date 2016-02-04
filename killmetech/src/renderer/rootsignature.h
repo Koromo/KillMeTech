@@ -17,10 +17,10 @@ namespace killme
         D3D12_DESCRIPTOR_RANGE range_;
 
     public:
-        /** Construct with a Direct3D root parameter refference */
+        /** Constructs with a refference of Direct3D root parameter */
         explicit RootParameter(D3D12_ROOT_PARAMETER& param);
 
-        /** Set resource table */
+        /** Sets resource table */
         void set(size_t baseRegister, size_t numResources, ShaderType visibility);
     };
 
@@ -33,13 +33,13 @@ namespace killme
         std::vector<RootParameter> params_;
 
     public:
-        /** Construct */
+        /** Constructs */
         explicit RootSignatureDescription(size_t numParams);
 
-        /** Access i'th root parameter */
+        /** Accesses i'th root parameter */
         RootParameter& operator[](size_t i);
 
-        /** Returns Direct3D root signature description */
+        /** Returns a Direct3D root signature description */
         D3D12_ROOT_SIGNATURE_DESC getD3DDescription();
     };
 
@@ -50,11 +50,11 @@ namespace killme
         ComUniquePtr<ID3D12RootSignature> rootSignature_;
 
     public:
-        /** Construct with a Direct3D root signature */
-        explicit RootSignature(ID3D12RootSignature* rootSignature) : rootSignature_(makeComUnique(rootSignature)) {}
+        /** Constructs  with a Direct3D root signature */
+        explicit RootSignature(ID3D12RootSignature* rootSignature);
 
-        /** Returns Direct3D root signature */
-        ID3D12RootSignature* getD3DRootSignature() { return rootSignature_.get(); }
+        /** Returns a Direct3D root signature */
+        ID3D12RootSignature* getD3DRootSignature();
     };
 }
 

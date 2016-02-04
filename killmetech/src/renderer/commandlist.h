@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _KILLME_COMMANDLIST_H_
+#define _KILLME_COMMANDLIST_H_
 
 #include "vertexdata.h"
 #include "resourceheap.h"
@@ -23,7 +24,7 @@ namespace killme
         ComUniquePtr<ID3D12GraphicsCommandList> list_;
 
     public:
-        /** Construct with a D3D command list */
+        /** Constructs with a Direct3D command list */
         explicit CommandList(ID3D12GraphicsCommandList* list);
 
         /** Command of clear render target */
@@ -42,7 +43,8 @@ namespace killme
         template <class Views>
         void setVertexBuffers(const VertexBinder<Views>& binder)
         {
-            list_->IASetVertexBuffers(0, binder.numViews, binder.views.data());
+            std::vector<D3D12_VERTEX_BUFFER_VIEW> d3dViews(std::cbegin(binder.views), std::cend(binder.views));
+            list_->IASetVertexBuffers(0, binder.numViews, d3dViews.data());
         }
 
         /** Command of set index buffer */
@@ -51,23 +53,20 @@ namespace killme
         /** Command of set root signature */
         void setRootSignature(const std::shared_ptr<RootSignature>& signature);
 
-        /** Change currently bound resource heaps */
+        /** Changes currently bound resource heaps */
         template <class Range>
         void setResourceHeaps(Range heaps, size_t numHeaps)
         {
             std::vector<ID3D12DescriptorHeap*> d3dHeaps;
             d3dHeaps.reserve(numHeaps);
-
-            const auto end = std::cend(heaps);
-            for (auto it = std::cbegin(heaps); it != end; ++it)
+            for (const auto& heap: heaps)
             {
-                d3dHeaps.push_back((*it)->getD3DHeap());
+                d3dHeaps.push_back(heap->getD3DHeap());
             }
-
             list_->SetDescriptorHeaps(numHeaps, d3dHeaps.data());
         }
 
-        /** Set resource table */
+        /** Sets resource table */
         void setResourceTable(size_t rootParamIndex, const std::shared_ptr<ResourceHeap>& heap);
 
         /** Command of set viewport */
@@ -92,3 +91,5 @@ namespace killme
         ID3D12GraphicsCommandList* getD3DCommandList();
     };
 }
+
+#endif

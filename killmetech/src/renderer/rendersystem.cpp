@@ -39,30 +39,33 @@ namespace killme
         // Enable the debug layer
 #ifdef _DEBUG
         ID3D12Debug* debugController;
-        enforce<Direct3DException>(SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))),
+        enforce<Direct3DException>(
+            SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))),
             "Failed to ebable the debug layer.");
         debugController->EnableDebugLayer();
         KILLME_SCOPE_EXIT{ debugController->Release(); };
 #endif
 
-        // Create the device
+        // Create a device
         ID3D12Device* device;
-        enforce<Direct3DException>(SUCCEEDED(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device))),
+        enforce<Direct3DException>(
+            SUCCEEDED(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device))),
             "Failed to create device.");
         device_ = makeComUnique(device);
 
-        // Create the command queue
+        // Create a command queue
         D3D12_COMMAND_QUEUE_DESC queueDesc;
         ZeroMemory(&queueDesc, sizeof(queueDesc));
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
         queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
         ID3D12CommandQueue* commandQueue;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue))),
             "Failed create command queue.");
         commandQueue_ = makeComUnique(commandQueue);
 
-        // Create the swap chain
+        // Create a swap chain
         RECT clientRect;
         GetClientRect(window, &clientRect);
         const auto clientWidth = clientRect.right - clientRect.left;
@@ -81,33 +84,38 @@ namespace killme
         swapChainDesc.Windowed = TRUE;
 
         IDXGIFactory4* factory;
-        enforce<Direct3DException>(SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))),
+        enforce<Direct3DException>(
+            SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))),
             "Failed to create DXGI factory.");
         KILLME_SCOPE_EXIT{ factory->Release(); };
 
         IDXGISwapChain* swapChain0;
-        enforce<Direct3DException>(SUCCEEDED(factory->CreateSwapChain(commandQueue_.get(), &swapChainDesc, &swapChain0)),
+        enforce<Direct3DException>(
+            SUCCEEDED(factory->CreateSwapChain(commandQueue_.get(), &swapChainDesc, &swapChain0)),
             "Failed to create swap chain.");
         KILLME_SCOPE_EXIT{ swapChain0->Release(); };
 
         IDXGISwapChain3* swapChain3;
-        enforce<Direct3DException>(SUCCEEDED(swapChain0->QueryInterface(IID_PPV_ARGS(&swapChain3))),
+        enforce<Direct3DException>(
+            SUCCEEDED(swapChain0->QueryInterface(IID_PPV_ARGS(&swapChain3))),
             "Faild to gat IDXGISwapChain3.");
         swapChain_ = makeComUnique(swapChain3);
 
         frameIndex_ = swapChain_->GetCurrentBackBufferIndex();
 
-        // Create render targets and depth stencil
+        // Create render targets
         renderTargetHeap_ = createResourceHeap(NUM_BACK_BUFFERS, ResourceHeapType::renderTarget, ResourceHeapFlag::none);
         for (UINT i = 0; i < NUM_BACK_BUFFERS; ++i)
         {
             ID3D12Resource* renderTarget;
-            enforce<Direct3DException>(SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTarget))),
+            enforce<Direct3DException>(
+                SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTarget))),
                 "Failed to get back buffer.");
             renderTargets_[i] = std::make_shared<RenderTarget>(renderTarget);
             storeResource(renderTargetHeap_, i, renderTargets_[i]);
         }
 
+        // Create a depth stencil
         depthStencilHeap_ = createResourceHeap(1, ResourceHeapType::depthStencil, ResourceHeapFlag::none);
 
         const auto defaultHeapProps = getD3DDefaultHeapProps();
@@ -127,15 +135,17 @@ namespace killme
         depthStencil_ = std::make_shared<DepthStencil>(depthStencil, DEPTH_STENCIL_FORMAT);
         storeResource(depthStencilHeap_, 0, depthStencil_);
 
-        // Create command allocator
+        // Create a command allocator
         ID3D12CommandAllocator* commandAllocator;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))),
             "Failed to create command allocator.");
         commandAllocator_ = makeComUnique(commandAllocator);
 
-        // Create the fence
+        // Create a fence
         ID3D12Fence* fence;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))),
             "Failed to create fence.");
         fence_ = makeComUnique(fence);
         fenceEvent_ = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
@@ -163,12 +173,14 @@ namespace killme
 
         // Create buffer
         ID3D12Resource* buffer;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create vertex buffer.");
 
         // Upload data to buffer
         void* mappedData;
-        enforce<Direct3DException>(SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
+        enforce<Direct3DException>(
+            SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
             "Failed to map vertices memory.");
 
         std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
@@ -186,12 +198,14 @@ namespace killme
 
         // Create buffer
         ID3D12Resource* buffer;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create vertex buffer.");
 
         // Upload data to buffer
         void* mappedData;
-        enforce<Direct3DException>(SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
+        enforce<Direct3DException>(
+            SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
             "Failed to map vertices memory.");
 
         std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
@@ -210,7 +224,8 @@ namespace killme
 
         // Create buffer
         ID3D12Resource* buffer;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create constant buffer.");
 
         return std::make_shared<ConstantBuffer>(buffer, dataSize);
@@ -227,7 +242,7 @@ namespace killme
             case ResourceHeapType::constantBuffer: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             default: assert(false && "Invalid heap type.");
             }
-            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // For wannings
+            return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // For warnings
         }
 
         D3D12_DESCRIPTOR_HEAP_FLAGS toD3DHeapFlag(ResourceHeapFlag flag)
@@ -238,7 +253,7 @@ namespace killme
             case ResourceHeapFlag::none: return D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             default: assert(false && "Invalid heap flag.");
             }
-            return D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // For wannings
+            return D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // For warnings
         }
     }
 
@@ -251,10 +266,11 @@ namespace killme
         desc.Flags = toD3DHeapFlag(flag);
 
         ID3D12DescriptorHeap* heap;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
             "Failed to create descripter heap.");
 
-        return std::make_shared<ResourceHeap>(heap, desc.Type);
+        return std::make_shared<ResourceHeap>(heap);
     }
 
     std::shared_ptr<RootSignature> RenderSystem::createRootSignature(RootSignatureDescription& desc)
@@ -279,7 +295,8 @@ namespace killme
         KILLME_SCOPE_EXIT{ signature->Release(); };
 
         ID3D12RootSignature* rootSignature;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature))),
             "Failed to create root sigature.");
 
         return std::make_shared<RootSignature>(rootSignature);
@@ -319,7 +336,7 @@ namespace killme
             blendState.RenderTarget[i] = defaultRTBlendDesc;
         }
 
-        // Define depth stencil state
+        // Define the depth stencil state
         D3D12_DEPTH_STENCIL_DESC depthStencilState;
         ZeroMemory(&depthStencilState, sizeof(depthStencilState));
         depthStencilState.DepthEnable = TRUE;
@@ -336,6 +353,7 @@ namespace killme
         depthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
         depthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 
+        // Create Direct3D pipeline state
         D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dStateDesc;
         ZeroMemory(&d3dStateDesc, sizeof(d3dStateDesc));
         d3dStateDesc.InputLayout = stateDesc.vertexShader->getInputLayout()->getD3DLayout();
@@ -353,7 +371,8 @@ namespace killme
         d3dStateDesc.SampleDesc.Count = 1;
 
         ID3D12PipelineState* pipelineState;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dStateDesc, IID_PPV_ARGS(&pipelineState))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dStateDesc, IID_PPV_ARGS(&pipelineState))),
             "Failed to create pipeline state.");
 
         return std::make_shared<PipelineState>(pipelineState, stateDesc);
@@ -362,22 +381,22 @@ namespace killme
     std::shared_ptr<CommandList> RenderSystem::createCommandList()
     {
         ID3D12GraphicsCommandList* list;
-        enforce<Direct3DException>(SUCCEEDED(device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.get(), nullptr, IID_PPV_ARGS(&list))),
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.get(), nullptr, IID_PPV_ARGS(&list))),
             "Failed to create command list.");
         list->Close();
         return std::make_shared<CommandList>(list);
     }
 
-    void RenderSystem::startCommandRecording()
-    {
-        enforce<Direct3DException>(SUCCEEDED(commandAllocator_->Reset()),
-            "Failed to reset command allocator.");
-    }
-
     void RenderSystem::resetCommandList(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipelineState)
     {
+        enforce<Direct3DException>(
+            SUCCEEDED(commandAllocator_->Reset()),
+            "Failed to reset command allocator.");
+
         const auto d3dPipeline = pipelineState ? pipelineState->getD3DPipelineState() : nullptr;
-        enforce<Direct3DException>(SUCCEEDED(list->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
+        enforce<Direct3DException>(
+            SUCCEEDED(list->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
             "Faild to reset command list.");
     }
 
@@ -387,11 +406,13 @@ namespace killme
         commandQueue_->ExecuteCommandLists(1, d3dLists);
 
         // Wait for GPU draw finished
-        enforce<Direct3DException>(SUCCEEDED(commandQueue_->Signal(fence_.get(), fenceValue_)),
+        enforce<Direct3DException>(
+            SUCCEEDED(commandQueue_->Signal(fence_.get(), fenceValue_)),
             "Failed to signal draw end.");
         if (fence_->GetCompletedValue() < fenceValue_)
         {
-            enforce<Direct3DException>(SUCCEEDED(fence_->SetEventOnCompletion(fenceValue_, fenceEvent_)),
+            enforce<Direct3DException>(
+                SUCCEEDED(fence_->SetEventOnCompletion(fenceValue_, fenceEvent_)),
                 "Failed to set signal event.");
             WaitForSingleObject(fenceEvent_, INFINITE);
         }
@@ -401,7 +422,8 @@ namespace killme
     void RenderSystem::presentBackBuffer()
     {
         // Flip screen
-        enforce<Direct3DException>(SUCCEEDED(swapChain_->Present(1, 0)),
+        enforce<Direct3DException>(
+            SUCCEEDED(swapChain_->Present(1, 0)),
             "Failed to present back buffer.");
 
         // Update frame index

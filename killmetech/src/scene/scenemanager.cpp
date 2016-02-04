@@ -118,7 +118,6 @@ namespace killme
         viewProjMatBuffer_->update(&viewProjMatData);
 
         // Clear render target
-        renderSystem_->startCommandRecording();
         renderSystem_->resetCommandList(commandList_, nullptr);
 
         const auto renderTarget = renderSystem_->getCurrentBackBuffer();
@@ -148,7 +147,6 @@ namespace killme
             const auto indexBuffer = vertexData->getIndexBuffer();
 
             // Add draw commands
-            renderSystem_->startCommandRecording();
             renderSystem_->resetCommandList(commandList_, pipelineState);
 
             commandList_->resourceBarrior(renderTarget, ResourceState::present, ResourceState::renderTarget);

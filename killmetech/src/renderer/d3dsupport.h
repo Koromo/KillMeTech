@@ -11,13 +11,20 @@ namespace killme
     class Direct3DException : public Exception
     {
     public:
-        /** Construct with a message */
+        /** Constructs with a message */
         explicit Direct3DException(const std::string& msg) : Exception(msg) {}
     };
 
+    /** Returns a default heap properties */
     D3D12_HEAP_PROPERTIES getD3DDefaultHeapProps();
+
+    /** Returns an upload heap properties */
     D3D12_HEAP_PROPERTIES getD3DUploadHeapProps();
+
+    /** Returns a resource description of buffers */
     D3D12_RESOURCE_DESC describeD3DBuffer(size_t size);
+
+    /** Returns a resource description of 2D textures */
     D3D12_RESOURCE_DESC describeD3DTex2D(size_t width, size_t height, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flags);
 }
 

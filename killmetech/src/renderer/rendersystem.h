@@ -44,37 +44,37 @@ namespace killme
         UINT64 fenceValue_;
 
     public:
-        /** Construct with a target window */
+        /** Constructs with a target window */
         explicit RenderSystem(HWND window);
 
-        /** Returns current back buffer */
+        /** Returns a current back buffer */
         std::shared_ptr<RenderTarget> getCurrentBackBuffer();
 
-        /** Returns depth stencil */
+        /** Returns a depth stencil */
         std::shared_ptr<DepthStencil> getDepthStencil();
 
-		/** Create vertex buffer */
+		/** Creates a vertex buffer */
         std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
 
-        /** Create vertex buffer */
+        /** Creates a index buffer */
         std::shared_ptr<IndexBuffer> createIndexBuffer(const unsigned short* data, size_t size);
 
-        /** Create constant buffer */
+        /** Creates a constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t dataSize);
 
-        /** Create resource heap */
+        /** Creates a resource heap */
         std::shared_ptr<ResourceHeap> createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag);
 
-		/** Create root signature */
+		/** Creates a root signature */
         std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
 
-		/** Create pileline state */
+		/** Creates a pileline state */
         std::shared_ptr<PipelineState> createPipelineState(const PipelineStateDescription& stateDesc);
 
-        /** Create command list */
+        /** Creates a command list */
         std::shared_ptr<CommandList> createCommandList();
 
-        /** Store resource to resource heap */
+        /** Stores a resource to resource heap */
         template <class Resource>
         void storeResource(const std::shared_ptr<ResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
         {
@@ -85,19 +85,16 @@ namespace killme
             auto location = d3dHeap->GetCPUDescriptorHandleForHeapStart();
             location.ptr += offset;
 
-            resource->createView(device_.get(), location);
+            resource->createD3DView(device_.get(), location);
         }
 
-		/** Start record commands */
-        void startCommandRecording();
-
-		/** Reset command list */
+		/** Resets a command list */
         void resetCommandList(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipelineState);
 
-        /** Execute command list */
+        /** Executes command list */
         void executeCommandList(const std::shared_ptr<CommandList>& list);
 
-        /** Present screen */
+        /** Presents screen */
         void presentBackBuffer();
     };
 }

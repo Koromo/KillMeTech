@@ -16,25 +16,25 @@ namespace killme
         pixel
     };
 
-    /** Shader basic implementation */
+    /** Basic implementation of each shaders */
     class BasicShader
     {
     protected:
         ComUniquePtr<ID3DBlob> byteCode_;
 
     public:
-        /** Construct with a byte code */
+        /** Constructs with a byte code */
         explicit BasicShader(ID3DBlob* byteCode) : byteCode_(makeComUnique(byteCode)) {}
 
         /** For drived classes */
         ~BasicShader() = default;
 
-        /** Returns shader binary */
+        /** Returns a byte code */
         const void* getByteCode() const { return byteCode_->GetBufferPointer(); }
         size_t getByteCodeSize() const { return byteCode_->GetBufferSize(); }
     };
 
-    /** Compile shader from file */
+    /** Compile a shader from file */
     template <class Shader>
     std::shared_ptr<Shader> compileShader(const tstring& filename)
     {

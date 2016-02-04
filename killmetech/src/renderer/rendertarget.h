@@ -6,7 +6,6 @@
 
 namespace killme
 {
-    /// TODO: Now, Resource barrior used by only render target transition
     /** For render target barrior */
     enum class ResourceState
     {
@@ -14,7 +13,7 @@ namespace killme
         renderTarget
     };
 
-    /** Render target resource */
+    /** Render target */
     class RenderTarget
     {
     private:
@@ -22,21 +21,21 @@ namespace killme
         D3D12_CPU_DESCRIPTOR_HANDLE view_;
 
     public:
-        /** Construct */
+        /** Constructs with a Direct3D render target */
         explicit RenderTarget(ID3D12Resource* renderTarget)
             : renderTarget_(makeComUnique(renderTarget))
             , view_()
         {
         }
 
-        /** Returns Direct3D render target */
+        /** Returns a Direct3D render target */
         ID3D12Resource* getD3DRenderTarget() { return renderTarget_.get(); }
 
-        /** Returns Direct3D view */
+        /** Returns a Direct3D view */
         D3D12_CPU_DESCRIPTOR_HANDLE getD3DView() { return view_; }
 
-        /** Store resource to heap */
-        void createView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
+        /** Creates a Direct3D view to desctipror heap */
+        void createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
         {
             device->CreateRenderTargetView(renderTarget_.get(), nullptr, location);
             view_ = location;

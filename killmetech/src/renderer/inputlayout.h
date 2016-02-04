@@ -16,7 +16,7 @@ namespace killme
         D3D12_INPUT_LAYOUT_DESC layout_;
 
     public:
-        /** Construct */
+        /** Constructs with Direct3D input element descriptions */
         template <class C>
         explicit InputLayout(C&& elems)
             : elems_(std::move(elems))
@@ -26,7 +26,7 @@ namespace killme
             layout_.NumElements = elems_.size();
         }
 
-        /** Returns Direct3D Input layout */
+        /** Returns a Direct3D Input layout */
         D3D12_INPUT_LAYOUT_DESC getD3DLayout() { return layout_; }
     };
 }

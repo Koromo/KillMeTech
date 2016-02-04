@@ -18,14 +18,13 @@ namespace killme
         std::shared_ptr<InputLayout> inputLayout_;
 
     public:
-        /** Shader model definition */
+        /** Shader model */
         static const std::string model;
 
-        /** Construct with a byte code */
+        /** Constructs with a byte code */
         explicit VertexShader(ID3DBlob* byteCode);
 
-        /** Returns input layout */
-        /// NOTE: Input slot start from 0
+        /** Returns input layout of this shader */
         std::shared_ptr<InputLayout> getInputLayout() const;
     };
 }

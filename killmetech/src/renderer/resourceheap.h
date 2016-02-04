@@ -6,8 +6,7 @@
 
 namespace killme
 {
-    class ConstantBuffer;
-
+    /** Resource heap type definitions */
     enum class ResourceHeapType
     {
         renderTarget,
@@ -15,14 +14,15 @@ namespace killme
         constantBuffer
     };
 
+    /** Resource heap flag definitions */
     enum class ResourceHeapFlag
     {
         shaderVisible,
         none,
     };
 
-    /// TODO: Now, Resource heap used by only constant buffer
     /** Resource heap */
+    /// NOTE: Resource heap is same to the Descriptor heap of Direct3D
     class ResourceHeap
     {
     private:
@@ -30,17 +30,17 @@ namespace killme
         D3D12_DESCRIPTOR_HEAP_TYPE type_;
 
     public:
-        /** Construct with Direct3D descriptor heap */
-        ResourceHeap(ID3D12DescriptorHeap* heap, D3D12_DESCRIPTOR_HEAP_TYPE type)
+        /** Constructs with a Direct3D descriptor heap */
+        explicit ResourceHeap(ID3D12DescriptorHeap* heap)
             : heap_(makeComUnique(heap))
-            , type_(type)
+            , type_(heap->GetDesc().Type)
         {
         }
 
         /** Returns Direct3D descriptor heap type */
         D3D12_DESCRIPTOR_HEAP_TYPE getType() const { return type_; }
 
-        /** Returns Direct3D descriptor heap */
+        /** Returns a Direct3D descriptor heap */
         ID3D12DescriptorHeap* getD3DHeap() { return heap_.get(); }
     };
 }

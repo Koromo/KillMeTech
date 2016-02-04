@@ -31,7 +31,6 @@ namespace killme
     {
         const auto rtv = renderTarget->getD3DView();
         const auto dsv = depthStencil->getD3DView();
-
         list_->OMSetRenderTargets(1, &rtv, TRUE, &dsv);
     }
 

@@ -27,15 +27,15 @@ namespace killme
         PipelineStateDescription desc_;
 
     public:
-        /** Construct with a Direct3D pipeline state */
+        /** Constructs with a Direct3D pipeline state and a description */
         PipelineState(ID3D12PipelineState* state, const PipelineStateDescription& desc)
             : state_(makeComUnique(state))
             , desc_(desc) {}
 
-        /** Returns Direct3D pipeline state */
+        /** Returns a Direct3D pipeline state */
         ID3D12PipelineState* getD3DPipelineState() { return state_.get(); }
 
-        /** Returns description */
+        /** Returns a description */
         PipelineStateDescription describe() const { return desc_; }
     };
 }

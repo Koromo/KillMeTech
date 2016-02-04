@@ -11,13 +11,13 @@ namespace killme
 
     namespace
     {
-        // Returns vertex format
+        // Returns corresponded vertex format to vertex semantic
         DXGI_FORMAT vertexFormat(const std::string& semanticName)
         {
             if (semanticName == "POSITION") { return DXGI_FORMAT_R32G32B32_FLOAT; }
             if (semanticName == "COLOR")    { return DXGI_FORMAT_R32G32B32A32_FLOAT; }
-            assert(false && "Invalid vertex semantic name.");
-            return DXGI_FORMAT_UNKNOWN; // For wanings
+            assert(false && "An invalid vertex semantic name.");
+            return DXGI_FORMAT_UNKNOWN; // For warnings
         }
     }
 
@@ -28,23 +28,26 @@ namespace killme
     {
         // Get shader reflection
         ID3D12ShaderReflection* reflection;
-        enforce<Direct3DException>(SUCCEEDED(D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection))),
-            "Failed to get shader reflection.");
+        enforce<Direct3DException>(
+            SUCCEEDED(D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection))),
+            "Failed to get a reflection of shader.");
         reflection_ = makeComUnique(reflection);
 
         // Get shader description
         D3D12_SHADER_DESC shaderDesc;
-        enforce<Direct3DException>(SUCCEEDED(reflection->GetDesc(&shaderDesc)),
-            "Failed to get shader description.");
+        enforce<Direct3DException>(
+            SUCCEEDED(reflection->GetDesc(&shaderDesc)),
+            "Failed to get a description of shader.");
 
-        // Build input layout
+        // Collect input elements
         std::vector<D3D12_INPUT_ELEMENT_DESC> elems(shaderDesc.InputParameters);
 
         for (size_t i = 0; i < shaderDesc.InputParameters; ++i)
         {
             D3D12_SIGNATURE_PARAMETER_DESC param;
-            enforce<Direct3DException>(SUCCEEDED(reflection->GetInputParameterDesc(i, &param)),
-                "Failed to get shader input parameter description.");
+            enforce<Direct3DException>(
+                SUCCEEDED(reflection->GetInputParameterDesc(i, &param)),
+                "Failed to get a description of input parameter of shader.");
 
             elems[i].SemanticName = param.SemanticName;
             elems[i].SemanticIndex = param.SemanticIndex;

@@ -70,7 +70,7 @@ namespace killme
             bool found = false;
             for (const auto& vertices : vertexBuffers_)
             {
-                if (vertices.semanticName == semanticName && vertices.semanticIndex == semanticIndex)
+                if (vertices.name == semanticName && vertices.index == semanticIndex)
                 {
                     binder.views[i] = vertices.buffer->getD3DView();
                     found = true;
@@ -78,7 +78,7 @@ namespace killme
                 }
             }
 
-            assert(found && "Vertex data layout and shader input layout is not match.");
+            assert(found && "Vertex data is not usable for an input layout of argments.");
         }
 
         return binder;

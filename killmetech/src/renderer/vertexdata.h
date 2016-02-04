@@ -19,10 +19,10 @@ namespace killme
         D3D12_VERTEX_BUFFER_VIEW view_;
 
     public:
-        /** Construct with vertices */
+        /** Constructs with vertices */
         VertexBuffer(ID3D12Resource* buffer, size_t size, size_t stride);
 
-        /** Returns Direct3D view */
+        /** Returns a Direct3D view */
         D3D12_VERTEX_BUFFER_VIEW getD3DView();
     };
 
@@ -34,13 +34,13 @@ namespace killme
         D3D12_INDEX_BUFFER_VIEW view_;
 
     public:
-        /** Construct with indices */
+        /** Constructs with indices */
         IndexBuffer(ID3D12Resource* buffer, size_t size);
 
-        /** Returns Direct3D view */
+        /** Returns a Direct3D view */
         D3D12_INDEX_BUFFER_VIEW getD3DView();
 
-        /** Returns count of indes */
+        /** Returns count of index */
         size_t getNumIndices() const;
     };
 
@@ -50,14 +50,7 @@ namespace killme
         triangeList
     };
 
-    /** Vertex binder do bind vertices */
-    template <class Views>
-    struct VertexBinder
-    {
-        Views views; /// TODO: std::vector
-        size_t numViews;
-    };
-
+    /** Vertex semantic definitions */
     struct VertexSemantic
     {
         static const std::string position;
@@ -66,31 +59,39 @@ namespace killme
         static const std::string texcoord;
     };
 
-    /** Vertex data is set of vertices */
+    /** Vertex binder */
+    template <class Views>
+    struct VertexBinder
+    {
+        Views views;
+        size_t numViews;
+    };
+
+    /** Set of vertices */
     class VertexData
     {
     private:
-        struct VertexSemantic
+        struct Semantic
         {
-            std::string semanticName;
-            size_t semanticIndex;
+            std::string name;
+            size_t index;
             std::shared_ptr<VertexBuffer> buffer;
         };
 
-        std::vector<VertexSemantic> vertexBuffers_;
+        std::vector<Semantic> vertexBuffers_;
         std::shared_ptr<IndexBuffer> indexBuffer_;
 
     public:
-        /** Add vertices */
+        /** Adds vertices */
         void addVertices(const std::string& semanticName, size_t semanticIndex, const std::shared_ptr<VertexBuffer>& vertices);
 
-        /** Set indices */
+        /** Sets indices */
         void setIndices(const std::shared_ptr<IndexBuffer>& indices);
 
-        /** Returns vertex binder */
+        /** Returns a vertex binder from an input layout */
         VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> getBinder(const std::shared_ptr<InputLayout>& layout);
 
-        /** Returns index buffer */
+        /** Returns an index buffer */
         std::shared_ptr<IndexBuffer> getIndexBuffer();
     };
 }
