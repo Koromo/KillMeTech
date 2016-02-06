@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 #include <string>
+#include <type_traits>
 
 namespace killme
 {
@@ -16,7 +17,7 @@ namespace killme
     };
 
     /** The Variant type */
-    /// TODO: l,rvalue
+    /// TODO: Not support refference
     class Variant
     {
     private:
@@ -81,7 +82,8 @@ namespace killme
         template <class T>
         Variant& operator =(T&& value)
         {
-            holder_ = std::make_shared<TypedHolder<T>>(std::forward<T>(value));
+            using Type = std::remove_const_t<std::remove_reference_t<T>>;
+            holder_ = std::make_shared<TypedHolder<Type>>(std::forward<T>(value));
             return *this;
         }
 

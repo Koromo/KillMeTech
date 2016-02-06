@@ -82,18 +82,6 @@ namespace killme
 
     void SceneManager::drawScene()
     {
-        // Traverse the scene
-        DrawVisitor visitor;
-        rootNode_->depthTraverse(visitor);
-
-        // Update the constant buffer about view and projection matrix
-        const auto camera = visitor.camera;
-        const auto viewMatrix = transpose(inverse(camera->lockOwner()->getWorldMatrix()));
-        const auto projMatrix = transpose(camera->getProjectionMatrix());
-
-        transformBuffer_->update(&viewMatrix, sizeof(Matrix44), sizeof(Matrix44));
-        transformBuffer_->update(&projMatrix, sizeof(Matrix44) * 2, sizeof(Matrix44));
-
         // Clear the render target and the depth stencil
         renderSystem.resetCommandList(commandList_, nullptr);
 
@@ -105,6 +93,23 @@ namespace killme
         commandList_->clearDepthStencil(depthStencil, 1);
         commandList_->close();
         renderSystem.executeCommandList(commandList_);
+
+        // Traverse the scene
+        DrawVisitor visitor;
+        rootNode_->depthTraverse(visitor);
+
+        // Update the constant buffer about view and projection matrix
+        const auto camera = visitor.camera;
+        if (!camera)
+        {
+            return;
+        }
+
+        const auto viewMatrix = transpose(inverse(camera->lockOwner()->getWorldMatrix()));
+        const auto projMatrix = transpose(camera->getProjectionMatrix());
+
+        transformBuffer_->update(&viewMatrix, sizeof(Matrix44), sizeof(Matrix44));
+        transformBuffer_->update(&projMatrix, sizeof(Matrix44) * 2, sizeof(Matrix44));
 
         // For each mesh entities
         for (const auto& entity : visitor.entities)

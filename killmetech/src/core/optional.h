@@ -106,7 +106,7 @@ namespace killme
         /** Accesses to the value */
         const T* operator ->() const noexcept
         {
-            enforce<OptionalException>(*this, "Optional is null.");
+            enforce<OptionalException>(!!value_, "Optional is null.");
             return value_.get();
         }
 

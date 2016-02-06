@@ -2,7 +2,6 @@
 #include "../event/event.h"
 #include "../event/eventmanager.h"
 #include <Windows.h>
-#include <functional>
 
 namespace killme
 {
@@ -12,11 +11,10 @@ namespace killme
     {
         keyStatus_.fill(false);
 
-        using namespace std::placeholders;
         hooks_.push_back(eventManager.connect(
-            EventType::win_KeyDown, std::bind(&InputManager::onWinKeyDown, this, _1)));
+            EventType::win_KeyDown, [&](const Event& e) { onWinKeyDown(e); }));
         hooks_.push_back(eventManager.connect(
-            EventType::win_KeyUp, std::bind(&InputManager::onWinKeyUp, this, _1)));
+            EventType::win_KeyUp, [&](const Event& e) { onWinKeyUp(e); }));
     }
 
     void InputManager::shutdown()
