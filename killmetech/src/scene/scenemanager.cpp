@@ -6,15 +6,12 @@
 #include "mesh.h"
 #include "material.h"
 #include "../renderer/rendersystem.h"
-#include "../renderer/gpuresourceheap.h"
 #include "../renderer/constantbuffer.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/rendertarget.h"
-#include "../renderer/renderstate.h"
 #include "../renderer/vertexdata.h"
 #include "../renderer/pipelinestate.h"
 #include "../renderer/vertexshader.h"
-#include "../core/utility.h"
 #include "../core/math/matrix44.h"
 #include "../core/math/color.h"
 #include <vector>
@@ -25,6 +22,7 @@ namespace killme
 
     void SceneManager::startup()
     {
+        // Create render resources
         commandList_ = renderSystem.createCommandList();
         transformBuffer_ = renderSystem.createConstantBuffer(sizeof(Matrix44) * 3);
 
@@ -45,6 +43,7 @@ namespace killme
         scissorRect_.right = static_cast<int>(clientWidth);
         scissorRect_.bottom = static_cast<int>(clientHeight);
 
+        // Create the root scene node
         rootNode_ = std::make_shared<SceneNode>(nullptr);
     }
 
@@ -83,11 +82,11 @@ namespace killme
 
     void SceneManager::drawScene()
     {
-        // Traverse scene
+        // Traverse the scene
         DrawVisitor visitor;
         rootNode_->depthTraverse(visitor);
 
-        // Update constant buffer of view matrix and projection matrix
+        // Update the constant buffer about view and projection matrix
         const auto camera = visitor.camera;
         const auto viewMatrix = transpose(inverse(camera->lockOwner()->getWorldMatrix()));
         const auto projMatrix = transpose(camera->getProjectionMatrix());
@@ -95,7 +94,7 @@ namespace killme
         transformBuffer_->update(&viewMatrix, sizeof(Matrix44), sizeof(Matrix44));
         transformBuffer_->update(&projMatrix, sizeof(Matrix44) * 2, sizeof(Matrix44));
 
-        // Clear render target
+        // Clear the render target and the depth stencil
         renderSystem.resetCommandList(commandList_, nullptr);
 
         const auto renderTarget = renderSystem.getCurrentBackBuffer();
@@ -110,10 +109,11 @@ namespace killme
         // For each mesh entities
         for (const auto& entity : visitor.entities)
         {
-            // Update constant buffer of world matrix
+            // Update the constant buffer about world matrix
             const auto worldMatrix = transpose(entity->lockOwner()->getWorldMatrix());
             transformBuffer_->update(&worldMatrix, 0, sizeof(Matrix44));
 
+            // Get render resources
             const auto mesh = entity->getMesh();
             const auto material = mesh->getMaterial();
 
@@ -136,8 +136,8 @@ namespace killme
             commandList_->setPrimitiveTopology(PrimitiveTopology::triangeList);
             commandList_->setVertexBuffers(vertexBinder);
             commandList_->setIndexBuffer(indexBuffer);
-            commandList_->setRootSignature(rootSignature);
 
+            commandList_->setRootSignature(rootSignature);
             commandList_->setGpuResourceHeaps(heaps, 1);
             for (const auto& t : heapTables)
             {
@@ -149,6 +149,7 @@ namespace killme
 
             commandList_->close();
 
+            // Draw entity
             renderSystem.executeCommandList(commandList_);
         }
     }

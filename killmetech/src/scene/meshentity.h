@@ -9,17 +9,17 @@ namespace killme
 {
     class Mesh;
 
-    /** Meshed model entity */
+    /** The meshed model entity */
     class MeshEntity : public SceneEntity, public std::enable_shared_from_this<MeshEntity>
     {
     private:
         std::shared_ptr<Mesh> mesh_;
 
     public:
-        /** Construct */
+        /** Constructs */
         MeshEntity(const std::shared_ptr<Mesh>& mesh) : mesh_(mesh) {}
 
-        /** Returns mesh */
+        /** Returns the mesh */
         std::shared_ptr<Mesh> getMesh() { return mesh_; }
 
         bool accept(SceneVisitor& v) { return v(lockOwner(), shared_from_this()); }

@@ -11,9 +11,8 @@ namespace killme
     class SceneNode;
     class CommandList;
     class ConstantBuffer;
-    class GpuResourceHeap;
 
-    /** Scene manager */
+    /** The scene manager */
     class SceneManager
     {
     private:
@@ -30,16 +29,16 @@ namespace killme
         /** Finalizes */
         void shutdown();
 
-        /** Returns current scene */
+        /** Returns the current scene */
         std::shared_ptr<SceneNode> getRootNode();
 
-        /** Draw scene */
+        /** Draws the current scene */
         void drawScene();
 
-        /** Swap screen */
+        /** Swaps the screen */
         void presentBackBuffer();
 
-        /** Set scene resource heaps */
+        /** Sets scene resource heaps into a material */
         void setSceneResourceHeaps(Material& m);
     };
 

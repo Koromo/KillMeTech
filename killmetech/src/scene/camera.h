@@ -8,7 +8,7 @@
 
 namespace killme
 {
-    /** Camera */
+    /** The camera */
     class Camera : public SceneEntity, public std::enable_shared_from_this<Camera>
     {
     private:
@@ -18,7 +18,7 @@ namespace killme
         float farZ_;
 
     public:
-        /** Construct */
+        /** Constructs */
         Camera()
             : fovX_(radian(60))
             , aspect_(16 / 9.0f)
@@ -26,13 +26,13 @@ namespace killme
             , farZ_(1000)
         {}
 
-        /** Update projection */
+        /** Updates the projection */
         void setFovX(float rad) { fovX_ = rad; }
         void setAspectRate(float aspect) { aspect_ = aspect; }
         void setNearZ(float z) { nearZ_ = z; }
         void setFarZ(float z) { farZ_ = z; }
 
-        /** Returns projection matrix */
+        /** Returns the projection matrix */
         Matrix44 getProjectionMatrix() const { return makeProjectionMatrix(fovX_, aspect_, nearZ_, farZ_); }
 
         bool accept(SceneVisitor& v) { return v(lockOwner(), shared_from_this()); }

@@ -8,22 +8,23 @@ namespace killme
     class SceneNode;
     class SceneVisitor;
 
-    /** Scene entity */
+    /** The scene entity */
     class SceneEntity
     {
     private:
         std::weak_ptr<SceneNode> owner_;
 
     public:
+        /** Fro drived classes */
         virtual ~SceneEntity() = default;
 
-        /** Set owner */
+        /** Sets an owner */
         void setOwner(const std::shared_ptr<SceneNode>& owner) { owner_ = owner; }
 
-        /** Returns owner node */
+        /** Returns the owner */
         std::shared_ptr<SceneNode> lockOwner() { return owner_.lock(); }
 
-        /** Accept visitor */
+        /** Accepts a visitor */
         virtual bool accept(SceneVisitor& v) = 0;
     };
 }

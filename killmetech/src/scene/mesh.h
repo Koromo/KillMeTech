@@ -8,7 +8,7 @@ namespace killme
     class VertexData;
     class Material;
 
-    /** Mesh */
+    /** The mesh */
     class Mesh
     {
     private:
@@ -16,16 +16,16 @@ namespace killme
         std::shared_ptr<Material> material_;
 
     public:
-        /** Construct with a vertices and material */
+        /** Constructs with a vertices and a material */
         Mesh(const std::shared_ptr<VertexData>& vertexData, const std::shared_ptr<Material>& material)
             : vertexData_(vertexData)
             , material_(material)
         {}
 
-        /** Returns vertices */
+        /** Returns the vertices */
         std::shared_ptr<VertexData> getVertexData() { return vertexData_; }
 
-        /** Returns material */
+        /** Returns the material */
         std::shared_ptr<Material> getMaterial() const { return material_; }
     };
 }

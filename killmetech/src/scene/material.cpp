@@ -19,7 +19,7 @@ namespace killme
         , vsParamBuffer_()
         , psParamBuffer_()
     {
-        // Create root signature
+        // Create the root signature
         const auto vsCbuffers = vs->describeConstnatBuffers();
         const auto psCbuffers = ps->describeConstnatBuffers();
 
@@ -37,7 +37,7 @@ namespace killme
 
             if (cb.getName() == "VSParam")
             {
-                // Store VSParam description
+                // Store the description that named by VSParam
                 vsParamDesc_ = cb;
             }
             ++indexInHeap;
@@ -52,7 +52,7 @@ namespace killme
 
             if (cb.getName() == "PSParam")
             {
-                // Store PSParam description
+                // Store the description that named by PSParam
                 psParamDesc_ = cb;
             }
             ++indexInHeap;
@@ -61,20 +61,20 @@ namespace killme
 
         const auto rootSignature = renderSystem.createRootSignature(rootSigDesc);
 
-        // Create pipeline state
+        // Create the pipeline state
         PipelineStateDescription psDesc;
         psDesc.rootSignature = rootSignature;
         psDesc.vertexShader = vs;
         psDesc.pixelShader = ps;
         pipelineState_ = renderSystem.createPipelineState(psDesc);
 
-        // Create constant buffer heap
+        // Create the constant buffer heap
         cbufferHeap_ = renderSystem.createGpuResourceHeap(indexInHeap, GpuResourceHeapType::constantBuffer, GpuResourceHeapFlag::shaderVisible);
 
         // Set scene resource heaps
         sceneManager.setSceneResourceHeaps(*this);
 
-        // Create constant buffer for VSParam and PSParam
+        // Create the constant buffer for VSParam and PSParam
         if (vsParamDesc_)
         {
             vsParamBuffer_ = renderSystem.createConstantBuffer(vsParamDesc_->getSize());

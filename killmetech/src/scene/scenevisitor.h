@@ -30,6 +30,7 @@ namespace killme
     class Camera;
     class MeshEntity;
 
+    /** The basic visitor interface */
     class SceneVisitor : public detail::BasicVisitor<
         Camera,
         MeshEntity

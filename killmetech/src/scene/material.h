@@ -4,11 +4,9 @@
 #include "../renderer/shader.h"
 #include "../renderer/constantbuffer.h"
 #include "../core/optional.h"
-#include "../core/utility.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 #include <utility>
 
 namespace killme
@@ -19,7 +17,7 @@ namespace killme
     class PipelineState;
     class RootSignature;
 
-    /** Material */
+    /** The material */
     class Material
     {
     private:
@@ -35,10 +33,10 @@ namespace killme
         /** Constructs with each shaders */
         Material(const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
 
-        /** Store constant buffer into heap */
+        /** Stores a constant buffer into the heap */
         void storeConstantBuffer(const std::string& name, const std::shared_ptr<ConstantBuffer>& buffer);
 
-        /** Sets variable parameter */
+        /** Sets a variable parameter */
         template <class T>
         void setVariable(const std::string& name, const T& value)
         {
@@ -56,13 +54,13 @@ namespace killme
             }
         }
 
-        /** Returns pipeline state */
+        /** Returns the pipeline state */
         std::shared_ptr<PipelineState> getPipelineState();
 
-        /** Returns constant buffer heap */
+        /** Returns the constant buffer heap */
         std::shared_ptr<GpuResourceHeap> getConstantBufferHeap();
 
-        /** Returns bind tables that are pair of root parameter index and heap */
+        /** Returns bind tables that are pair of the root parameter index and the heap */
         auto getConstantBufferHeapTables()
             -> std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>>
         {

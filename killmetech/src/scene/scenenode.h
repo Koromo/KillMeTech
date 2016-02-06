@@ -5,7 +5,6 @@
 #include "scenevisitor.h"
 #include "../core/math/vector3.h"
 #include "../core/math/quaternion.h"
-#include "../core/math/matrix44.h"
 #include <vector>
 #include <memory>
 #include <stack>
@@ -28,7 +27,7 @@ namespace killme
         }
     }
 
-    /** Transform node */
+    /** The transform node */
     class SceneNode : public std::enable_shared_from_this<SceneNode>
     {
     private:
@@ -40,13 +39,13 @@ namespace killme
         std::shared_ptr<SceneEntity> entity_;
 
     public:
-        /** Construct */
+        /** Constructs */
         SceneNode(const std::shared_ptr<SceneNode>& parent);
 
-        /** Create child node */
+        /** Creates the child node */
         std::shared_ptr<SceneNode> createChild();
 
-        /** Create entity */
+        /** Creates the entity */
         template <class T, class... Args>
         std::shared_ptr<T> attachEntity(Args... args)
         {
@@ -56,12 +55,12 @@ namespace killme
             return e;
         }
 
-        /** Update transform */
+        /** Updates the transform */
         void setPosition(const Vector3& pos);
         void setOrientation(const Quaternion& q);
         void setScale(const Vector3& k);
 
-        /** Returns world matrix */
+        /** Returns the world matrix */
         Matrix44 getWorldMatrix() const;
 
         /** Traverse scene */
