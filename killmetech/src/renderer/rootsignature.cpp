@@ -4,17 +4,32 @@
 
 namespace killme
 {
-    RootParameter::RootParameter(D3D12_ROOT_PARAMETER& param)
-        : param_(param)
-        , range_()
+    GpuResourceRange::GpuResourceRange(D3D12_DESCRIPTOR_RANGE& range)
+        : range_(range)
     {
-        // Setup range for constant buffers
         range_.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         range_.RegisterSpace = 0;
         range_.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-        param_.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        param_.DescriptorTable.pDescriptorRanges = &range_;
-        param_.DescriptorTable.NumDescriptorRanges = 1;
+    }
+
+    void GpuResourceRange::set(size_t baseRegister, size_t numResources, size_t offset)
+    {
+        range_.NumDescriptors = numResources;
+        range_.BaseShaderRegister = baseRegister;
+        range_.OffsetInDescriptorsFromTableStart = offset;
+    }
+
+    RootParameter::RootParameter(D3D12_ROOT_PARAMETER& param)
+        : param_(param)
+        , d3dRanges_()
+        , ranges_()
+    {
+    }
+
+    GpuResourceRange& RootParameter::operator [](size_t i)
+    {
+        assert(i < ranges_.size() && "Index out of range.");
+        return ranges_[i];
     }
 
     namespace
@@ -33,11 +48,19 @@ namespace killme
         }
     }
 
-    void RootParameter::set(size_t baseRegister, size_t numResources, ShaderType visibility)
+    void RootParameter::initialize(size_t numRanges, ShaderType visibility)
     {
-        range_.NumDescriptors = numResources;
-        range_.BaseShaderRegister = baseRegister;
+        d3dRanges_.resize(numRanges);
         param_.ShaderVisibility = toD3DShaderVisibility(visibility);
+        param_.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+        param_.DescriptorTable.pDescriptorRanges = d3dRanges_.data();
+        param_.DescriptorTable.NumDescriptorRanges = numRanges;
+
+        ranges_.reserve(numRanges);
+        for (auto& d3dRange : d3dRanges_)
+        {
+            ranges_.emplace_back(d3dRange);
+        }
     }
 
     RootSignatureDescription::RootSignatureDescription(size_t numParams)

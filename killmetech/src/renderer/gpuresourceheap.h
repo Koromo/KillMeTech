@@ -1,29 +1,29 @@
-#ifndef _KILLME_RESOURCEHEAP_H_
-#define _KILLME_RESOURCEHEAP_H_
+#ifndef _KILLME_GPURESOURCEHEAP_H_
+#define _KILLME_GPURESOURCEHEAP_H_
 
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 
 namespace killme
 {
-    /** Resource heap type definitions */
-    enum class ResourceHeapType
+    /** GPU resource heap type definitions */
+    enum class GpuResourceHeapType
     {
         renderTarget,
         depthStencil,
         constantBuffer
     };
 
-    /** Resource heap flag definitions */
-    enum class ResourceHeapFlag
+    /** GPU resource heap flag definitions */
+    enum class GpuResourceHeapFlag
     {
         shaderVisible,
         none,
     };
 
-    /** Resource heap */
+    /** GPU resource heap */
     /// NOTE: Resource heap is same to the Descriptor heap of Direct3D
-    class ResourceHeap
+    class GpuResourceHeap
     {
     private:
         ComUniquePtr<ID3D12DescriptorHeap> heap_;
@@ -31,7 +31,7 @@ namespace killme
 
     public:
         /** Constructs with a Direct3D descriptor heap */
-        explicit ResourceHeap(ID3D12DescriptorHeap* heap)
+        explicit GpuResourceHeap(ID3D12DescriptorHeap* heap)
             : heap_(makeComUnique(heap))
             , type_(heap->GetDesc().Type)
         {

@@ -5,6 +5,7 @@
 #include "../input/inputmanager.h"
 #include "../event/eventdispatcher.h"
 #include "../scene/scenemanager.h"
+#include "../renderer/rendersystem.h"
 
 namespace killme
 {
@@ -14,7 +15,6 @@ namespace killme
         , audioManager_()
         , inputManager_()
         , eventDispatcher_()
-        , sceneManager_()
     {
         // Initialize window
         // Register window class
@@ -66,13 +66,14 @@ namespace killme
         // Initialize event system
         eventDispatcher_ = std::make_shared<EventDispatcher>();
 
-        // Initialize scene manager
-        sceneManager_ = std::make_shared<SceneManager>(window);
+        renderSystem.startup(window);
+        sceneManager.startup();
     }
 
     KillMeEngine::~KillMeEngine()
     {
-        sceneManager_.reset();
+        sceneManager.shutdown();
+        renderSystem.shutdown();
         audioManager_.reset();
         inputManager_.reset();
         eventDispatcher_.reset();
@@ -100,8 +101,8 @@ namespace killme
             }
             else
             {
-                sceneManager_->drawScene();
-                sceneManager_->presentBackBuffer();
+                sceneManager.drawScene();
+                sceneManager.presentBackBuffer();
             }
         }
 
@@ -122,11 +123,6 @@ namespace killme
     std::shared_ptr<EventDispatcher> KillMeEngine::getEventDispatcher()
     {
         return eventDispatcher_;
-    }
-
-    std::shared_ptr<SceneManager> KillMeEngine::getSceneManager()
-    {
-        return sceneManager_;
     }
 
     LRESULT CALLBACK KillMeEngine::windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)

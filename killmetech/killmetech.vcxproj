@@ -39,8 +39,10 @@
     <ClCompile Include="src\renderer\pixelshader.cpp" />
     <ClCompile Include="src\renderer\rendersystem.cpp" />
     <ClCompile Include="src\renderer\rootsignature.cpp" />
+    <ClCompile Include="src\renderer\shader.cpp" />
     <ClCompile Include="src\renderer\vertexdata.cpp" />
     <ClCompile Include="src\renderer\vertexshader.cpp" />
+    <ClCompile Include="src\scene\material.cpp" />
     <ClCompile Include="src\scene\scenemanager.cpp" />
     <ClCompile Include="src\scene\scenenode.cpp" />
     <ClCompile Include="src\windows\console.cpp" />
@@ -56,6 +58,7 @@
     <ClInclude Include="src\core\math\matrix44.h" />
     <ClInclude Include="src\core\math\quaternion.h" />
     <ClInclude Include="src\core\math\vector3.h" />
+    <ClInclude Include="src\core\optional.h" />
     <ClInclude Include="src\core\range.h" />
     <ClInclude Include="src\core\string.h" />
     <ClInclude Include="src\core\variant.h" />
@@ -72,7 +75,7 @@
     <ClInclude Include="src\renderer\depthstencil.h" />
     <ClInclude Include="src\renderer\inputlayout.h" />
     <ClInclude Include="src\renderer\pipelinestate.h" />
-    <ClInclude Include="src\renderer\resourceheap.h" />
+    <ClInclude Include="src\renderer\gpuresourceheap.h" />
     <ClInclude Include="src\renderer\pixelshader.h" />
     <ClInclude Include="src\renderer\renderstate.h" />
     <ClInclude Include="src\renderer\rendersystem.h" />

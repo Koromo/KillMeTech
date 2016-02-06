@@ -1,7 +1,7 @@
 #ifndef _KILLME_RENDERSYSTEM_H_
 #define _KILLME_RENDERSYSTEM_H_
 
-#include "resourceheap.h"
+#include "gpuresourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -28,15 +28,16 @@ namespace killme
     class RenderSystem
     {
     private:
+        HWND window_;
         ComUniquePtr<ID3D12Device> device_;
         ComUniquePtr<ID3D12CommandQueue> commandQueue_;
         ComUniquePtr<ID3D12CommandAllocator> commandAllocator_;
         ComUniquePtr<IDXGISwapChain3> swapChain_;
 
         size_t frameIndex_;
-        std::shared_ptr<ResourceHeap> renderTargetHeap_;
+        std::shared_ptr<GpuResourceHeap> renderTargetHeap_;
         std::array<std::shared_ptr<RenderTarget>, NUM_BACK_BUFFERS> renderTargets_;
-        std::shared_ptr<ResourceHeap> depthStencilHeap_;
+        std::shared_ptr<GpuResourceHeap> depthStencilHeap_;
         std::shared_ptr<DepthStencil> depthStencil_;
 
         ComUniquePtr<ID3D12Fence> fence_;
@@ -44,8 +45,14 @@ namespace killme
         UINT64 fenceValue_;
 
     public:
-        /** Constructs with a target window */
-        explicit RenderSystem(HWND window);
+        /** Initializes */
+        void startup(HWND window);
+
+        /** Finalizes */
+        void shutdown();
+
+        /** Returns a target window */
+        HWND getWindow();
 
         /** Returns a current back buffer */
         std::shared_ptr<RenderTarget> getCurrentBackBuffer();
@@ -60,10 +67,10 @@ namespace killme
         std::shared_ptr<IndexBuffer> createIndexBuffer(const unsigned short* data, size_t size);
 
         /** Creates a constant buffer */
-        std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t dataSize);
+        std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t size);
 
-        /** Creates a resource heap */
-        std::shared_ptr<ResourceHeap> createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag);
+        /** Creates a gpu resource heap */
+        std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, GpuResourceHeapFlag flag);
 
 		/** Creates a root signature */
         std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
@@ -76,7 +83,7 @@ namespace killme
 
         /** Stores a resource to resource heap */
         template <class Resource>
-        void storeResource(const std::shared_ptr<ResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
+        void storeGpuResource(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
         {
             const auto d3dHeap = heap->getD3DHeap();
             const auto heapType = heap->getType();
@@ -97,6 +104,8 @@ namespace killme
         /** Presents screen */
         void presentBackBuffer();
     };
+
+    extern RenderSystem renderSystem;
 }
 
 #endif

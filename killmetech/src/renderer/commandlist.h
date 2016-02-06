@@ -2,7 +2,7 @@
 #define _KILLME_COMMANDLIST_H_
 
 #include "vertexdata.h"
-#include "resourceheap.h"
+#include "gpuresourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <memory>
@@ -55,7 +55,7 @@ namespace killme
 
         /** Changes currently bound resource heaps */
         template <class Range>
-        void setResourceHeaps(Range heaps, size_t numHeaps)
+        void setGpuResourceHeaps(Range heaps, size_t numHeaps)
         {
             std::vector<ID3D12DescriptorHeap*> d3dHeaps;
             d3dHeaps.reserve(numHeaps);
@@ -67,7 +67,7 @@ namespace killme
         }
 
         /** Sets resource table */
-        void setResourceTable(size_t rootParamIndex, const std::shared_ptr<ResourceHeap>& heap);
+        void setGpuResourceTable(size_t rootParamIndex, const std::shared_ptr<GpuResourceHeap>& heap);
 
         /** Command of set viewport */
         void setViewport(const Viewport& vp);

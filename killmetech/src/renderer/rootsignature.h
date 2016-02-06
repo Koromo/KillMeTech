@@ -9,19 +9,37 @@ namespace killme
 {
     enum class ShaderType;
 
+    /** Range of gpu resource heap */
+    class GpuResourceRange
+    {
+    private:
+        D3D12_DESCRIPTOR_RANGE& range_;
+
+    public:
+        /** Constructs with a refference of Direct3D range */
+        explicit GpuResourceRange(D3D12_DESCRIPTOR_RANGE& range);
+
+        /** Sets range values */
+        void set(size_t baseRegister, size_t numResources, size_t offset = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
+    };
+
     /** Root parameter */
     class RootParameter
     {
     private:
         D3D12_ROOT_PARAMETER& param_;
-        D3D12_DESCRIPTOR_RANGE range_;
+        std::vector<D3D12_DESCRIPTOR_RANGE> d3dRanges_;
+        std::vector<GpuResourceRange> ranges_;
 
     public:
         /** Constructs with a refference of Direct3D root parameter */
         explicit RootParameter(D3D12_ROOT_PARAMETER& param);
 
-        /** Sets resource table */
-        void set(size_t baseRegister, size_t numResources, ShaderType visibility);
+        /** Accesses i'th range */
+        GpuResourceRange& operator [](size_t i);
+
+        /** Initializes */
+        void initialize(size_t numRanges, ShaderType visibility);
     };
 
     /** Root signature description */

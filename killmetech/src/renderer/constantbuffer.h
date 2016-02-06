@@ -6,6 +6,7 @@
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <cstring>
+#include <cmath>
 
 namespace killme
 {
@@ -16,24 +17,22 @@ namespace killme
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
         D3D12_RESOURCE_DESC resourceDesc_;
-        void* mappedData_;
-        size_t dataSize_;
+        char* mappedData_;
 
     public:
         /** Constructs with a Direct3D buffer and size of data */
-        ConstantBuffer(ID3D12Resource* buffer, size_t dataSize)
+        explicit ConstantBuffer(ID3D12Resource* buffer)
             : buffer_(makeComUnique(buffer))
             , resourceDesc_(buffer->GetDesc())
             , mappedData_()
-            , dataSize_(dataSize)
         {
             enforce<Direct3DException>(
-                SUCCEEDED(buffer_->Map(0, nullptr, &mappedData_)),
+                SUCCEEDED(buffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedData_))),
                 "Failed to map constant data.");
         }
 
         /** Updates buffer data */
-        void update(const void* src) { std::memcpy(mappedData_, src, dataSize_); }
+        void update(const void* src, size_t offset, size_t size) { std::memcpy(mappedData_ + offset, src, size); }
 
         /** Creates a Direct3D view to desctipror heap */
         void createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)

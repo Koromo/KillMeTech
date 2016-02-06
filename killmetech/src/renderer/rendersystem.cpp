@@ -3,7 +3,6 @@
 #include "depthstencil.h"
 #include "vertexdata.h"
 #include "constantbuffer.h"
-#include "resourceheap.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
 #include "vertexshader.h"
@@ -22,20 +21,12 @@ namespace killme
         const DXGI_FORMAT DEPTH_STENCIL_FORMAT = DXGI_FORMAT_D16_UNORM;
     }
 
-    RenderSystem::RenderSystem(HWND window)
-        : device_()
-        , commandQueue_()
-        , commandAllocator_()
-        , swapChain_()
-        , frameIndex_()
-        , renderTargetHeap_()
-        , renderTargets_()
-        , depthStencilHeap_()
-        , depthStencil_()
-        , fence_()
-        , fenceEvent_()
-        , fenceValue_()
+    RenderSystem renderSystem;
+
+    void RenderSystem::startup(HWND window)
     {
+        window_ = window;
+
         // Enable the debug layer
 #ifdef _DEBUG
         ID3D12Debug* debugController;
@@ -65,9 +56,16 @@ namespace killme
             "Failed create command queue.");
         commandQueue_ = makeComUnique(commandQueue);
 
+        // Create a command allocator
+        ID3D12CommandAllocator* commandAllocator;
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))),
+            "Failed to create command allocator.");
+        commandAllocator_ = makeComUnique(commandAllocator);
+
         // Create a swap chain
         RECT clientRect;
-        GetClientRect(window, &clientRect);
+        GetClientRect(window_, &clientRect);
         const auto clientWidth = clientRect.right - clientRect.left;
         const auto clientHeight = clientRect.bottom - clientRect.top;
 
@@ -79,7 +77,7 @@ namespace killme
         swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        swapChainDesc.OutputWindow = window;
+        swapChainDesc.OutputWindow = window_;
         swapChainDesc.SampleDesc.Count = 1;
         swapChainDesc.Windowed = TRUE;
 
@@ -104,7 +102,7 @@ namespace killme
         frameIndex_ = swapChain_->GetCurrentBackBufferIndex();
 
         // Create render targets
-        renderTargetHeap_ = createResourceHeap(NUM_BACK_BUFFERS, ResourceHeapType::renderTarget, ResourceHeapFlag::none);
+        renderTargetHeap_ = createGpuResourceHeap(NUM_BACK_BUFFERS, GpuResourceHeapType::renderTarget, GpuResourceHeapFlag::none);
         for (UINT i = 0; i < NUM_BACK_BUFFERS; ++i)
         {
             ID3D12Resource* renderTarget;
@@ -112,11 +110,11 @@ namespace killme
                 SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTarget))),
                 "Failed to get back buffer.");
             renderTargets_[i] = std::make_shared<RenderTarget>(renderTarget);
-            storeResource(renderTargetHeap_, i, renderTargets_[i]);
+            storeGpuResource(renderTargetHeap_, i, renderTargets_[i]);
         }
 
         // Create a depth stencil
-        depthStencilHeap_ = createResourceHeap(1, ResourceHeapType::depthStencil, ResourceHeapFlag::none);
+        depthStencilHeap_ = createGpuResourceHeap(1, GpuResourceHeapType::depthStencil, GpuResourceHeapFlag::none);
 
         const auto defaultHeapProps = getD3DDefaultHeapProps();
         const auto depthStencilDesc = describeD3DTex2D(clientWidth, clientHeight, DEPTH_STENCIL_FORMAT, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -133,14 +131,7 @@ namespace killme
             "Failed to create depth stencil.");
 
         depthStencil_ = std::make_shared<DepthStencil>(depthStencil, DEPTH_STENCIL_FORMAT);
-        storeResource(depthStencilHeap_, 0, depthStencil_);
-
-        // Create a command allocator
-        ID3D12CommandAllocator* commandAllocator;
-        enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))),
-            "Failed to create command allocator.");
-        commandAllocator_ = makeComUnique(commandAllocator);
+        storeGpuResource(depthStencilHeap_, 0, depthStencil_);
 
         // Create a fence
         ID3D12Fence* fence;
@@ -150,6 +141,28 @@ namespace killme
         fence_ = makeComUnique(fence);
         fenceEvent_ = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
         fenceValue_ = 1;
+    }
+
+    void RenderSystem::shutdown()
+    {
+        CloseHandle(fenceEvent_);
+        fence_.reset();
+        depthStencil_.reset();
+        depthStencilHeap_.reset();
+        for (auto rt : renderTargets_)
+        {
+            rt.reset();
+        }
+        renderTargetHeap_.reset();
+        swapChain_.reset();
+        commandAllocator_.reset();
+        commandQueue_.reset();
+        device_.reset();
+    }
+
+    HWND RenderSystem::getWindow()
+    {
+        return window_;
     }
 
     std::shared_ptr<RenderTarget> RenderSystem::getCurrentBackBuffer()
@@ -214,11 +227,11 @@ namespace killme
         return std::make_shared<IndexBuffer>(buffer, size);
     }
 
-    std::shared_ptr<ConstantBuffer> RenderSystem::createConstantBuffer(size_t dataSize)
+    std::shared_ptr<ConstantBuffer> RenderSystem::createConstantBuffer(size_t size)
     {
         /// TODO: Now, Only use upload heap. We can use default heap to store data for optimization.
         // Use upload heap
-        const size_t bufferSize = dataSize + 256 - (dataSize % 256);
+        const size_t bufferSize = size + (256 - size);
         const auto uploadHeapProps = getD3DUploadHeapProps();
         const auto desc = describeD3DBuffer(bufferSize);
 
@@ -228,36 +241,36 @@ namespace killme
             SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create constant buffer.");
 
-        return std::make_shared<ConstantBuffer>(buffer, dataSize);
+        return std::make_shared<ConstantBuffer>(buffer);
     }
 
     namespace
     {
-        D3D12_DESCRIPTOR_HEAP_TYPE toD3DHeapType(ResourceHeapType type)
+        D3D12_DESCRIPTOR_HEAP_TYPE toD3DHeapType(GpuResourceHeapType type)
         {
             switch (type)
             {
-            case ResourceHeapType::renderTarget: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            case ResourceHeapType::depthStencil: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-            case ResourceHeapType::constantBuffer: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            case GpuResourceHeapType::renderTarget: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            case GpuResourceHeapType::depthStencil: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            case GpuResourceHeapType::constantBuffer: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             default: assert(false && "Invalid heap type.");
             }
             return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // For warnings
         }
 
-        D3D12_DESCRIPTOR_HEAP_FLAGS toD3DHeapFlag(ResourceHeapFlag flag)
+        D3D12_DESCRIPTOR_HEAP_FLAGS toD3DHeapFlag(GpuResourceHeapFlag flag)
         {
             switch (flag)
             {
-            case ResourceHeapFlag::shaderVisible: return D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            case ResourceHeapFlag::none: return D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            case GpuResourceHeapFlag::shaderVisible: return D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            case GpuResourceHeapFlag::none: return D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             default: assert(false && "Invalid heap flag.");
             }
             return D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // For warnings
         }
     }
 
-    std::shared_ptr<ResourceHeap> RenderSystem::createResourceHeap(size_t numResources, ResourceHeapType type, ResourceHeapFlag flag)
+    std::shared_ptr<GpuResourceHeap> RenderSystem::createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, GpuResourceHeapFlag flag)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
@@ -270,7 +283,7 @@ namespace killme
             SUCCEEDED(device_->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
             "Failed to create descripter heap.");
 
-        return std::make_shared<ResourceHeap>(heap);
+        return std::make_shared<GpuResourceHeap>(heap);
     }
 
     std::shared_ptr<RootSignature> RenderSystem::createRootSignature(RootSignatureDescription& desc)

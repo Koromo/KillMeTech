@@ -14,7 +14,6 @@ namespace killme
     class VertexShader : public BasicShader
     {
     private:
-        ComUniquePtr<ID3D12ShaderReflection> reflection_;
         std::shared_ptr<InputLayout> inputLayout_;
 
     public:

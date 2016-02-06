@@ -65,7 +65,7 @@ namespace killme
         list_->SetGraphicsRootSignature(signature->getD3DRootSignature());
     }
 
-    void CommandList::setResourceTable(size_t rootParamIndex, const std::shared_ptr<ResourceHeap>& heap)
+    void CommandList::setGpuResourceTable(size_t rootParamIndex, const std::shared_ptr<GpuResourceHeap>& heap)
     {
         list_->SetGraphicsRootDescriptorTable(rootParamIndex, heap->getD3DHeap()->GetGPUDescriptorHandleForHeapStart());
     }

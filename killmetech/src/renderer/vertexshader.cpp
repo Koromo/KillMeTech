@@ -23,39 +23,23 @@ namespace killme
 
     VertexShader::VertexShader(ID3DBlob* byteCode)
         : BasicShader(byteCode)
-        , reflection_()
         , inputLayout_()
     {
-        // Get shader reflection
-        ID3D12ShaderReflection* reflection;
-        enforce<Direct3DException>(
-            SUCCEEDED(D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection))),
-            "Failed to get a reflection of shader.");
-        reflection_ = makeComUnique(reflection);
-
-        // Get shader description
-        D3D12_SHADER_DESC shaderDesc;
-        enforce<Direct3DException>(
-            SUCCEEDED(reflection->GetDesc(&shaderDesc)),
-            "Failed to get a description of shader.");
-
         // Collect input elements
-        std::vector<D3D12_INPUT_ELEMENT_DESC> elems(shaderDesc.InputParameters);
-
-        for (size_t i = 0; i < shaderDesc.InputParameters; ++i)
+        std::vector<D3D12_INPUT_ELEMENT_DESC> elems;
+        const auto signature = getD3DInputSignature();
+        for (const auto& param: signature)
         {
-            D3D12_SIGNATURE_PARAMETER_DESC param;
-            enforce<Direct3DException>(
-                SUCCEEDED(reflection->GetInputParameterDesc(i, &param)),
-                "Failed to get a description of input parameter of shader.");
+            D3D12_INPUT_ELEMENT_DESC elem;
+            elem.SemanticName = param.SemanticName;
+            elem.SemanticIndex = param.SemanticIndex;
+            elem.Format = vertexFormat(param.SemanticName);
+            elem.InputSlot = elems.size();
+            elem.AlignedByteOffset = 0;
+            elem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+            elem.InstanceDataStepRate = 0;
 
-            elems[i].SemanticName = param.SemanticName;
-            elems[i].SemanticIndex = param.SemanticIndex;
-            elems[i].Format = vertexFormat(param.SemanticName);
-            elems[i].InputSlot = i;
-            elems[i].AlignedByteOffset = 0;
-            elems[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-            elems[i].InstanceDataStepRate = 0;
+            elems.push_back(elem);
         }
 
         inputLayout_ = std::make_shared<InputLayout>(std::move(elems));

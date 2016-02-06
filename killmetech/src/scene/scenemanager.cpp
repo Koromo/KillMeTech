@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "material.h"
 #include "../renderer/rendersystem.h"
-#include "../renderer/resourceheap.h"
+#include "../renderer/gpuresourceheap.h"
 #include "../renderer/constantbuffer.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/rendertarget.h"
@@ -21,41 +21,15 @@
 
 namespace killme
 {
-    namespace
+    SceneManager sceneManager;
+
+    void SceneManager::startup()
     {
-        struct ViewProjMatData
-        {
-            Matrix44 viewMatrix;
-            Matrix44 projMatrix;
-        };
-
-
-        /**
-         *  vs0: ViewProjMat
-         *  vs1: WorldMat
-         *  ps0: Material
-        */
-    }
-
-    SceneManager::SceneManager(HWND window)
-        : renderSystem_(std::make_shared<RenderSystem>(window))
-        , commandList_()
-        , viewport_()
-        , scissorRect_()
-        , viewProjMatBuffer_()
-        , worldMatBuffer_()
-        , transMatrixHeap_()
-        , rootNode_(std::make_shared<SceneNode>(nullptr))
-    {
-        commandList_ = renderSystem_->createCommandList();
-        viewProjMatBuffer_ = renderSystem_->createConstantBuffer(sizeof(ViewProjMatData));
-        worldMatBuffer_ = renderSystem_->createConstantBuffer(sizeof(Matrix44));
-        transMatrixHeap_ = renderSystem_->createResourceHeap(2, ResourceHeapType::constantBuffer, ResourceHeapFlag::shaderVisible);
-        renderSystem_->storeResource(transMatrixHeap_, 0, viewProjMatBuffer_);
-        renderSystem_->storeResource(transMatrixHeap_, 1, worldMatBuffer_);
+        commandList_ = renderSystem.createCommandList();
+        transformBuffer_ = renderSystem.createConstantBuffer(sizeof(Matrix44) * 3);
 
         RECT clientRect;
-        GetClientRect(window, &clientRect);
+        GetClientRect(renderSystem.getWindow(), &clientRect);
         const auto clientWidth = clientRect.right - clientRect.left;
         const auto clientHeight = clientRect.bottom - clientRect.top;
 
@@ -70,11 +44,15 @@ namespace killme
         scissorRect_.left = 0;
         scissorRect_.right = static_cast<int>(clientWidth);
         scissorRect_.bottom = static_cast<int>(clientHeight);
+
+        rootNode_ = std::make_shared<SceneNode>(nullptr);
     }
 
-    std::shared_ptr<RenderSystem> SceneManager::getRenderSystem()
+    void SceneManager::shutdown()
     {
-        return renderSystem_;
+        rootNode_.reset();
+        transformBuffer_.reset();
+        commandList_.reset();
     }
 
     std::shared_ptr<SceneNode> SceneManager::getRootNode()
@@ -113,28 +91,28 @@ namespace killme
         const auto camera = visitor.camera;
         const auto viewMatrix = transpose(inverse(camera->lockOwner()->getWorldMatrix()));
         const auto projMatrix = transpose(camera->getProjectionMatrix());
-        
-        ViewProjMatData viewProjMatData = { viewMatrix, projMatrix };
-        viewProjMatBuffer_->update(&viewProjMatData);
+
+        transformBuffer_->update(&viewMatrix, sizeof(Matrix44), sizeof(Matrix44));
+        transformBuffer_->update(&projMatrix, sizeof(Matrix44) * 2, sizeof(Matrix44));
 
         // Clear render target
-        renderSystem_->resetCommandList(commandList_, nullptr);
+        renderSystem.resetCommandList(commandList_, nullptr);
 
-        const auto renderTarget = renderSystem_->getCurrentBackBuffer();
-        const auto depthStencil = renderSystem_->getDepthStencil();
+        const auto renderTarget = renderSystem.getCurrentBackBuffer();
+        const auto depthStencil = renderSystem.getDepthStencil();
         commandList_->resourceBarrior(renderTarget, ResourceState::present, ResourceState::renderTarget);
         commandList_->clearRenderTarget(renderTarget, { 0.1f, 0.1f, 0.1f, 1 });
         commandList_->resourceBarrior(renderTarget, ResourceState::renderTarget, ResourceState::present);
         commandList_->clearDepthStencil(depthStencil, 1);
         commandList_->close();
-        renderSystem_->executeCommandList(commandList_);
+        renderSystem.executeCommandList(commandList_);
 
         // For each mesh entities
         for (const auto& entity : visitor.entities)
         {
             // Update constant buffer of world matrix
             const auto worldMatrix = transpose(entity->lockOwner()->getWorldMatrix());
-            worldMatBuffer_->update(&worldMatrix);
+            transformBuffer_->update(&worldMatrix, 0, sizeof(Matrix44));
 
             const auto mesh = entity->getMesh();
             const auto material = mesh->getMaterial();
@@ -145,9 +123,11 @@ namespace killme
             const auto inputLayout = pipelineState->describe().vertexShader->getInputLayout();
             const auto vertexBinder = vertexData->getBinder(inputLayout);
             const auto indexBuffer = vertexData->getIndexBuffer();
+            const auto heaps = { material->getConstantBufferHeap() };
+            const auto heapTables = material->getConstantBufferHeapTables();
 
             // Add draw commands
-            renderSystem_->resetCommandList(commandList_, pipelineState);
+            renderSystem.resetCommandList(commandList_, pipelineState);
 
             commandList_->resourceBarrior(renderTarget, ResourceState::present, ResourceState::renderTarget);
             commandList_->setRenderTarget(renderTarget, depthStencil);
@@ -158,21 +138,28 @@ namespace killme
             commandList_->setIndexBuffer(indexBuffer);
             commandList_->setRootSignature(rootSignature);
 
-            const auto heaps = { transMatrixHeap_ };
-            commandList_->setResourceHeaps(makeRange(heaps), 1);
-            commandList_->setResourceTable(0, transMatrixHeap_);
+            commandList_->setGpuResourceHeaps(heaps, 1);
+            for (const auto& t : heapTables)
+            {
+                commandList_->setGpuResourceTable(t.first, t.second);
+            }
 
             commandList_->drawIndexed(indexBuffer->getNumIndices());
             commandList_->resourceBarrior(renderTarget, ResourceState::renderTarget, ResourceState::present);
 
             commandList_->close();
 
-            renderSystem_->executeCommandList(commandList_);
+            renderSystem.executeCommandList(commandList_);
         }
     }
 
     void SceneManager::presentBackBuffer()
     {
-        renderSystem_->presentBackBuffer();
+        renderSystem.presentBackBuffer();
+    }
+
+    void SceneManager::setSceneResourceHeaps(Material& m)
+    {
+        m.storeConstantBuffer("Transform", transformBuffer_);
     }
 }

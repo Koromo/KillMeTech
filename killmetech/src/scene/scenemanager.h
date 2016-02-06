@@ -7,31 +7,28 @@
 
 namespace killme
 {
+    class Material;
     class SceneNode;
-    class RenderSystem;
     class CommandList;
     class ConstantBuffer;
-    class ResourceHeap;
+    class GpuResourceHeap;
 
     /** Scene manager */
     class SceneManager
     {
     private:
-        std::shared_ptr<RenderSystem> renderSystem_;
         std::shared_ptr<CommandList> commandList_;
+        std::shared_ptr<ConstantBuffer> transformBuffer_;
         Viewport viewport_;
         ScissorRect scissorRect_;
-        std::shared_ptr<ConstantBuffer> viewProjMatBuffer_;
-        std::shared_ptr<ConstantBuffer> worldMatBuffer_;
-        std::shared_ptr<ResourceHeap> transMatrixHeap_;
         std::shared_ptr<SceneNode> rootNode_;
 
     public:
-        /** Construct */
-        explicit SceneManager(HWND window);
+        /** Initializes */
+        void startup();
 
-        /** Returns render system */
-        std::shared_ptr<RenderSystem> getRenderSystem();
+        /** Finalizes */
+        void shutdown();
 
         /** Returns current scene */
         std::shared_ptr<SceneNode> getRootNode();
@@ -41,7 +38,12 @@ namespace killme
 
         /** Swap screen */
         void presentBackBuffer();
+
+        /** Set scene resource heaps */
+        void setSceneResourceHeaps(Material& m);
     };
+
+    extern SceneManager sceneManager;
 }
 
 #endif

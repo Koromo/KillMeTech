@@ -16,7 +16,7 @@ namespace killme
         struct BasicVisitor<>
         {
             virtual ~BasicVisitor() = default;
-            virtual bool operator ()(const std::shared_ptr<SceneNode>&, nullptr_t) { return false; }
+            virtual bool operator ()(const std::shared_ptr<SceneNode>&, std::nullptr_t) { return false; }
         };
 
         template <class T, class... Args>
