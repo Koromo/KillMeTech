@@ -7,11 +7,11 @@
 
 namespace killme
 {
-    /** Optional exception */
+    /** The exception of Optional */
     class OptionalException : public Exception
     {
     public:
-        OptionalException(const std::string& msg) : Exception(msg) {}
+        OptionalException(const std::string& msg);
     };
 
     namespace detail
@@ -20,6 +20,7 @@ namespace killme
     }
 
     /// TODO: Dynamic memory
+    /** The Optional */
     template <class T>
     class Optional
     {
@@ -27,39 +28,47 @@ namespace killme
         std::unique_ptr<T> value_;
 
     public:
+        /** Constructs */
         Optional() noexcept = default;
 
+        /** Constructs with the null */
         Optional(const detail::NullOpt&) noexcept
             : Optional()
         {
         }
 
+        /** Constructs with a value */
         template <class U>
         Optional(U&& value)
             : value_(std::make_unique<T>(std::forward<U>(value)))
         {
         }
 
+        /** Copy constructor */
         Optional(const Optional& lhs)
             : value_()
         {
             *this = lhs;
         }
 
+        /** Move constructor */
         Optional(Optional&& rhs)
             : value_()
         {
             *this = std::move(rhs);
         }
 
+        /** Destructs */
         virtual ~Optional() = default;
 
+        /** Assignment operator with the null */
         Optional& operator =(const detail::NullOpt&) noexcept
         {
             value_.reset();
             return *this;
         }
 
+        /** Assignment operator with a value */
         template <class U>
         Optional& operator =(U&& value)
         {
@@ -67,6 +76,7 @@ namespace killme
             return *this;
         }
 
+        /** Copy assignment operator */
         Optional& operator =(const Optional& lhs)
         {
             if (lhs)
@@ -80,34 +90,40 @@ namespace killme
             return *this;
         }
 
+        /** Move assignment operator */
         Optional& operator =(Optional&& rhs)
         {
             value_ = std::move(rhs.value_);
             return *this;
         }
 
+        /** Returns true if Optional has a value. Otherwise, false. */
         operator bool() const noexcept
         {
             return !!value_;
         }
 
+        /** Accesses to the value */
         const T* operator ->() const noexcept
         {
             enforce<OptionalException>(*this, "Optional is null.");
             return value_.get();
         }
 
-        T* operator ->()  noexcept
+        /** ditto */
+        T* operator ->() noexcept
         {
             return const_cast<T*>(static_cast<const Optional&>(*this).operator->());
         }
 
-        const T& operator *() const  noexcept
+        /** Returns refference of the value */
+        const T& operator *() const noexcept
         {
             return *(this->operator->());
         }
 
-        T& operator *()  noexcept
+        /** ditto */
+        T& operator *() noexcept
         {
             return *(this->operator->());
         }
@@ -124,7 +140,8 @@ namespace killme
         };
     }
 
-    const detail::NullOpt nullopt;
+    /** The invalid value */
+    extern const detail::NullOpt nullopt;
 }
 
 #endif

@@ -1,6 +1,5 @@
 #include "matrix44.h"
 #include "vector3.h"
-#include "quaternion.h"
 #include "math.h"
 #include <cmath>
 #include <cassert>
@@ -54,7 +53,7 @@ namespace killme
 		*this = il;
     }
 
-    Matrix44& Matrix44::operator=(std::initializer_list<float> il)
+    Matrix44& Matrix44::operator =(std::initializer_list<float> il)
     {
         assert(il.size() == 16 && "Invalid initializer list.");
 
@@ -70,18 +69,18 @@ namespace killme
         return *this;
     }
 
-    const float& Matrix44::operator()(size_t r, size_t c) const
+    const float& Matrix44::operator ()(size_t r, size_t c) const
     {
         assert(r < 4 && c < 4 && "Index out of range.");
         return m_[r][c];
     }
 
-    float& Matrix44::operator()(size_t r, size_t c)
+    float& Matrix44::operator ()(size_t r, size_t c)
     {
         return const_cast<float&>(static_cast<const Matrix44&>(*this)(r, c));
     }
 
-    bool operator==(const Matrix44& a, const Matrix44& b)
+    bool operator ==(const Matrix44& a, const Matrix44& b)
     {
         return equalf(a(0, 0), b(0, 0)) && equalf(a(0, 1), b(0, 1)) && equalf(a(0, 2), b(0, 2)) && equalf(a(0, 3), b(0, 3))
             && equalf(a(1, 0), b(1, 0)) && equalf(a(1, 1), b(1, 1)) && equalf(a(1, 2), b(1, 2)) && equalf(a(1, 3), b(1, 3))
@@ -89,17 +88,17 @@ namespace killme
             && equalf(a(3, 0), b(3, 0)) && equalf(a(3, 1), b(3, 1)) && equalf(a(3, 2), b(3, 2)) && equalf(a(3, 3), b(3, 3));
     }
 
-    bool operator!=(const Matrix44& a, const Matrix44& b)
+    bool operator !=(const Matrix44& a, const Matrix44& b)
     {
         return !(a == b);
     }
 
-    const Matrix44 operator+(const Matrix44& m)
+    const Matrix44 operator +(const Matrix44& m)
     {
         return m;
     }
 
-    const Matrix44 operator-(const Matrix44& m)
+    const Matrix44 operator -(const Matrix44& m)
     {
         return {
             -m(0, 0), -m(0, 1), -m(0, 2), -m(0, 3),
@@ -109,7 +108,7 @@ namespace killme
         };
     }
 
-    const Matrix44 operator+(const Matrix44& a, const Matrix44& b)
+    const Matrix44 operator +(const Matrix44& a, const Matrix44& b)
     {
         return {
             a(0, 0) + b(0, 0), a(0, 1) + b(0, 1), a(0, 2) + b(0, 2), a(0, 3) + b(0, 3),
@@ -119,7 +118,7 @@ namespace killme
         };
     }
 
-    const Matrix44 operator-(const Matrix44& a, const Matrix44& b)
+    const Matrix44 operator -(const Matrix44& a, const Matrix44& b)
     {
         return {
             a(0, 0) - b(0, 0), a(0, 1) - b(0, 1), a(0, 2) - b(0, 2), a(0, 3) - b(0, 3),
@@ -129,7 +128,7 @@ namespace killme
         };
     }
 
-    const Matrix44 operator*(const Matrix44& a, const Matrix44& b)
+    const Matrix44 operator *(const Matrix44& a, const Matrix44& b)
     {
         return {
             a(0, 0) * b(0, 0) + a(0, 1) * b(1, 0) + a(0, 2) * b(2, 0) + a(0, 3) * b(3, 0),
@@ -154,7 +153,7 @@ namespace killme
         };
     }
 
-    const Matrix44 operator*(const Matrix44& m, float k)
+    const Matrix44 operator *(const Matrix44& m, float k)
     {
         return {
             m(0, 0) * k, m(0, 1) * k, m(0, 2) * k, m(0, 3) * k,
@@ -164,43 +163,43 @@ namespace killme
         };
     }
 
-    const Matrix44 operator*(float k, const Matrix44& m)
+    const Matrix44 operator *(float k, const Matrix44& m)
     {
         return m * k;
     }
 
-    const Matrix44 operator/(const Matrix44& m, float k)
+    const Matrix44 operator /(const Matrix44& m, float k)
     {
         assert(!equalf(k, 0) && "Division by zero error.");
         const auto invK = 1 / k;
         return m * invK;
     }
 
-    Matrix44& operator+=(Matrix44& a, const Matrix44& b)
+    Matrix44& operator +=(Matrix44& a, const Matrix44& b)
     {
         a = a + b;
         return a;
     }
 
-    Matrix44& operator-=(Matrix44& a, const Matrix44& b)
+    Matrix44& operator -=(Matrix44& a, const Matrix44& b)
     {
         a = a - b;
         return a;
     }
 
-    Matrix44& operator*=(Matrix44& a, const Matrix44& b)
+    Matrix44& operator *=(Matrix44& a, const Matrix44& b)
     {
         a = a * b;
         return a;
     }
 
-    Matrix44& operator*=(Matrix44& m, float k)
+    Matrix44& operator *=(Matrix44& m, float k)
     {
         m = m * k;
         return m;
     }
 
-    Matrix44& operator/=(Matrix44& m, float k)
+    Matrix44& operator /=(Matrix44& m, float k)
     {
         assert(!equalf(k, 0) && "Division by zero error.");
         m = m / k;
@@ -259,30 +258,6 @@ namespace killme
         };
     }
 
-    Matrix44 toMatrix44(const Quaternion& q)
-    {
-        const auto w2 = q.w * 2;
-        const auto x2 = q.x * 2;
-        const auto y2 = q.y * 2;
-        const auto z2 = q.z * 2;
-
-        auto m = Matrix44::IDENTITY;
-
-        m(0, 0) = 1 - y2 * q.y - z2 * q.z;
-        m(0, 1) = x2 * q.y + w2 * q.z;
-        m(0, 2) = x2 * q.z - w2 * q.y;
-
-        m(1, 0) = x2 * q.y - w2 * q.z;
-        m(1, 1) = 1 - x2 * q.x - z2 * q.z;
-        m(1, 2) = y2 * q.z + w2 * q.x;
-
-        m(2, 0) = x2 * q.z + w2 * q.y;
-        m(2, 1) = y2 * q.z - w2 * q.x;
-        m(2, 2) = 1 - x2 * q.x - y2 * q.y;
-
-        return m;
-    }
-
     Matrix44 makeTransformMatrix(const Vector3& scale, const Quaternion& rot, const Vector3& trans)
     {
 		auto m = Matrix44::IDENTITY;
@@ -293,7 +268,7 @@ namespace killme
 		m(2, 2) = scale.z;
 
         // Apply rotation
-		m *= toMatrix44(rot);
+		m *= to<Matrix44>(rot);
 
         // Apply translation
         m(3, 0) = trans.x;

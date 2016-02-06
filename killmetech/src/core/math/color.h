@@ -1,25 +1,24 @@
 #ifndef _KILLME_COLOR_H_
 #define _KILLME_COLOR_H_
 
-#include <initializer_list>
-
 namespace killme
 {
-    /** RGBA color */
+    /** The RGBA color */
     class Color
     {
     public:
+        /** The elements */
         float r, g, b, a;
 
-        /** No argments constructor. Initial value is Color::BLACK. */
+        /** Constructs the Color::BLACK */
         Color();
 
-        /** Construct with initial value */
+        /** Constructs with initial values */
         Color(float r_, float g_, float b_, float a_);
 
         /** Accessor */
-        const float& operator[](size_t i) const;
-        float& operator[](size_t i);
+        const float& operator [](size_t i) const;
+        float& operator [](size_t i);
 
         /** Specific color definitions */
         static const Color RED;

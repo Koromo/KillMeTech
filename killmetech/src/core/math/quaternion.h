@@ -5,66 +5,66 @@ namespace killme
 {
     class Vector3;
 
-    /** Quaternion */
+    /** The Quaternion */
     class Quaternion
     {
     public:
-        /** Elements */
+        /** The elements */
         float w, x, y, z;
 
-        /** Construct identical quaternion */
+        /** Constructs the identical quaternion */
         Quaternion();
 
-        /** Construct with a initial value */
+        /** Constructs with initial values */
         Quaternion(float nw, float nx, float ny, float nz);
 
         /** Accessor */
-        const float& operator[](size_t i) const;
-        float& operator[](size_t i);
+        const float& operator [](size_t i) const;
+        float& operator [](size_t i);
 
         /** Specific quaternion definition */
         static const Quaternion IDENTITY;
     };
 
     /** Operator overloads */
-    bool operator==(const Quaternion& a, const Quaternion& b);
-    bool operator!=(const Quaternion& a, const Quaternion& b);
+    bool operator ==(const Quaternion& a, const Quaternion& b);
+    bool operator !=(const Quaternion& a, const Quaternion& b);
 
-    const Quaternion operator+(const Quaternion& q);
-    const Quaternion operator-(const Quaternion& q);
+    const Quaternion operator +(const Quaternion& q);
+    const Quaternion operator -(const Quaternion& q);
 
-    const Quaternion operator+(const Quaternion& a, const Quaternion& b);
-    const Quaternion operator-(const Quaternion& a, const Quaternion& b);
-    const Quaternion operator*(const Quaternion& a, const Quaternion& b);
-    const Quaternion operator*(const Quaternion& q, float k);
+    const Quaternion operator +(const Quaternion& a, const Quaternion& b);
+    const Quaternion operator -(const Quaternion& a, const Quaternion& b);
+    const Quaternion operator *(const Quaternion& a, const Quaternion& b);
+    const Quaternion operator *(const Quaternion& q, float k);
 
-	Quaternion& operator+=(Quaternion& a, const Quaternion& b);
-	Quaternion& operator-=(Quaternion& a, const Quaternion& b);
-    Quaternion& operator*=(Quaternion& a, const Quaternion& b);
-    Quaternion& operator*=(Quaternion& q, float k);
+	Quaternion& operator +=(Quaternion& a, const Quaternion& b);
+	Quaternion& operator -=(Quaternion& a, const Quaternion& b);
+    Quaternion& operator *=(Quaternion& a, const Quaternion& b);
+    Quaternion& operator *=(Quaternion& q, float k);
 
-    /** Returns norm of quaternion */
+    /** Returns the norm */
     float norm(const Quaternion& q);
 
-    /** Returns normalized quaternion */
+    /** Returns the normalized quaternion */
     Quaternion normalize(const Quaternion& q);
 
-    /** Returns conjugated quaternion */
+    /** Returns the conjugated quaternion */
     Quaternion conjugate(const Quaternion& q);
 
-    /** Returns inversed quaternion */
+    /** Returns the inversed quaternion */
     Quaternion inverse(const Quaternion& q);
 
-    /** Returns dot product value */
+    /** Returns the dot product value */
     float dotProduct(const Quaternion& a, const Quaternion& b);
 
-    /** Create quaternion from rotation axis and angle[rad] */
+    /** Create the quaternion from a rotation axis and an angle[rad] */
     Quaternion makeQuaternion(const Vector3& axis, float angle);
 
-    /** Returns rotation axis */
+    /** Returns the rotation axis */
     Vector3 axis(const Quaternion& q);
 
-    /** Returns rotation angle[rad] */
+    /** Returns the rotation angle[rad] */
     float angle(const Quaternion& q);
 }
 

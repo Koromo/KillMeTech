@@ -22,7 +22,7 @@ namespace killme
     {
     }
 
-    const float& Color::operator[](size_t i) const
+    const float& Color::operator [](size_t i) const
     {
         switch (i)
         {
@@ -32,11 +32,11 @@ namespace killme
         case 3: return a;
         default:
             assert(false && "Index out of range.");
-            return r; // For warning
+            return r; // For warnings
         }
     }
 
-    float& Color::operator[](size_t i)
+    float& Color::operator [](size_t i)
     {
         return const_cast<float&>(static_cast<const Color&>(*this)[i]);
     }

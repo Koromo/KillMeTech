@@ -28,6 +28,7 @@
     <ClCompile Include="src\core\math\matrix44.cpp" />
     <ClCompile Include="src\core\math\quaternion.cpp" />
     <ClCompile Include="src\core\math\vector3.cpp" />
+    <ClCompile Include="src\core\optional.cpp" />
     <ClCompile Include="src\core\string.cpp" />
     <ClCompile Include="src\engine\killmeengine.cpp" />
     <ClCompile Include="src\event\eventdispatcher.cpp" />
@@ -59,8 +60,8 @@
     <ClInclude Include="src\core\math\quaternion.h" />
     <ClInclude Include="src\core\math\vector3.h" />
     <ClInclude Include="src\core\optional.h" />
-    <ClInclude Include="src\core\range.h" />
     <ClInclude Include="src\core\string.h" />
+    <ClInclude Include="src\core\utility.h" />
     <ClInclude Include="src\core\variant.h" />
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />

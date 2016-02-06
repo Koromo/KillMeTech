@@ -23,7 +23,7 @@ namespace killme
     {
     }
 
-    const float& Vector3::operator[](size_t i) const
+    const float& Vector3::operator [](size_t i) const
     {
         switch (i)
         {
@@ -36,52 +36,52 @@ namespace killme
         }
     }
 
-    float& Vector3::operator[](size_t i)
+    float& Vector3::operator [](size_t i)
     {
         return const_cast<float&>(static_cast<const Vector3&>(*this)[i]);
     }
 
-    bool operator==(const Vector3& a, const Vector3& b)
+    bool operator ==(const Vector3& a, const Vector3& b)
     {
         return equalf(a.x, b.x) && equalf(a.y, b.y) && equalf(a.z, b.z);
     }
 
-    bool operator!=(const Vector3& a, const Vector3& b)
+    bool operator !=(const Vector3& a, const Vector3& b)
     {
         return !(a == b);
     }
 
-    const Vector3 operator+(const Vector3& v)
+    const Vector3 operator +(const Vector3& v)
     {
         return v;
     }
 
-    const Vector3 operator-(const Vector3& v)
+    const Vector3 operator -(const Vector3& v)
     {
         return {-v.x, -v.y, -v.z};
     }
 
-    const Vector3 operator+(const Vector3& a, const Vector3& b)
+    const Vector3 operator +(const Vector3& a, const Vector3& b)
     {
         return {a.x + b.x, a.y + b.y, a.z + b.z};
     }
 
-    const Vector3 operator-(const Vector3& a, const Vector3& b)
+    const Vector3 operator -(const Vector3& a, const Vector3& b)
     {
         return {a.x - b.x, a.y - b.y, a.z - b.z};
     }
 
-    const Vector3 operator*(const Vector3& v, float k)
+    const Vector3 operator *(const Vector3& v, float k)
     {
         return {v.x * k, v.y * k, v.z * k};
     }
 
-    const Vector3 operator*(float k, const Vector3& v)
+    const Vector3 operator *(float k, const Vector3& v)
     {
         return v * k;
     }
 
-    const Vector3 operator*(const Quaternion& q, const Vector3& v)
+    const Vector3 operator *(const Quaternion& q, const Vector3& v)
 	{
         // See Ogre3D source
         const auto p = normalize(q);
@@ -91,32 +91,32 @@ namespace killme
         return v + uv * (2 * p.w) + uuv * 2;
     }
 
-    const Vector3 operator/(const Vector3& v, float k)
+    const Vector3 operator /(const Vector3& v, float k)
     {
         assert(!equalf(k, 0) && "Division by zero error.");
         const auto invK = 1 / k;
         return v * invK;
     }
 
-    Vector3& operator+=(Vector3& a, const Vector3& b)
+    Vector3& operator +=(Vector3& a, const Vector3& b)
     {
         a = a + b;
         return a;
     }
 
-    Vector3& operator-=(Vector3& a, const Vector3& b)
+    Vector3& operator -=(Vector3& a, const Vector3& b)
     {
         a = a - b;
         return a;
     }
 
-    Vector3& operator*=(Vector3& v, float k)
+    Vector3& operator *=(Vector3& v, float k)
     {
         v = v * k;
         return v;
     }
 
-    Vector3& operator/=(Vector3& v, float k)
+    Vector3& operator /=(Vector3& v, float k)
     {
         assert(!equalf(k, 0) && "Division by zero error.");
         v = v / k;

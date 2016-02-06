@@ -2,7 +2,7 @@
 #define _KILLME_SHADER_H_
 
 #include "d3dsupport.h"
-#include "../core/range.h"
+#include "../core/utility.h"
 #include "../core/string.h"
 #include "../core/optional.h"
 #include "../windows/winsupport.h"

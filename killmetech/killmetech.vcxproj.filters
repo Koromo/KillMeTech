@@ -114,6 +114,9 @@
     <ClCompile Include="src\scene\material.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\optional.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -185,9 +188,6 @@
     <ClInclude Include="src\renderer\constantbuffer.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\range.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\math\math.h">
       <Filter>src\core\math</Filter>
     </ClInclude>
@@ -255,6 +255,9 @@
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\core\optional.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\utility.h">
       <Filter>src\core</Filter>
     </ClInclude>
   </ItemGroup>

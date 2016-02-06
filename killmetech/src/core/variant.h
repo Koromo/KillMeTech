@@ -8,14 +8,15 @@
 
 namespace killme
 {
-    /** Variant exception */
+    /** The exception of Variant */
     class VariantException : public Exception
     {
     public:
         VariantException(const std::string& msg) : Exception(msg) {}
     };
 
-    /** Variant type */
+    /** The Variant type */
+    /// TODO: l,rvalue
     class Variant
     {
     private:
@@ -40,7 +41,10 @@ namespace killme
         struct TypedHolder : Holder
         {
             T value;
-            TypedHolder(T val) : value(val) {}
+
+            template <class U>
+            TypedHolder(U&& val) : value(std::forward<U>(val)) {}
+
             Holder* copy() const { return new TypedHolder<T>(value); }
             TypeId typeId() const noexcept { return TypeId_t<T>::id; }
         };
@@ -48,12 +52,12 @@ namespace killme
         std::shared_ptr<Holder> holder_;
 
     public:
-        /** Construct */
+        /** Constructs */
         Variant() noexcept = default;
 
-        /** Construct with a value  */
+        /** Constructs with a value  */
         template <class T>
-        Variant(T value)
+        Variant(T&& value)
             : holder_()
         {
             *this = std::forward<T>(value);
@@ -75,14 +79,14 @@ namespace killme
 
         /** Assignment operator with a value */
         template <class T>
-        Variant& operator=(T value)
+        Variant& operator =(T&& value)
         {
-            holder_ = std::make_shared<TypedHolder<T>>(value);
+            holder_ = std::make_shared<TypedHolder<T>>(std::forward<T>(value));
             return *this;
         }
 
         /** Copy assignment operator */
-        Variant& operator=(const Variant& lhs)
+        Variant& operator =(const Variant& lhs)
         {
             holder_ = lhs.holder_;
             if (holder_)
@@ -93,9 +97,9 @@ namespace killme
         }
 
         /** Move assignment operator */
-        Variant& operator=(Variant&& rhs)
+        Variant& operator =(Variant&& rhs)
         {
-            holder_ = rhs.holder_;
+            holder_ = std::move(rhs.holder_);
             return *this;
         }
 
@@ -104,24 +108,18 @@ namespace killme
         operator T() const
         {
             enforce<VariantException>(hasValue(), "Variant has not value.");
-            enforce<VariantException>(is<T>(), "Not match variant type.");
+            enforce<VariantException>(killme::is<T>(*this), "Not match variant type.");
             return std::dynamic_pointer_cast<TypedHolder<T>>(holder_)->value;
         }
 
-        /** Swap */
-        void swap(Variant& that) noexcept
-        {
-            std::swap(holder_, that.holder_);
-        }
-
-        /** Returns true if holded value type is same to the "T" */
+        // For the killme::is()
         template <class T>
         bool is() const noexcept
         {
             return hasValue() && TypeId_t<T>::id == holder_->typeId();
         }
 
-        /** Returns true if has value */
+        /** Returns true if Variant has value */
         bool hasValue() const noexcept
         {
             return !!holder_;
@@ -130,27 +128,16 @@ namespace killme
 
     /** Cast to "T" */
     template <class T>
-    T to(const Variant& var)
+    inline T to(const Variant& var)
     {
         return var;
     }
-}
 
-/** swap functions */
-namespace killme
-{
-    inline void swap(killme::Variant& a, killme::Variant& b) noexcept
+    /** Returns true if the type of the value holded by Variant is same to the "T" */
+    template <class T>
+    bool is(const Variant& v) noexcept
     {
-        a.swap(b);
-    }
-}
-
-namespace std
-{
-    template<>
-    inline void swap(killme::Variant& a, killme::Variant& b) noexcept
-    {
-        a.swap(b);
+        return v.template is<T>();
     }
 }
 

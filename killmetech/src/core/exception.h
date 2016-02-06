@@ -6,7 +6,7 @@
 #include <utility>
 #include <functional>
 
-/** Generate unique id */
+/** Generate an unique id */
 #ifdef __COUNTER__
 #define KILLME_ID __COUNTER__
 #elif
@@ -16,7 +16,7 @@
 /** Cat a and b */
 #define KILLME_CAT(a, b) a##b
 
-/** Scope guard */
+/** The scope guard */
 #define KILLME_SCOPE_EXIT_NAME(id) KILLME_CAT(killme_scope_exit, id)
 #define KILLME_SCOPE_EXIT \
     const killme::detail::ScopeExit KILLME_SCOPE_EXIT_NAME(KILLME_ID) = killme::detail::ScopeExit::relay = [&]
@@ -25,7 +25,7 @@ namespace killme
 {
     namespace detail
     {
-        // For KILLME_SCOPE_EXIT
+        // For the KILLME_SCOPE_EXIT
         struct ScopeExit
         {
             static std::function<void()> relay;
@@ -35,7 +35,7 @@ namespace killme
         };
     }
 
-    /** Returns "value" if it is not 0 object, Otherwise throw exception "E" */
+    /** Returns the "value" if it is not 0 object, Otherwise throw the exception "E" */
     template <class E, class T, class... Args>
     T enforce(T value, Args&&... args)
     {
@@ -46,29 +46,29 @@ namespace killme
         return value;
     }
 
-    /** Root exception class of KillMeTech */
+    /** The basic exception of the KillMeTech */
     class Exception : public std::exception
     {
     private:
         std::string msg_;
 
     public:
-        /** Construct with a message */
-        explicit Exception(const std::string& msg) : msg_(msg) {}
+        /** Constructs with a message */
+        explicit Exception(const std::string& msg);
 
-        /** Returns message */
-        std::string getMessage() const { return msg_; }
+        /** Returns the message */
+        std::string getMessage() const;
 
-        /** Returns message that is same to the Exception::getMessage() */
-        const char* what() const { return msg_.c_str(); }
+        /** Returns the message that is same to the Exception::getMessage() */
+        const char* what() const;
     };
 
-	/** File relational exception */
+	/** The file relational exception */
 	class FileException : public Exception
 	{
 	public:
-		/** Construct with a message */
-        explicit FileException(const std::string& msg) : Exception(msg) {}
+		/** Constructs with a message */
+        explicit FileException(const std::string& msg);
 	};
 }
 

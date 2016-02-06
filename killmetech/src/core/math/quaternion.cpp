@@ -21,7 +21,7 @@ namespace killme
     {
     }
 
-    const float& Quaternion::operator[](size_t i) const
+    const float& Quaternion::operator [](size_t i) const
     {
         switch (i)
         {
@@ -31,45 +31,45 @@ namespace killme
         case 3: return z;
         default:
             assert(false && "Index out of range.");
-            return w; // For warning
+            return w; // For warnings
         }
     }
 
-    float& Quaternion::operator[](size_t i)
+    float& Quaternion::operator [](size_t i)
     {
         return const_cast<float&>(static_cast<const Quaternion&>(*this)[i]);
     }
 
-    bool operator==(const Quaternion& a, const Quaternion& b)
+    bool operator ==(const Quaternion& a, const Quaternion& b)
     {
         return equalf(a.w, b.w) && equalf(a.x, b.x) && equalf(a.y, b.y) && equalf(a.z, b.z);
     }
 
-    bool operator!=(const Quaternion& a, const Quaternion& b)
+    bool operator !=(const Quaternion& a, const Quaternion& b)
     {
         return !(a == b);
     }
 
-    const Quaternion operator+(const Quaternion& q)
+    const Quaternion operator +(const Quaternion& q)
     {
         return q;
     }
 
-    const Quaternion operator-(const Quaternion& q)
+    const Quaternion operator -(const Quaternion& q)
     {
         return {-q.w, -q.x, -q.y, -q.z};
     }
 
-    const Quaternion operator+(const Quaternion& a, const Quaternion& b)
+    const Quaternion operator +(const Quaternion& a, const Quaternion& b)
     {
         return {a.w + b.w, a.x + b.x, a.y + b.y, a.z + b.z};
     }
-    const Quaternion operator-(const Quaternion& a, const Quaternion& b)
+    const Quaternion operator -(const Quaternion& a, const Quaternion& b)
     {
         return {a.w - b.w, a.x - b.x, a.y - b.y, a.z - b.z};
     }
 
-    const Quaternion operator*(const Quaternion& a, const Quaternion& b)
+    const Quaternion operator *(const Quaternion& a, const Quaternion& b)
     {
         return {
             a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
@@ -79,30 +79,30 @@ namespace killme
         };
     }
 
-    const Quaternion operator*(const Quaternion& q, float k)
+    const Quaternion operator *(const Quaternion& q, float k)
     {
         return {q.w * k, q.x * k, q.y * k, q.z * k};
     }
 
-	Quaternion& operator+=(Quaternion& a, const Quaternion& b)
+	Quaternion& operator +=(Quaternion& a, const Quaternion& b)
 	{
 		a = a + b;
 		return a;
 	}
 
-	Quaternion& operator-=(Quaternion& a, const Quaternion& b)
+	Quaternion& operator -=(Quaternion& a, const Quaternion& b)
 	{
 		a = a - b;
 		return a;
 	}
 
-    Quaternion& operator*=(Quaternion& a, const Quaternion& b)
+    Quaternion& operator *=(Quaternion& a, const Quaternion& b)
     {
         a = a * b;
         return a;
     }
 
-    Quaternion& operator*=(Quaternion& q, float k)
+    Quaternion& operator *=(Quaternion& q, float k)
     {
         q = q * k;
         return q;

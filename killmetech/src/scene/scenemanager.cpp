@@ -14,7 +14,7 @@
 #include "../renderer/vertexdata.h"
 #include "../renderer/pipelinestate.h"
 #include "../renderer/vertexshader.h"
-#include "../core/range.h"
+#include "../core/utility.h"
 #include "../core/math/matrix44.h"
 #include "../core/math/color.h"
 #include <vector>
