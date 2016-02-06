@@ -5,20 +5,18 @@
 
 namespace killme
 {
-    Console::Console()
-        : inHandle_(NULL)
-        , outHandle_(NULL)
+    Console console;
+
+    void Console::allocate()
     {
-        enforce<WindowsException>(AllocConsole(), "Failed to allocate console.");
+        enforce<WindowsException>(AllocConsole(), "Failed to allocate the console.");
         inHandle_ = GetStdHandle(STD_INPUT_HANDLE);
         outHandle_ = GetStdHandle(STD_OUTPUT_HANDLE);
     }
 
-    Console::~Console()
+    void Console::free()
     {
         FreeConsole();
-        inHandle_ = NULL;
-        outHandle_ = NULL;
     }
 
     tstring Console::read()
