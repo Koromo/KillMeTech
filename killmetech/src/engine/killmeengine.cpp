@@ -3,6 +3,7 @@
 #include "../core/exception.h"
 #include "../audio/audiomanager.h"
 #include "../input/inputmanager.h"
+#include "../event/event.h"
 #include "../event/eventmanager.h"
 #include "../scene/scenemanager.h"
 #include "../renderer/rendersystem.h"
@@ -12,7 +13,6 @@ namespace killme
     KillMeEngine::KillMeEngine(size_t width, size_t height, const tstring& title)
         : window_(nullptr, DestroyWindow)
         , quit_(false)
-        , inputManager_()
     {
         // Initialize window
         // Register window class
@@ -59,7 +59,7 @@ namespace killme
         audioManager.startup();
 
         // Initialize input system
-        inputManager_ = std::make_shared<InputManager>();
+        inputManager.startup();
 
         renderSystem.startup(window);
         sceneManager.startup();
@@ -70,7 +70,7 @@ namespace killme
         sceneManager.shutdown();
         renderSystem.shutdown();
         audioManager.shutdown();
-        inputManager_.reset();
+        inputManager.shutdown();
         eventManager.disconnectAll();
         window_.reset();
     }
@@ -127,9 +127,21 @@ namespace killme
 
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN:
+        {
+            Event e(EventType::win_KeyDown, 1);
+            e[0] = wp;
+            eventManager.emit(e);
+            break;
+        }
+
         case WM_KEYUP:
         case WM_SYSKEYUP:
-            engine->inputManager_->onWinKeyEvent(msg, wp);
+        {
+            Event e(EventType::win_KeyUp, 1);
+            e[0] = wp;
+            eventManager.emit(e);
+            break;
+        }
 
         default:
             break;

@@ -42,6 +42,6 @@ namespace killme
             assert(false && "Item not found.");
         }
 
-        return "";
+        return ""; // For warnings
     }
 }

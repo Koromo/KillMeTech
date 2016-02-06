@@ -1,15 +1,27 @@
 #include "inputmanager.h"
-#include "keyevents.h"
 #include "../event/event.h"
 #include "../event/eventmanager.h"
-#include <cassert>
+#include <Windows.h>
+#include <functional>
 
 namespace killme
 {
-    InputManager::InputManager()
-        : keyStatus_()
+    InputManager inputManager;
+
+    void InputManager::startup()
     {
         keyStatus_.fill(false);
+
+        using namespace std::placeholders;
+        hooks_.push_back(eventManager.connect(
+            EventType::win_KeyDown, std::bind(&InputManager::onWinKeyDown, this, _1)));
+        hooks_.push_back(eventManager.connect(
+            EventType::win_KeyUp, std::bind(&InputManager::onWinKeyUp, this, _1)));
+    }
+
+    void InputManager::shutdown()
+    {
+        hooks_.clear();
     }
 
     namespace
@@ -60,39 +72,41 @@ namespace killme
         }
     }
 
-    void InputManager::onWinKeyEvent(UINT msg, WPARAM wp)
+    void InputManager::onWinKeyDown(const Event& e)
     {
+        const WPARAM wp = e[0];
         const auto key = toKeyCode(wp);
         if (key == KeyCode::none)
         {
             return;
         }
 
-        if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN))
+        const auto i = keyIndex(key);
+        if (!keyStatus_[i])
         {
-            const auto i = keyIndex(key);
-            if (!keyStatus_[i])
-            {
-                keyStatus_[i] = true;
-                Event keyPressed(keyEvents::keyPressed, 1);
-                keyPressed[0] = key;
-                eventManager.emit(keyPressed);
-            }
+            keyStatus_[i] = true;
+            Event keyPressed(EventType::keyPressed, 1);
+            keyPressed[0] = key;
+            eventManager.emit(keyPressed);
         }
-        else if (msg == WM_KEYUP || msg == WM_SYSKEYUP)
+    }
+
+    void InputManager::onWinKeyUp(const Event& e)
+    {
+        const WPARAM wp = e[0];
+        const auto key = toKeyCode(wp);
+        if (key == KeyCode::none)
         {
-            const auto i = keyIndex(key);
-            if (keyStatus_[i])
-            {
-                keyStatus_[i] = false;
-                Event keyReleased(keyEvents::keyReleased, 1);
-                keyReleased[0] = key;
-                eventManager.emit(keyReleased);
-            }
+            return;
         }
-        else
+
+        const auto i = keyIndex(key);
+        if (keyStatus_[i])
         {
-            assert(false && "Invalid WinEvent.");
+            keyStatus_[i] = false;
+            Event keyReleased(EventType::keyReleased, 1);
+            keyReleased[0] = key;
+            eventManager.emit(keyReleased);
         }
     }
 }

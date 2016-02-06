@@ -41,6 +41,18 @@ namespace killme
             return const_cast<Variant&>(static_cast<const Event&>(*this)[i]);
         }
     };
+
+    /** The event type definitions */
+    struct EventType
+    {
+        /** Input events */
+        static const std::string keyPressed;
+        static const std::string keyReleased;
+
+        /** Windows events */
+        static const std::string win_KeyDown;
+        static const std::string win_KeyUp;
+    };
 }
 
 #endif

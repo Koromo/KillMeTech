@@ -3,23 +3,34 @@
 
 #include "keycode.h"
 #include <array>
-#include <Windows.h>
+#include <vector>
+#include <memory>
 
 namespace killme
 {
-    // Input module manager
+    class Event;
+    class EventHookHandle;
+
+    /** The input manager */
     class InputManager
     {
     private:
         std::array<bool, NUM_KEY_CODES> keyStatus_;
+        std::vector<std::shared_ptr<EventHookHandle>> hooks_;
 
     public:
-        /** Constructor */
-        InputManager();
+        /** Initializes */
+        void startup();
 
-        /** Called on Win key event and dispatch key events */
-        void onWinKeyEvent(UINT msg, WPARAM wp);
+        /** Finalizes */
+        void shutdown();
+
+    private:
+        void onWinKeyDown(const Event& e);
+        void onWinKeyUp(const Event& e);
     };
+
+    extern InputManager inputManager;
 }
 
 #endif

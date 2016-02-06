@@ -9,7 +9,6 @@
 namespace killme
 {
     class Console;
-    class InputManager;
 
     /** KillMeTech runtime */
     class KillMeEngine
@@ -17,9 +16,6 @@ namespace killme
     private:
         std::unique_ptr<std::remove_pointer_t<HWND>, decltype(&DestroyWindow)> window_;
         bool quit_;
-
-        // Subsystems
-        std::shared_ptr<InputManager> inputManager_;
 
     public:
         /** Startup with window parameters */

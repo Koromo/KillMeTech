@@ -87,9 +87,6 @@
     <ClCompile Include="src\core\exception.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\keyevents.cpp">
-      <Filter>src\input</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\pixelshader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
@@ -115,6 +112,9 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="src\event\eventmanager.cpp">
+      <Filter>src\event</Filter>
+    </ClCompile>
+    <ClCompile Include="src\event\event.cpp">
       <Filter>src\event</Filter>
     </ClCompile>
   </ItemGroup>
@@ -199,9 +199,6 @@
     </ClInclude>
     <ClInclude Include="src\core\variant.h">
       <Filter>src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\input\keyevents.h">
-      <Filter>src\input</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\inputlayout.h">
       <Filter>src\renderer</Filter>

@@ -5,7 +5,7 @@
 
 namespace killme
 {
-    /** Key code definitions */
+    /** The key code definitions */
     enum class KeyCode
     {
         Esc,
@@ -13,10 +13,10 @@ namespace killme
         none
     };
 
-    /** Num key codes */
+    /** Count of the key code */
     constexpr size_t NUM_KEY_CODES = static_cast<size_t>(KeyCode::none);
 
-    /** Returns stringed KeyCode */
+    /** Returns the stringed KeyCode */
     std::string toString(KeyCode code);
 }
 
