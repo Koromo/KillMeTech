@@ -7,8 +7,6 @@
 
 namespace killme
 {
-    class EventDispatcher;
-
     // Input module manager
     class InputManager
     {
@@ -20,7 +18,7 @@ namespace killme
         InputManager();
 
         /** Called on Win key event and dispatch key events */
-        void onWinKeyEvent(EventDispatcher& dispatcher, UINT msg, WPARAM wp);
+        void onWinKeyEvent(UINT msg, WPARAM wp);
     };
 }
 

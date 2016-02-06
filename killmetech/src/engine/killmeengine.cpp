@@ -3,7 +3,7 @@
 #include "../core/exception.h"
 #include "../audio/audiomanager.h"
 #include "../input/inputmanager.h"
-#include "../event/eventdispatcher.h"
+#include "../event/eventmanager.h"
 #include "../scene/scenemanager.h"
 #include "../renderer/rendersystem.h"
 
@@ -12,9 +12,7 @@ namespace killme
     KillMeEngine::KillMeEngine(size_t width, size_t height, const tstring& title)
         : window_(nullptr, DestroyWindow)
         , quit_(false)
-        , audioManager_()
         , inputManager_()
-        , eventDispatcher_()
     {
         // Initialize window
         // Register window class
@@ -58,13 +56,10 @@ namespace killme
         window_.reset(window);
 
         // Initialize audio system
-        audioManager_ = std::make_shared<AudioManager>();
+        audioManager.startup();
 
         // Initialize input system
         inputManager_ = std::make_shared<InputManager>();
-
-        // Initialize event system
-        eventDispatcher_ = std::make_shared<EventDispatcher>();
 
         renderSystem.startup(window);
         sceneManager.startup();
@@ -74,9 +69,9 @@ namespace killme
     {
         sceneManager.shutdown();
         renderSystem.shutdown();
-        audioManager_.reset();
+        audioManager.shutdown();
         inputManager_.reset();
-        eventDispatcher_.reset();
+        eventManager.disconnectAll();
         window_.reset();
     }
 
@@ -115,16 +110,6 @@ namespace killme
         PostMessage(window_.get(), WM_CLOSE, 0, 0);
     }
 
-    std::shared_ptr<AudioManager> KillMeEngine::getAudioManager()
-    {
-        return audioManager_;
-    }
-
-    std::shared_ptr<EventDispatcher> KillMeEngine::getEventDispatcher()
-    {
-        return eventDispatcher_;
-    }
-
     LRESULT CALLBACK KillMeEngine::windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
     {
         const auto engine = reinterpret_cast<KillMeEngine*>(GetWindowLongPtr(window, GWLP_USERDATA));
@@ -144,7 +129,7 @@ namespace killme
         case WM_SYSKEYDOWN:
         case WM_KEYUP:
         case WM_SYSKEYUP:
-            engine->inputManager_->onWinKeyEvent(*(engine->eventDispatcher_), msg, wp);
+            engine->inputManager_->onWinKeyEvent(msg, wp);
 
         default:
             break;

@@ -49,7 +49,10 @@ namespace killme
 
     /** The type converter */
     template <class T, class U>
-    T to(const U&);
+    T to(const U& u)
+    {
+        return u;
+    }
 }
 
 #endif

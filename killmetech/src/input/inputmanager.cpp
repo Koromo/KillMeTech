@@ -1,7 +1,7 @@
 #include "inputmanager.h"
 #include "keyevents.h"
 #include "../event/event.h"
-#include "../event/eventdispatcher.h"
+#include "../event/eventmanager.h"
 #include <cassert>
 
 namespace killme
@@ -60,7 +60,7 @@ namespace killme
         }
     }
 
-    void InputManager::onWinKeyEvent(EventDispatcher& dispatcher, UINT msg, WPARAM wp)
+    void InputManager::onWinKeyEvent(UINT msg, WPARAM wp)
     {
         const auto key = toKeyCode(wp);
         if (key == KeyCode::none)
@@ -76,7 +76,7 @@ namespace killme
                 keyStatus_[i] = true;
                 Event keyPressed(keyEvents::keyPressed, 1);
                 keyPressed[0] = key;
-                dispatcher.dispatch(keyPressed);
+                eventManager.emit(keyPressed);
             }
         }
         else if (msg == WM_KEYUP || msg == WM_SYSKEYUP)
@@ -87,7 +87,7 @@ namespace killme
                 keyStatus_[i] = false;
                 Event keyReleased(keyEvents::keyReleased, 1);
                 keyReleased[0] = key;
-                dispatcher.dispatch(keyReleased);
+                eventManager.emit(keyReleased);
             }
         }
         else

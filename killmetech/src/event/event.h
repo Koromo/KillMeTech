@@ -8,7 +8,7 @@
 
 namespace killme
 {
-    /** Event abstruction basic class */
+    /** The Event */
     class Event
     {
     private:
@@ -16,7 +16,7 @@ namespace killme
         std::vector<Variant> params_;
 
     public:
-        /** Construct with a event type */
+        /** Constructs with a event type */
         explicit Event(const std::string& type, size_t numParams)
             : type_(type)
             , params_(numParams)
@@ -24,37 +24,23 @@ namespace killme
         }
 
         /** Returns event type */
-        operator std::string() const
+        std::string getType() const
         {
             return type_;
         }
 
-        /** Parameter accessor */
+        /** Accesses to the i'th parameter */
         const Variant& operator[](size_t i) const
         {
             return params_[i];
         }
 
+        /** ditto */
         Variant& operator[](size_t i)
         {
             return const_cast<Variant&>(static_cast<const Event&>(*this)[i]);
         }
     };
-
-    inline bool operator==(const Event& e, const std::string& s)
-    {
-        return toLowers(e) == toLowers(s);
-    }
-
-    inline bool operator==(const std::string& s, const Event& e)
-    {
-        return e == s;
-    }
-
-    inline std::string eventType(const Event& e)
-    {
-        return e;
-    }
 }
 
 #endif

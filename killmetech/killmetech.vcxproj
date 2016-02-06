@@ -31,7 +31,7 @@
     <ClCompile Include="src\core\optional.cpp" />
     <ClCompile Include="src\core\string.cpp" />
     <ClCompile Include="src\engine\killmeengine.cpp" />
-    <ClCompile Include="src\event\eventdispatcher.cpp" />
+    <ClCompile Include="src\event\eventmanager.cpp" />
     <ClCompile Include="src\input\inputmanager.cpp" />
     <ClCompile Include="src\input\keycode.cpp" />
     <ClCompile Include="src\input\keyevents.cpp" />
@@ -65,8 +65,7 @@
     <ClInclude Include="src\core\variant.h" />
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />
-    <ClInclude Include="src\event\eventdispatcher.h" />
-    <ClInclude Include="src\event\eventhook.h" />
+    <ClInclude Include="src\event\eventmanager.h" />
     <ClInclude Include="src\input\inputmanager.h" />
     <ClInclude Include="src\input\keycode.h" />
     <ClInclude Include="src\input\keyevents.h" />
