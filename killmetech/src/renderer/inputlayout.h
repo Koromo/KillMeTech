@@ -2,13 +2,12 @@
 #define _KILLME_INPUTLAYOUT_H_
 
 #include <d3d12.h>
-#include <d3dcompiler.h>
 #include <vector>
 #include <utility>
 
 namespace killme
 {
-    /** Input layout */
+    /** The input layout */
     class InputLayout
     {
     private:
@@ -17,8 +16,8 @@ namespace killme
 
     public:
         /** Constructs with Direct3D input element descriptions */
-        template <class C>
-        explicit InputLayout(C&& elems)
+        template <class Elems>
+        explicit InputLayout(Elems&& elems)
             : elems_(std::move(elems))
             , layout_()
         {
@@ -26,7 +25,7 @@ namespace killme
             layout_.NumElements = elems_.size();
         }
 
-        /** Returns a Direct3D Input layout */
+        /** Returns the Direct3D Input layout */
         D3D12_INPUT_LAYOUT_DESC getD3DLayout() { return layout_; }
     };
 }

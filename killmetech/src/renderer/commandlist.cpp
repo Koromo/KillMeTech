@@ -1,7 +1,6 @@
 #include "commandlist.h"
 #include "rendertarget.h"
 #include "depthstencil.h"
-#include "vertexdata.h"
 #include "rootsignature.h"
 #include "renderstate.h"
 #include "d3dsupport.h"
@@ -144,7 +143,7 @@ namespace killme
     void CommandList::close()
     {
         auto hr = list_->Close();
-        enforce<Direct3DException>(SUCCEEDED(hr), "Failed to close command list." + std::to_string(hr));
+        enforce<Direct3DException>(SUCCEEDED(hr), "Failed to close the command list.");
     }
 
     void CommandList::draw(size_t numVertices)

@@ -6,12 +6,11 @@
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <cstring>
-#include <cmath>
 
 namespace killme
 {
     /// TODO: Whether GPU is read only or not
-    /** Constant buffer */
+    /** The constant buffer */
     class ConstantBuffer
     {
     private:
@@ -20,7 +19,7 @@ namespace killme
         char* mappedData_;
 
     public:
-        /** Constructs with a Direct3D buffer and size of data */
+        /** Constructs with a Direct3D buffer */
         explicit ConstantBuffer(ID3D12Resource* buffer)
             : buffer_(makeComUnique(buffer))
             , resourceDesc_(buffer->GetDesc())
@@ -28,13 +27,13 @@ namespace killme
         {
             enforce<Direct3DException>(
                 SUCCEEDED(buffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedData_))),
-                "Failed to map constant data.");
+                "Failed to map the constant data.");
         }
 
-        /** Updates buffer data */
+        /** Updates the buffer data */
         void update(const void* src, size_t offset, size_t size) { std::memcpy(mappedData_ + offset, src, size); }
 
-        /** Creates a Direct3D view to desctipror heap */
+        /** Creates the Direct3D view into a desctipror heap */
         void createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
         {
             D3D12_CONSTANT_BUFFER_VIEW_DESC desc;

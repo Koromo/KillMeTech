@@ -3,7 +3,7 @@
 
 namespace killme
 {
-    /** Viewport */
+    /** The viewport */
     struct Viewport
     {
         float width;
@@ -14,7 +14,7 @@ namespace killme
         float maxDepth;
     };
 
-    /** Scissor rect */
+    /** The scissor rect */
     struct ScissorRect
     {
         int top;

@@ -11,7 +11,7 @@ namespace killme
 {
     class InputLayout;
 
-    /** Vertex buffer */
+    /** The vertex buffer */
     class VertexBuffer
     {
     private:
@@ -19,14 +19,14 @@ namespace killme
         D3D12_VERTEX_BUFFER_VIEW view_;
 
     public:
-        /** Constructs with vertices */
+        /** Constructs with a vertices */
         VertexBuffer(ID3D12Resource* buffer, size_t size, size_t stride);
 
-        /** Returns a Direct3D view */
+        /** Returns the Direct3D view */
         D3D12_VERTEX_BUFFER_VIEW getD3DView();
     };
 
-    /** Index buffer */
+    /** The index buffer */
     class IndexBuffer
     {
     private:
@@ -34,13 +34,13 @@ namespace killme
         D3D12_INDEX_BUFFER_VIEW view_;
 
     public:
-        /** Constructs with indices */
+        /** Constructs with an indices */
         IndexBuffer(ID3D12Resource* buffer, size_t size);
 
-        /** Returns a Direct3D view */
+        /** Returns the Direct3D view */
         D3D12_INDEX_BUFFER_VIEW getD3DView();
 
-        /** Returns count of index */
+        /** Returns the count of index */
         size_t getNumIndices() const;
     };
 
@@ -59,7 +59,7 @@ namespace killme
         static const std::string texcoord;
     };
 
-    /** Vertex binder */
+    /** The vertex binder */
     template <class Views>
     struct VertexBinder
     {
@@ -67,7 +67,7 @@ namespace killme
         size_t numViews;
     };
 
-    /** Set of vertices */
+    /** The set of vertices */
     class VertexData
     {
     private:
@@ -82,16 +82,16 @@ namespace killme
         std::shared_ptr<IndexBuffer> indexBuffer_;
 
     public:
-        /** Adds vertices */
+        /** Adds a vertices */
         void addVertices(const std::string& semanticName, size_t semanticIndex, const std::shared_ptr<VertexBuffer>& vertices);
 
-        /** Sets indices */
+        /** Sets an indices */
         void setIndices(const std::shared_ptr<IndexBuffer>& indices);
 
-        /** Returns a vertex binder from an input layout */
+        /** Returns the vertex binder from an input layout */
         VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> getBinder(const std::shared_ptr<InputLayout>& layout);
 
-        /** Returns an index buffer */
+        /** Returns the index buffer */
         std::shared_ptr<IndexBuffer> getIndexBuffer();
     };
 }

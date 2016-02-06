@@ -3,6 +3,10 @@
 
 namespace killme
 {
+    Direct3DException::Direct3DException(const std::string& msg)
+        : Exception(msg)
+    {
+    }
 
     D3D12_HEAP_PROPERTIES getD3DDefaultHeapProps()
     {

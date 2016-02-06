@@ -9,7 +9,6 @@ namespace killme
     {
         range_.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         range_.RegisterSpace = 0;
-        range_.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
     }
 
     void GpuResourceRange::set(size_t baseRegister, size_t numResources, size_t offset)
@@ -26,7 +25,7 @@ namespace killme
     {
     }
 
-    GpuResourceRange& RootParameter::operator [](size_t i)
+    GpuResourceRange& RootParameter::operator[](size_t i)
     {
         assert(i < ranges_.size() && "Index out of range.");
         return ranges_[i];
@@ -34,7 +33,7 @@ namespace killme
 
     namespace
     {
-        // Convert to D3D12_SHADER_VISIBILITY from ShaderType
+        // Convert to the D3D12_SHADER_VISIBILITY from a ShaderType
         D3D12_SHADER_VISIBILITY toD3DShaderVisibility(ShaderType shader)
         {
             switch (shader)

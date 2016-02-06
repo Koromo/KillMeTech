@@ -7,24 +7,24 @@
 
 namespace killme
 {
-    /** Direct3D relational exception */
+    /** The exception of Direct3D */
     class Direct3DException : public Exception
     {
     public:
         /** Constructs with a message */
-        explicit Direct3DException(const std::string& msg) : Exception(msg) {}
+        explicit Direct3DException(const std::string& msg);
     };
 
-    /** Returns a default heap properties */
+    /** Returns the default heap properties */
     D3D12_HEAP_PROPERTIES getD3DDefaultHeapProps();
 
-    /** Returns an upload heap properties */
+    /** Returns the upload heap properties */
     D3D12_HEAP_PROPERTIES getD3DUploadHeapProps();
 
-    /** Returns a resource description of buffers */
+    /** Returns the resource description about buffers */
     D3D12_RESOURCE_DESC describeD3DBuffer(size_t size);
 
-    /** Returns a resource description of 2D textures */
+    /** Returns the resource description about 2D textures */
     D3D12_RESOURCE_DESC describeD3DTex2D(size_t width, size_t height, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flags);
 }
 

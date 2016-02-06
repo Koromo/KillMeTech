@@ -2,7 +2,6 @@
 #define _KILLME_VERTEXSHADER_H_
 
 #include "shader.h"
-#include <d3d12.h>
 #include <d3dcompiler.h>
 #include <memory>
 
@@ -10,7 +9,7 @@ namespace killme
 {
     class InputLayout;
 
-    /** Vertex shader */
+    /** The vertex shader */
     class VertexShader : public BasicShader
     {
     private:
@@ -23,7 +22,7 @@ namespace killme
         /** Constructs with a byte code */
         explicit VertexShader(ID3DBlob* byteCode);
 
-        /** Returns input layout of this shader */
+        /** Returns the input layout of the shader */
         std::shared_ptr<InputLayout> getInputLayout() const;
     };
 }

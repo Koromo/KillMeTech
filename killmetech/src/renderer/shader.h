@@ -22,14 +22,14 @@ namespace killme
         pixel
     };
 
-    /** Variable description */
+    /** The variable description */
     struct VariableDescription
     {
         size_t size;
         size_t offset;
     };
 
-    /** Constant buffer description */
+    /** The constant buffer description */
     class ConstantBufferDescription
     {
     private:
@@ -42,27 +42,20 @@ namespace killme
         /** Constructs with a reflection of constant buffer */
         ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, size_t registerSlot);
 
-        /** Retruns buffer name */
+        /** Retruns the buffer name */
         std::string getName() const;
 
-        /** Returns size of buffer */
+        /** Returns the size of buffer */
         size_t getSize() const;
 
-        /** Returns register slot */
+        /** Returns the register slot */
         size_t getRegisterSlot() const;
 
-        /** Returns descriptions of variable */
-        auto describeVariables() const
-            -> decltype(makeRange(variables_))
-        {
-            return makeRange(variables_);
-        }
-
-        /** Returns a description of variable */
+        /** Returns the description of variable */
         Optional<VariableDescription> describeVariable(const std::string& name) const;
     };
 
-    /** Basic implementation of each shaders */
+    /** The basic implementation for each shaders */
     class BasicShader
     {
     private:
@@ -77,14 +70,14 @@ namespace killme
         /** For drived classes */
         ~BasicShader() = default;
 
-        /** Returns a byte code */
+        /** Returns the byte code */
         const void* getByteCode() const;
         size_t getByteCodeSize() const;
 
-        /** Returns a Direct3D input signature */
+        /** Returns the Direct3D input signature */
         std::vector<D3D12_SIGNATURE_PARAMETER_DESC> getD3DInputSignature();
 
-        /** Returns Constant buffers */
+        /** Returns constant buffers */
         std::vector<ConstantBufferDescription> describeConstnatBuffers();
     };
 

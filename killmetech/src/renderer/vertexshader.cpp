@@ -1,7 +1,5 @@
 #include "vertexshader.h"
 #include "inputlayout.h"
-#include "d3dsupport.h"
-#include "../core/exception.h"
 #include <vector>
 #include <cassert>
 
@@ -11,12 +9,12 @@ namespace killme
 
     namespace
     {
-        // Returns corresponded vertex format to vertex semantic
-        DXGI_FORMAT vertexFormat(const std::string& semanticName)
+        // Returns the corresponded vertex format
+        DXGI_FORMAT getVertexFormat(const std::string& semanticName)
         {
             if (semanticName == "POSITION") { return DXGI_FORMAT_R32G32B32_FLOAT; }
             if (semanticName == "COLOR")    { return DXGI_FORMAT_R32G32B32A32_FLOAT; }
-            assert(false && "An invalid vertex semantic name.");
+            assert(false && "Invalid vertex semantic name.");
             return DXGI_FORMAT_UNKNOWN; // For warnings
         }
     }
@@ -33,7 +31,7 @@ namespace killme
             D3D12_INPUT_ELEMENT_DESC elem;
             elem.SemanticName = param.SemanticName;
             elem.SemanticIndex = param.SemanticIndex;
-            elem.Format = vertexFormat(param.SemanticName);
+            elem.Format = getVertexFormat(param.SemanticName);
             elem.InputSlot = elems.size();
             elem.AlignedByteOffset = 0;
             elem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;

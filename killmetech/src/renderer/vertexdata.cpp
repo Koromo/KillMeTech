@@ -54,7 +54,7 @@ namespace killme
 
     VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> VertexData::getBinder(const std::shared_ptr<InputLayout>& layout)
     {
-        // Collect vertex buffer views by input layout
+        // Collect vertex buffer views by the input layout
         const auto d3dLayout = layout->getD3DLayout();
 
         VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> binder;
@@ -63,7 +63,7 @@ namespace killme
 
         for (size_t i = 0; i < d3dLayout.NumElements; ++i)
         {
-            // Find right buffer view by semantic
+            // Find the right buffer view by semantic
             const auto semanticName = d3dLayout.pInputElementDescs[i].SemanticName;
             const auto semanticIndex = d3dLayout.pInputElementDescs[i].SemanticIndex;
 
@@ -78,7 +78,7 @@ namespace killme
                 }
             }
 
-            assert(found && "Vertex data is not usable for an input layout of argments.");
+            assert(found && "The vertex data is not usable for the input layout of argments.");
         }
 
         return binder;

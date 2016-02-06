@@ -24,7 +24,7 @@ namespace killme
 
     constexpr size_t NUM_BACK_BUFFERS = 2;
 
-    /** Render system */
+    /** The render system */
     class RenderSystem
     {
     private:
@@ -51,37 +51,37 @@ namespace killme
         /** Finalizes */
         void shutdown();
 
-        /** Returns a target window */
+        /** Returns the target window */
         HWND getWindow();
 
-        /** Returns a current back buffer */
+        /** Returns the current back buffer */
         std::shared_ptr<RenderTarget> getCurrentBackBuffer();
 
-        /** Returns a depth stencil */
+        /** Returns the depth stencil */
         std::shared_ptr<DepthStencil> getDepthStencil();
 
-		/** Creates a vertex buffer */
+		/** Creates the vertex buffer */
         std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
 
-        /** Creates a index buffer */
+        /** Creates the index buffer */
         std::shared_ptr<IndexBuffer> createIndexBuffer(const unsigned short* data, size_t size);
 
-        /** Creates a constant buffer */
+        /** Creates the constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t size);
 
-        /** Creates a gpu resource heap */
+        /** Creates the gpu resource heap */
         std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, GpuResourceHeapFlag flag);
 
-		/** Creates a root signature */
+		/** Creates the root signature */
         std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
 
-		/** Creates a pileline state */
+		/** Creates the pileline state */
         std::shared_ptr<PipelineState> createPipelineState(const PipelineStateDescription& stateDesc);
 
-        /** Creates a command list */
+        /** Creates the command list */
         std::shared_ptr<CommandList> createCommandList();
 
-        /** Stores a resource to resource heap */
+        /** Stores a resource into a resource heap */
         template <class Resource>
         void storeGpuResource(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
         {
@@ -98,10 +98,10 @@ namespace killme
 		/** Resets a command list */
         void resetCommandList(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipelineState);
 
-        /** Executes command list */
+        /** Executes a command list */
         void executeCommandList(const std::shared_ptr<CommandList>& list);
 
-        /** Presents screen */
+        /** Presents the back buffer into the screen */
         void presentBackBuffer();
     };
 

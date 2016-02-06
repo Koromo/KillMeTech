@@ -9,21 +9,21 @@ namespace killme
 {
     enum class ShaderType;
 
-    /** Range of gpu resource heap */
+    /** The range of gpu resources */
     class GpuResourceRange
     {
     private:
         D3D12_DESCRIPTOR_RANGE& range_;
 
     public:
-        /** Constructs with a refference of Direct3D range */
+        /** Constructs with a refference of the Direct3D range */
         explicit GpuResourceRange(D3D12_DESCRIPTOR_RANGE& range);
 
-        /** Sets range values */
+        /** Sets a range value */
         void set(size_t baseRegister, size_t numResources, size_t offset = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
     };
 
-    /** Root parameter */
+    /** The root parameter */
     class RootParameter
     {
     private:
@@ -32,17 +32,17 @@ namespace killme
         std::vector<GpuResourceRange> ranges_;
 
     public:
-        /** Constructs with a refference of Direct3D root parameter */
+        /** Constructs with a refference of the Direct3D root parameter */
         explicit RootParameter(D3D12_ROOT_PARAMETER& param);
 
-        /** Accesses i'th range */
-        GpuResourceRange& operator [](size_t i);
+        /** Accesses the i'th range */
+        GpuResourceRange& operator[](size_t i);
 
         /** Initializes */
         void initialize(size_t numRanges, ShaderType visibility);
     };
 
-    /** Root signature description */
+    /** The root signature description */
     class RootSignatureDescription
     {
     private:
@@ -54,24 +54,24 @@ namespace killme
         /** Constructs */
         explicit RootSignatureDescription(size_t numParams);
 
-        /** Accesses i'th root parameter */
+        /** Accesses the i'th root parameter */
         RootParameter& operator[](size_t i);
 
-        /** Returns a Direct3D root signature description */
+        /** Returns the Direct3D root signature description */
         D3D12_ROOT_SIGNATURE_DESC getD3DDescription();
     };
 
-    /** Root signature */
+    /** The root signature */
     class RootSignature
     {
     private:
         ComUniquePtr<ID3D12RootSignature> rootSignature_;
 
     public:
-        /** Constructs  with a Direct3D root signature */
+        /** Constructs with a Direct3D root signature */
         explicit RootSignature(ID3D12RootSignature* rootSignature);
 
-        /** Returns a Direct3D root signature */
+        /** Returns the Direct3D root signature */
         ID3D12RootSignature* getD3DRootSignature();
     };
 }

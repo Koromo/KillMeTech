@@ -6,7 +6,7 @@
 
 namespace killme
 {
-    /** Pixel shader */
+    /** The pixel shader */
     class PixelShader : public BasicShader
     {
     public:

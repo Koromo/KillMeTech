@@ -9,14 +9,16 @@ namespace killme
         , size_()
         , variables_()
     {
+        // Get the description
         D3D12_SHADER_BUFFER_DESC desc;
         enforce<Direct3DException>(
             SUCCEEDED(reflection->GetDesc(&desc)),
-            "Faild to get a description of constant buffer.");
+            "Faild to get the description of the constant buffer.");
 
         name_ = desc.Name;
         size_ = desc.Size;
 
+        // Store descriptions of the variable
         for (UINT i = 0; i < desc.Variables; ++i)
         {
             const auto d3dVarRef = reflection->GetVariableByIndex(i);
@@ -24,7 +26,7 @@ namespace killme
             D3D12_SHADER_VARIABLE_DESC d3dVarDesc;
             enforce<Direct3DException>(
                 SUCCEEDED(d3dVarRef->GetDesc(&d3dVarDesc)),
-                "Faild to get a description of constant variable.");
+                "Faild to get a description of the constant variable.");
 
             VariableDescription varDesc;
             varDesc.size = d3dVarDesc.Size;
@@ -63,17 +65,17 @@ namespace killme
         , reflection_()
         , desc_()
     {
-        // Get shader reflection
+        // Get the reflection of the shader
         ID3D12ShaderReflection* reflection;
         enforce<Direct3DException>(
             SUCCEEDED(D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection))),
-            "Failed to get a reflection of shader.");
+            "Failed to get the reflection of the shader.");
         reflection_ = makeComUnique(reflection);
 
-        // Get shader description
+        // Get the description of the shader
         enforce<Direct3DException>(
             SUCCEEDED(reflection->GetDesc(&desc_)),
-            "Failed to get a description of shader.");
+            "Failed to get the description of the shader.");
     }
 
     const void* BasicShader::getByteCode() const
@@ -93,7 +95,7 @@ namespace killme
         {
             enforce<Direct3DException>(
                 SUCCEEDED(reflection_->GetInputParameterDesc(i, &(params[i]))),
-                "Failed to get a description of input parameter of shader.");
+                "Failed to get the description of input parameter of shader.");
         }
         return params;
     }
@@ -105,16 +107,18 @@ namespace killme
 
         for (UINT i = 0; i < desc_.BoundResources; ++i)
         {
+            // Get the description of the i'th resource
             D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
             enforce<Direct3DException>(
                 SUCCEEDED(reflection_->GetResourceBindingDesc(i, &resourceDesc)),
-                "Failed to get resource description.");
+                "Failed to get the description of the resource.");
 
             if (resourceDesc.Type == D3D_SIT_CBUFFER)
             {
+                // Get the reflection of the constant buffer
                 const auto cbuffer = enforce<Direct3DException>(
                     reflection_->GetConstantBufferByName(resourceDesc.Name),
-                    "Failed to reflect constant buffer.");
+                    "Failed to get the reflection of the constant buffer.");
                 cbuffers.emplace_back(cbuffer, resourceDesc.BindPoint);
             }
         }

@@ -21,7 +21,7 @@ namespace killme
         none,
     };
 
-    /** GPU resource heap */
+    /** The GPU resource heap */
     /// NOTE: Resource heap is same to the Descriptor heap of Direct3D
     class GpuResourceHeap
     {
@@ -37,10 +37,10 @@ namespace killme
         {
         }
 
-        /** Returns Direct3D descriptor heap type */
+        /** Returns the Direct3D descriptor heap type */
         D3D12_DESCRIPTOR_HEAP_TYPE getType() const { return type_; }
 
-        /** Returns a Direct3D descriptor heap */
+        /** Returns the Direct3D descriptor heap */
         ID3D12DescriptorHeap* getD3DHeap() { return heap_.get(); }
     };
 }
