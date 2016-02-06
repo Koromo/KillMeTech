@@ -4,7 +4,9 @@
 
 namespace killme
 {
-    AudioManager::AudioManager()
+    AudioManager audioManager;
+
+    void AudioManager::startup()
     {
         // Initialize COM
         enforce<XAudioException>(
@@ -28,7 +30,7 @@ namespace killme
         masteringVoice_ = makeVoiceUnique(masteringVoice);
     }
     
-    AudioManager::~AudioManager()
+    void AudioManager::shutdown()
     {
         xAudio_->StopEngine();
         masteringVoice_.reset();
@@ -36,8 +38,13 @@ namespace killme
         CoUninitialize();
     }
     
+    bool AudioManager::isActive() const
+    {
+        return !!xAudio_;
+    }
+
     std::shared_ptr<SourceVoice> AudioManager::createSourceVoice(const std::shared_ptr<const AudioClip>& clip)
     {
-        return std::make_shared<SourceVoice>(xAudio_, clip);
+        return std::make_shared<SourceVoice>(xAudio_.get(), clip);
     }
 }

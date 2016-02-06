@@ -1,5 +1,6 @@
 #include "sourcevoice.h"
 #include "audioclip.h"
+#include "audiomanager.h"
 #include "../core/exception.h"
 #include <cassert>
 
@@ -18,9 +19,8 @@ namespace killme
         throw XAudioException("Any error occurred in source buffer.");
     }
 
-    SourceVoice::SourceVoice(const std::weak_ptr<IXAudio2>& xAudio, const std::shared_ptr<const AudioClip>& clip)
-        : xAudio_(xAudio)
-        , sourceVoice_()
+    SourceVoice::SourceVoice(IXAudio2* xAudio, const std::shared_ptr<const AudioClip>& clip)
+        : sourceVoice_()
         , clip_(clip)
         , callBack_()
         , isPlaying_(false)
@@ -28,7 +28,7 @@ namespace killme
         const auto format = clip_->getFormat();
         IXAudio2SourceVoice* voice;
         enforce<XAudioException>(
-            SUCCEEDED(xAudio.lock()->CreateSourceVoice(&voice, &format, 0, 2, &callBack_)),
+            SUCCEEDED(xAudio->CreateSourceVoice(&voice, &format, 0, 2, &callBack_)),
             "Failed to create IXAudio2SourceVoice."
             );
         sourceVoice_ = makeVoiceUnique(voice);
@@ -36,7 +36,7 @@ namespace killme
 
     SourceVoice::~SourceVoice()
     {
-        if (xAudio_.expired())
+        if (!audioManager.isActive())
         {
             sourceVoice_.release();
         }

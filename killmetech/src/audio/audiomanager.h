@@ -11,23 +11,28 @@ namespace killme
     class AudioClip;
     class SourceVoice;
 
-    /** Audio core class */
+    /** The Audio core class */
     class AudioManager
     {
     private:
-        ComSharedPtr<IXAudio2> xAudio_;
+        ComUniquePtr<IXAudio2> xAudio_;
         VoiceUniquePtr<IXAudio2MasteringVoice> masteringVoice_;
 
     public:
-        /** Startups audio manager */
-        AudioManager();
+        /** Initializes */
+        void startup();
 
-        /** Shutdowns audio manager */
-        ~AudioManager();
+        /** Finalizes */
+        void shutdown();
 
-        /** Creates source voice */
+        /** Returns true if the audio manager is active */
+        bool isActive() const;
+
+        /** Creates a source voice */
         std::shared_ptr<SourceVoice> createSourceVoice(const std::shared_ptr<const AudioClip>& clip);
     };
+
+    extern AudioManager audioManager;
 }
 
 #endif
