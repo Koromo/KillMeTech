@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\audio\audio3d.cpp" />
     <ClCompile Include="src\audio\audioclip.cpp" />
     <ClCompile Include="src\audio\audiomanager.cpp" />
     <ClCompile Include="src\audio\sourcevoice.cpp" />
@@ -49,6 +50,7 @@
     <ClCompile Include="src\windows\console.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\audio\audio3d.h" />
     <ClInclude Include="src\audio\audioclip.h" />
     <ClInclude Include="src\audio\audiomanager.h" />
     <ClInclude Include="src\audio\sourcevoice.h" />

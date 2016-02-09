@@ -117,6 +117,9 @@
     <ClCompile Include="src\event\event.cpp">
       <Filter>src\event</Filter>
     </ClCompile>
+    <ClCompile Include="src\audio\audio3d.cpp">
+      <Filter>src\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -253,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="src\event\eventmanager.h">
       <Filter>src\event</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audio3d.h">
+      <Filter>src\audio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

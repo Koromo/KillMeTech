@@ -6,6 +6,8 @@
 
 namespace killme
 {
+    const int AUDIO_LOOP_INFINITE = XAUDIO2_LOOP_INFINITE + 1;
+
     void CALLBACK SourceVoice::VoiceCallback::OnBufferEnd(void* context)
     {
         // Down the audio playing flag
@@ -42,26 +44,35 @@ namespace killme
         }
     }
 
-    void SourceVoice::play()
+    void SourceVoice::play(size_t numLoops)
     {
-        // Submit audio data if audio buffer is empty
-        XAUDIO2_VOICE_STATE state;
-        sourceVoice_->GetState(&state);
-        if (state.BuffersQueued == 0)
+        if (isPlaying_)
         {
-            XAUDIO2_BUFFER buffer;
-            ZeroMemory(&buffer, sizeof(buffer));
-            buffer.Flags = XAUDIO2_END_OF_STREAM;
-            buffer.AudioBytes = static_cast<UINT32>(clip_->getSize());
-            buffer.pAudioData = clip_->getData();
-            buffer.LoopBegin = XAUDIO2_NO_LOOP_REGION;
-            buffer.pContext = this;
-
-            enforce<XAudioException>(
-                SUCCEEDED(sourceVoice_->SubmitSourceBuffer(&buffer)),
-                "Failed to submit audio buffer."
-                );
+            return;
         }
+
+        if (numLoops > AUDIO_LOOP_INFINITE)
+        {
+            numLoops = AUDIO_LOOP_INFINITE;
+        }
+
+        // Submit the audio data into the buffer
+        XAUDIO2_BUFFER buffer;
+        ZeroMemory(&buffer, sizeof(buffer));
+        buffer.Flags = XAUDIO2_END_OF_STREAM;
+        buffer.AudioBytes = static_cast<UINT32>(clip_->getSize());
+        buffer.pAudioData = clip_->getData();
+        buffer.PlayBegin = 0;
+        buffer.PlayLength = 0;
+        buffer.LoopBegin = 0;
+        buffer.LoopLength = 0;
+        buffer.LoopCount = numLoops - 1;
+        buffer.pContext = this;
+
+        enforce<XAudioException>(
+            SUCCEEDED(sourceVoice_->SubmitSourceBuffer(&buffer)),
+            "Failed to submit audio buffer."
+            );
 
         // Start audio
         enforce<XAudioException>(
@@ -93,5 +104,19 @@ namespace killme
     bool SourceVoice::isPlaying() const
     {
         return isPlaying_;
+    }
+
+    void SourceVoice::applyFrequencyRatio(float ratio)
+    {
+        enforce<XAudioException>(
+            SUCCEEDED(sourceVoice_->SetFrequencyRatio(ratio)),
+            "Failed to set the frequency ratio.");
+    }
+
+    void SourceVoice::applyOutputMatrix(size_t numSrcChannels, size_t numDestChannels, const float* levelMatrix)
+    {
+        enforce<XAudioException>(
+            SUCCEEDED(sourceVoice_->SetOutputMatrix(nullptr, numSrcChannels, numDestChannels, levelMatrix)),
+            "Failed to set the output matrix.");
     }
 }

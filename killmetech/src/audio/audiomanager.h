@@ -14,6 +14,7 @@ namespace killme
     /** The Audio core class */
     class AudioManager
     {
+        friend SourceVoice;
     private:
         ComUniquePtr<IXAudio2> xAudio_;
         VoiceUniquePtr<IXAudio2MasteringVoice> masteringVoice_;

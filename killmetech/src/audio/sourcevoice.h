@@ -9,6 +9,8 @@ namespace killme
 {
     class AudioClip;
 
+    extern const int AUDIO_LOOP_INFINITE;
+
     /** Transmit the audio data to the audio device */
     class SourceVoice
     {
@@ -36,8 +38,8 @@ namespace killme
         /** Destructs */
         ~SourceVoice();
 
-        /** Plays the audio at once */
-        void play();
+        /** Plays the audio */
+        void play(size_t numLoops);
 
         /** Stops the audio */
         void stop();
@@ -47,6 +49,12 @@ namespace killme
 
         /** Returns true if the audio is playing now */
         bool isPlaying() const;
+
+        /** Applies the frequency ratio */
+        void applyFrequencyRatio(float ratio);
+
+        /** Applies the output matrix */
+        void applyOutputMatrix(size_t numSrcChannels, size_t numDestChannels, const float* levelMatrix);
     };
 }
 

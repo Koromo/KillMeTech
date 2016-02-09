@@ -115,7 +115,7 @@ namespace killme
 
     Quaternion normalize(const Quaternion& q)
     {
-        assert(equalf(norm(q), 0) && "Quaternion is zero.");
+        assert(!equalf(norm(q), 0) && "Quaternion is zero.");
 		return q * (1 / norm(q));
     }
 
@@ -126,7 +126,7 @@ namespace killme
 
     Quaternion inverse(const Quaternion& q)
     {
-        assert(equalf(norm(q), 0) && "Quaternion is zero.");
+        assert(!equalf(norm(q), 0) && "Quaternion is zero.");
         const auto mag = norm(q);
         const auto conj = conjugate(q);
         return conj * (1 / (mag * mag));

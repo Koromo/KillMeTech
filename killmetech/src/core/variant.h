@@ -21,6 +21,9 @@ namespace killme
     class Variant
     {
     private:
+        template <class T>
+        using FixedType = std::remove_const_t<std::remove_reference_t<T>>;
+
         // Type id
         using TypeId = void(*)();
 
@@ -58,7 +61,7 @@ namespace killme
 
         /** Constructs with a value  */
         template <class T>
-        Variant(T&& value)
+        explicit Variant(T&& value)
             : holder_()
         {
             *this = std::forward<T>(value);
@@ -79,11 +82,10 @@ namespace killme
         }
 
         /** Assignment operator with a value */
-        template <class T>
+        template <class T, class U = FixedType<T>>
         Variant& operator =(T&& value)
         {
-            using Type = std::remove_const_t<std::remove_reference_t<T>>;
-            holder_ = std::make_shared<TypedHolder<Type>>(std::forward<T>(value));
+            holder_ = std::make_shared<TypedHolder<U>>(std::forward<T>(value));
             return *this;
         }
 
@@ -106,12 +108,23 @@ namespace killme
         }
 
         /** Cast operator */
-        template <class T>
+        template <class T, class U = FixedType<T>>
         operator T() const
         {
             enforce<VariantException>(hasValue(), "Variant has not value.");
-            enforce<VariantException>(killme::is<T>(*this), "Not match variant type.");
-            return std::dynamic_pointer_cast<TypedHolder<T>>(holder_)->value;
+            enforce<VariantException>(killme::is<U>(*this), "Not match variant type.");
+            return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value;
+        }
+
+        /** Equivalent test */
+        template <class T, class U = FixedType<T>>
+        bool operator==(const T& a) const
+        {
+            if (!hasValue() || !killme::is<U>(*this))
+            {
+                return false;
+            }
+            return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value == a;
         }
 
         // For the killme::is()
@@ -140,6 +153,25 @@ namespace killme
     bool is(const Variant& v) noexcept
     {
         return v.template is<T>();
+    }
+
+    /** Operator overloads */
+    template <class T>
+    bool operator==(const T& a, const Variant& v)
+    {
+        return v == a;
+    }
+
+    template <class T>
+    bool operator!=(const Variant& v, const T& a)
+    {
+        return !(v == a);
+    }
+
+    template <class T>
+    bool operator!=(const T& a, const Variant& v)
+    {
+        return !(v == a);
     }
 }
 
