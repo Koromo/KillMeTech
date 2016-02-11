@@ -27,16 +27,9 @@ namespace killme
         transformBuffer_ = renderSystem.createConstantBuffer(sizeof(Matrix44) * 3);
 
         RECT clientRect;
-        GetClientRect(renderSystem.getWindow(), &clientRect);
+        GetClientRect(renderSystem.getTargetWindow(), &clientRect);
         const auto clientWidth = clientRect.right - clientRect.left;
         const auto clientHeight = clientRect.bottom - clientRect.top;
-
-        viewport_.width = static_cast<float>(clientWidth);
-        viewport_.height = static_cast<float>(clientHeight);
-        viewport_.topLeftX = 0;
-        viewport_.topLeftY = 0;
-        viewport_.minDepth = 0;
-        viewport_.maxDepth = 1;
 
         scissorRect_.top = 0;
         scissorRect_.left = 0;
@@ -61,7 +54,7 @@ namespace killme
 
     namespace
     {
-        struct DrawVisitor : SceneVisitor
+        struct CollectRenderObjects : SceneVisitor
         {
             std::shared_ptr<Camera> camera;
             std::vector<std::shared_ptr<MeshEntity>> entities;
@@ -94,8 +87,8 @@ namespace killme
         commandList_->close();
         renderSystem.executeCommandList(commandList_);
 
-        // Traverse the scene
-        DrawVisitor visitor;
+        // Collect render objects
+        CollectRenderObjects visitor;
         rootNode_->depthTraverse(visitor);
 
         // Update the constant buffer about view and projection matrix
@@ -112,6 +105,8 @@ namespace killme
         transformBuffer_->update(&projMatrix, sizeof(Matrix44) * 2, sizeof(Matrix44));
 
         // For each mesh entities
+        const auto viewport = camera->getViewport();
+
         for (const auto& entity : visitor.entities)
         {
             // Update the constant buffer about world matrix
@@ -126,7 +121,7 @@ namespace killme
             const auto pipelineState = material->getPipelineState();
             const auto rootSignature = pipelineState->describe().rootSignature;
             const auto inputLayout = pipelineState->describe().vertexShader->getInputLayout();
-            const auto vertexBinder = vertexData->getBinder(inputLayout);
+            const auto& vertexBinder = vertexData->getBinder(inputLayout);
             const auto indexBuffer = vertexData->getIndexBuffer();
             const auto heaps = { material->getConstantBufferHeap() };
             const auto heapTables = material->getConstantBufferHeapTables();
@@ -136,7 +131,7 @@ namespace killme
 
             commandList_->resourceBarrior(renderTarget, ResourceState::present, ResourceState::renderTarget);
             commandList_->setRenderTarget(renderTarget, depthStencil);
-            commandList_->setViewport(viewport_);
+            commandList_->setViewport(viewport);
             commandList_->setScissorRect(scissorRect_);
             commandList_->setPrimitiveTopology(PrimitiveTopology::triangeList);
             commandList_->setVertexBuffers(vertexBinder);

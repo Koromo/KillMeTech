@@ -36,6 +36,9 @@
     <ClCompile Include="src\event\eventmanager.cpp" />
     <ClCompile Include="src\input\inputmanager.cpp" />
     <ClCompile Include="src\input\keycode.cpp" />
+    <ClCompile Include="src\physics\collisionshape.cpp" />
+    <ClCompile Include="src\physics\physicsmanager.cpp" />
+    <ClCompile Include="src\physics\rigidbody.cpp" />
     <ClCompile Include="src\renderer\commandlist.cpp" />
     <ClCompile Include="src\renderer\d3dsupport.cpp" />
     <ClCompile Include="src\renderer\pixelshader.cpp" />
@@ -44,6 +47,7 @@
     <ClCompile Include="src\renderer\shader.cpp" />
     <ClCompile Include="src\renderer\vertexdata.cpp" />
     <ClCompile Include="src\renderer\vertexshader.cpp" />
+    <ClCompile Include="src\scene\debugdrawmanager.cpp" />
     <ClCompile Include="src\scene\material.cpp" />
     <ClCompile Include="src\scene\scenemanager.cpp" />
     <ClCompile Include="src\scene\scenenode.cpp" />
@@ -55,6 +59,7 @@
     <ClInclude Include="src\audio\audiomanager.h" />
     <ClInclude Include="src\audio\sourcevoice.h" />
     <ClInclude Include="src\audio\xaudiosupport.h" />
+    <ClInclude Include="src\core\platform.h" />
     <ClInclude Include="src\core\exception.h" />
     <ClInclude Include="src\core\math\color.h" />
     <ClInclude Include="src\core\math\math.h" />
@@ -70,6 +75,10 @@
     <ClInclude Include="src\event\eventmanager.h" />
     <ClInclude Include="src\input\inputmanager.h" />
     <ClInclude Include="src\input\keycode.h" />
+    <ClInclude Include="src\physics\bulletsupport.h" />
+    <ClInclude Include="src\physics\collisionshape.h" />
+    <ClInclude Include="src\physics\physicsmanager.h" />
+    <ClInclude Include="src\physics\rigidbody.h" />
     <ClInclude Include="src\renderer\commandlist.h" />
     <ClInclude Include="src\renderer\constantbuffer.h" />
     <ClInclude Include="src\renderer\d3dsupport.h" />
@@ -87,6 +96,7 @@
     <ClInclude Include="src\renderer\vertexshader.h" />
     <ClInclude Include="src\scene\boxmesh.h" />
     <ClInclude Include="src\scene\camera.h" />
+    <ClInclude Include="src\scene\debugdrawmanager.h" />
     <ClInclude Include="src\scene\material.h" />
     <ClInclude Include="src\scene\mesh.h" />
     <ClInclude Include="src\scene\meshentity.h" />
@@ -149,7 +159,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\shared;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Users\progg\btphysics\bullet3-2.83.7\src;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\shared;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -159,6 +169,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -40,6 +40,7 @@ namespace killme
         {
             switch (pt)
             {
+            case PrimitiveTopology::lineList: return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
             case PrimitiveTopology::triangeList: return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
             default:
                 assert(false && "Invalid primitive topology.");

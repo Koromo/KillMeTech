@@ -86,7 +86,7 @@ namespace killme
     std::shared_ptr<Shader> compileShader(const tstring& filename)
     {
         ID3DBlob* code;
-        ID3DBlob* err;
+        ID3DBlob* err = NULL;
 
         const auto hr = D3DCompileFromFile(filename.c_str(), nullptr, nullptr, "main", Shader::model.c_str(), 0, 0, &code, &err);
         if (FAILED(hr))

@@ -141,6 +141,13 @@ namespace killme
         fence_ = makeComUnique(fence);
         fenceEvent_ = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
         fenceValue_ = 1;
+
+        // Setup default viewport
+        defViewport_.topLeftX = defViewport_.topLeftY = 0;
+        defViewport_.width = static_cast<float>(clientWidth);
+        defViewport_.height = static_cast<float>(clientHeight);
+        defViewport_.minDepth = 0;
+        defViewport_.maxDepth = 1;
     }
 
     void RenderSystem::shutdown()
@@ -160,9 +167,14 @@ namespace killme
         device_.reset();
     }
 
-    HWND RenderSystem::getWindow()
+    HWND RenderSystem::getTargetWindow()
     {
         return window_;
+    }
+
+    Viewport RenderSystem::getDefaultViewport() const
+    {
+        return defViewport_;
     }
 
     std::shared_ptr<RenderTarget> RenderSystem::getCurrentBackBuffer()
@@ -291,7 +303,7 @@ namespace killme
         const auto d3dDesc = desc.getD3DDescription();
 
         ID3DBlob* signature;
-        ID3DBlob* err;
+        ID3DBlob* err = NULL;
         const auto hr = D3D12SerializeRootSignature(&d3dDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &err);
         if (FAILED(hr))
         {

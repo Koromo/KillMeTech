@@ -1,4 +1,5 @@
 #include "string.h"
+#include "platform.h"
 #include <vector>
 #include <algorithm>
 #include <cctype>
@@ -93,7 +94,7 @@ namespace killme
 
     tstring toCharSet(const std::string& s)
     {
-#ifdef _UNICODE
+#ifdef KILLME_UNICODE
         return widen(s);
 #else
         return s;
@@ -102,7 +103,7 @@ namespace killme
 
     tstring toCharSet(const std::wstring& s)
     {
-#ifdef _UNICODE
+#ifdef KILLME_UNICODE
         return s;
 #else
         return narrow(s);

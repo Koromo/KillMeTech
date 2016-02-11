@@ -18,7 +18,6 @@ namespace killme
     private:
         std::shared_ptr<CommandList> commandList_;
         std::shared_ptr<ConstantBuffer> transformBuffer_;
-        Viewport viewport_;
         ScissorRect scissorRect_;
         std::shared_ptr<SceneNode> rootNode_;
 
@@ -32,7 +31,7 @@ namespace killme
         /** Returns the current scene */
         std::shared_ptr<SceneNode> getRootNode();
 
-        /** Draws the current scene */
+        /** Clears the back buffer and draws the current scene */
         void drawScene();
 
         /** Swaps the screen */

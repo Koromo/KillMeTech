@@ -3,6 +3,8 @@
 
 #include "sceneentity.h"
 #include "scenevisitor.h"
+#include "../renderer/renderstate.h"
+#include "../renderer/rendersystem.h"
 #include "../core/math/math.h"
 #include "../core/math/matrix44.h"
 
@@ -16,6 +18,7 @@ namespace killme
         float aspect_;
         float nearZ_;
         float farZ_;
+        Viewport viewport_;
 
     public:
         /** Constructs */
@@ -24,7 +27,15 @@ namespace killme
             , aspect_(16 / 9.0f)
             , nearZ_(0.1f)
             , farZ_(1000)
-        {}
+            , viewport_(renderSystem.getDefaultViewport())
+        {
+        }
+
+        /** Sets a viewport */
+        void setViewport(const Viewport& vp) { viewport_ = vp; }
+
+        /** Returns the viewport */
+        Viewport getViewport() const { return viewport_; }
 
         /** Updates the projection */
         void setFovX(float rad) { fovX_ = rad; }

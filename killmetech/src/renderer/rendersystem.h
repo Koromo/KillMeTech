@@ -1,6 +1,7 @@
 #ifndef _KILLME_RENDERSYSTEM_H_
 #define _KILLME_RENDERSYSTEM_H_
 
+#include "renderstate.h"
 #include "gpuresourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -44,6 +45,8 @@ namespace killme
         HANDLE fenceEvent_;
         UINT64 fenceValue_;
 
+        Viewport defViewport_;
+
     public:
         /** Initializes */
         void startup(HWND window);
@@ -52,7 +55,10 @@ namespace killme
         void shutdown();
 
         /** Returns the target window */
-        HWND getWindow();
+        HWND getTargetWindow();
+
+        /** Returns the default viewport */
+        Viewport getDefaultViewport() const;
 
         /** Returns the current back buffer */
         std::shared_ptr<RenderTarget> getCurrentBackBuffer();

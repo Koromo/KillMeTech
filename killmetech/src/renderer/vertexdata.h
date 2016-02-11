@@ -47,6 +47,7 @@ namespace killme
     /** Primitive topology definitions */
     enum class PrimitiveTopology
     {
+        lineList,
         triangeList
     };
 

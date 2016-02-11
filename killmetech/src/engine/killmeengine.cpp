@@ -6,6 +6,8 @@
 #include "../event/event.h"
 #include "../event/eventmanager.h"
 #include "../scene/scenemanager.h"
+#include "../scene/debugdrawmanager.h"
+#include "../physics/physicsmanager.h"
 #include "../renderer/rendersystem.h"
 
 namespace killme
@@ -63,10 +65,14 @@ namespace killme
 
         renderSystem.startup(window);
         sceneManager.startup();
+        debugDrawManager.startup();
+        physicsManager.startup();
     }
 
     KillMeEngine::~KillMeEngine()
     {
+        physicsManager.shutdown();
+        debugDrawManager.shutdown();
         sceneManager.shutdown();
         renderSystem.shutdown();
         audioManager.shutdown();
@@ -96,7 +102,9 @@ namespace killme
             }
             else
             {
+                physicsManager.stepWorld(1 / 60.0f);
                 sceneManager.drawScene();
+                debugDrawManager.drawDebugs();
                 sceneManager.presentBackBuffer();
             }
         }

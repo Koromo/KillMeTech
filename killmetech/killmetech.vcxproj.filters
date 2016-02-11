@@ -31,6 +31,9 @@
     <Filter Include="src\scene">
       <UniqueIdentifier>{a6025d3b-52ea-499b-8b11-c6db824a8b38}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\physics">
+      <UniqueIdentifier>{7096531d-cb16-40a9-935b-49b72d1501dc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -119,6 +122,18 @@
     </ClCompile>
     <ClCompile Include="src\audio\audio3d.cpp">
       <Filter>src\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\physics\collisionshape.cpp">
+      <Filter>src\physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\physics\physicsmanager.cpp">
+      <Filter>src\physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\physics\rigidbody.cpp">
+      <Filter>src\physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\debugdrawmanager.cpp">
+      <Filter>src\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -259,6 +274,24 @@
     </ClInclude>
     <ClInclude Include="src\audio\audio3d.h">
       <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\physics\collisionshape.h">
+      <Filter>src\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\physics\bulletsupport.h">
+      <Filter>src\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\physics\physicsmanager.h">
+      <Filter>src\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\physics\rigidbody.h">
+      <Filter>src\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\debugdrawmanager.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\platform.h">
+      <Filter>src\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
