@@ -11,25 +11,28 @@ namespace killme
 {
     class Event;
 
+    namespace detail
+    {
+        struct Disconnector
+        {
+            std::string type_;
+            size_t id_;
+
+            Disconnector(const std::string& type, size_t id);
+            ~Disconnector();
+            void disconnect();
+        };
+    }
+
     /** The handle of event hook */
-    class EventHookHandle
+    class EventConnection
     {
     private:
-        std::string type_;
-        size_t id_;
+        std::shared_ptr<detail::Disconnector> disconnector_;
 
     public:
         /** Constructs */
-        EventHookHandle(const std::string& type, size_t id);
-
-        /** Calls EventHookHandle::disconnect() */
-        ~EventHookHandle();
-
-        /** Returns the event type */
-        std::string getType() const;
-
-        /** Returns the id */
-        size_t getId() const;
+        EventConnection(const std::string& type, size_t id);
 
         /** Removes event hook from the dispather */
         void disconnect();
@@ -45,18 +48,17 @@ namespace killme
         size_t idCounter_;
 
     public:
-        /** Constructs */
-        EventManager();
+        /** Initializes */
+        void startup();
+
+        /** Finalizes */
+        void shutdown();
 
         /** Adds an event hook */
-        std::shared_ptr<EventHookHandle> connect(const std::string& type, EventHook hook);
+        EventConnection connect(const std::string& type, EventHook hook);
 
         /** Removes an event hook */
-        void disconnect(const std::shared_ptr<EventHookHandle>& handle);
         void disconnect(const std::string& type, size_t id);
-
-        /** Removes all event hooks */
-        void disconnectAll();
 
         /** Dispatches the event */
         void emit(const Event& e);

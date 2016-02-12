@@ -1,6 +1,7 @@
 #ifndef _KILLME_PIPELINESTATE_H_
 #define _KILLME_PIPELINESTATE_H_
 
+#include "../resource/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <memory>
@@ -15,8 +16,8 @@ namespace killme
     struct PipelineStateDescription
     {
         std::shared_ptr<RootSignature> rootSignature;
-        std::shared_ptr<const VertexShader> vertexShader;
-        std::shared_ptr<const PixelShader> pixelShader;
+        Resource<VertexShader> vertexShader;
+        Resource<PixelShader> pixelShader;
     };
 
     /** The pipeline state */

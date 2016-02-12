@@ -3,7 +3,7 @@
 
 namespace killme
 {
-    SceneNode::SceneNode(const std::shared_ptr<SceneNode>& parent)
+    SceneNode::SceneNode(const std::weak_ptr<SceneNode>& parent)
         : position_()
         , orientation_()
         , scale_(1, 1, 1)

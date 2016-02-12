@@ -6,39 +6,43 @@ namespace killme
 {
     EventManager eventManager;
 
-    EventHookHandle::EventHookHandle(const std::string& type, size_t id)
+    detail::Disconnector::Disconnector(const std::string& type, size_t id)
         : type_(type)
         , id_(id)
     {
     }
 
-    EventHookHandle::~EventHookHandle()
+    detail::Disconnector::~Disconnector()
     {
         disconnect();
     }
 
-    std::string EventHookHandle::getType() const
-    {
-        return type_;
-    }
-
-    size_t EventHookHandle::getId() const
-    {
-        return id_;
-    }
-
-    void EventHookHandle::disconnect()
+    void detail::Disconnector::disconnect()
     {
         eventManager.disconnect(type_, id_);
     }
 
-    EventManager::EventManager()
-        : hookMap_()
-        , idCounter_(0)
+    EventConnection::EventConnection(const std::string& type, size_t id)
+        : disconnector_(std::make_shared<detail::Disconnector>(type, id))
     {
     }
 
-    std::shared_ptr<EventHookHandle> EventManager::connect(const std::string& type, EventHook hook)
+    void EventConnection::disconnect()
+    {
+        disconnector_->disconnect();
+    }
+
+    void EventManager::startup()
+    {
+        idCounter_ = 0;
+    }
+
+    void EventManager::shutdown()
+    {
+        hookMap_.clear();
+    }
+
+    EventConnection EventManager::connect(const std::string& type, EventHook hook)
     {
         const auto lowers = toLowers(type);
         const auto id = idCounter_++;
@@ -53,12 +57,7 @@ namespace killme
             it->second.insert({ id, hook });
         }
 
-        return std::make_shared<EventHookHandle>(type, id);
-    }
-
-    void EventManager::disconnect(const std::shared_ptr<EventHookHandle>& handle)
-    {
-        disconnect(handle->getType(), handle->getId());
+        return EventConnection(type, id);
     }
 
     void EventManager::disconnect(const std::string& type, size_t id)
@@ -72,11 +71,6 @@ namespace killme
                 it->second.erase(it2);
             }
         }
-    }
-
-    void EventManager::disconnectAll()
-    {
-        hookMap_.clear();
     }
 
     void EventManager::emit(const Event& e)

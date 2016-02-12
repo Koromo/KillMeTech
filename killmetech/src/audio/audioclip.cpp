@@ -26,12 +26,12 @@ namespace killme
         return format_;
     }
 
-    std::shared_ptr<AudioClip> loadAudio(const tstring& filename)
+    std::shared_ptr<AudioClip> loadAudioClip(const tstring& path)
     {
         // Open file
         const auto mmio = enforce<FileException>(
-            mmioOpen(const_cast<TCHAR*>(filename.c_str()), nullptr, MMIO_READ),
-            "Failed to open file (" + narrow(filename) + ")."
+            mmioOpen(const_cast<TCHAR*>(path.c_str()), nullptr, MMIO_READ),
+            "Failed to open file (" + narrow(path) + ")."
             );
 
         KILLME_SCOPE_EXIT{ mmioClose(mmio, 0); };

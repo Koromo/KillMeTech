@@ -10,6 +10,7 @@
 #include "../renderer/vertexshader.h"
 #include "../renderer/pixelshader.h"
 #include "../core/string.h"
+#include "../resource/resourcemanager.h"
 #include <memory>
 
 namespace killme
@@ -69,8 +70,8 @@ namespace killme
         vertexData->addVertices(VertexSemantic::position, 0, positionBuffer);
         vertexData->setIndices(indexBuffer);
 
-        const auto vertexShader = compileShader<VertexShader>(KILLME_T("vs.hlsl"));
-        const auto pixelShader = compileShader<PixelShader>(KILLME_T("ps.hlsl"));
+        const auto vertexShader = getResourceInterface<VertexShader>("vs.vhlsl");
+        const auto pixelShader = getResourceInterface<PixelShader>("ps.phlsl");
 
         const auto material = std::make_shared<Material>(vertexShader, pixelShader);
         return std::make_shared<Mesh>(vertexData, material);

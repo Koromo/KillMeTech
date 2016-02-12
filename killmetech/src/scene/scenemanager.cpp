@@ -37,7 +37,7 @@ namespace killme
         scissorRect_.bottom = static_cast<int>(clientHeight);
 
         // Create the root scene node
-        rootNode_ = std::make_shared<SceneNode>(nullptr);
+        rootNode_ = std::make_shared<SceneNode>(std::shared_ptr<SceneNode>());
     }
 
     void SceneManager::shutdown()
@@ -120,7 +120,7 @@ namespace killme
             const auto vertexData = mesh->getVertexData();
             const auto pipelineState = material->getPipelineState();
             const auto rootSignature = pipelineState->describe().rootSignature;
-            const auto inputLayout = pipelineState->describe().vertexShader->getInputLayout();
+            const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
             const auto& vertexBinder = vertexData->getBinder(inputLayout);
             const auto indexBuffer = vertexData->getIndexBuffer();
             const auto heaps = { material->getConstantBufferHeap() };

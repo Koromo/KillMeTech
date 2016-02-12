@@ -5,6 +5,8 @@
 #include "../core/utility.h"
 #include "../core/string.h"
 #include "../core/optional.h"
+#include "../core/exception.h"
+#include "../resource/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <d3dcompiler.h>
@@ -56,7 +58,7 @@ namespace killme
     };
 
     /** The basic implementation for each shaders */
-    class BasicShader
+    class BasicShader : public IsResource
     {
     private:
         ComUniquePtr<ID3DBlob> byteCode_;
@@ -66,9 +68,6 @@ namespace killme
     public:
         /** Constructs with a byte code */
         explicit BasicShader(ID3DBlob* byteCode);
-
-        /** For drived classes */
-        ~BasicShader() = default;
 
         /** Returns the byte code */
         const void* getByteCode() const;
@@ -83,22 +82,24 @@ namespace killme
 
     /** Compile a shader from file */
     template <class Shader>
-    std::shared_ptr<Shader> compileShader(const tstring& filename)
+    std::shared_ptr<Shader> compileShader(const tstring& path)
     {
         ID3DBlob* code;
         ID3DBlob* err = NULL;
 
-        const auto hr = D3DCompileFromFile(filename.c_str(), nullptr, nullptr, "main", Shader::model.c_str(), 0, 0, &code, &err);
+        const auto hr = D3DCompileFromFile(path.c_str(), nullptr, nullptr, "main", Shader::model.c_str(), 0, 0, &code, &err);
         if (FAILED(hr))
         {
-            std::string msg = "Failed to compile shader (" + narrow(filename) + ").";
             if (err)
             {
-                msg += "\n";
-                msg += static_cast<char*>(err->GetBufferPointer());
+                const std::string msg = static_cast<char*>(err->GetBufferPointer());
                 err->Release();
+                throw Direct3DException(msg);
             }
-            throw Direct3DException(msg);
+            else
+            {
+                throw FileException("File not found (" + narrow(path) + ").");
+            }
         }
 
         return std::make_shared<Shader>(code);

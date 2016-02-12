@@ -10,7 +10,7 @@
 
 namespace killme
 {
-    Material::Material(const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps)
+    Material::Material(const Resource<VertexShader>& vs, const Resource<PixelShader>& ps)
         : pipelineState_()
         , cbufferHeap_()
         , indexMap_()
@@ -20,8 +20,8 @@ namespace killme
         , psParamBuffer_()
     {
         // Create the root signature
-        const auto vsCbuffers = vs->describeConstnatBuffers();
-        const auto psCbuffers = ps->describeConstnatBuffers();
+        const auto vsCbuffers = vs.access()->describeConstnatBuffers();
+        const auto psCbuffers = ps.access()->describeConstnatBuffers();
 
         RootSignatureDescription rootSigDesc(2);
         rootSigDesc[0].initialize(vsCbuffers.size(), ShaderType::vertex);

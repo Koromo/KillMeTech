@@ -18,6 +18,7 @@
 #include "../core/math/vector3.h"
 #include "../core/math/color.h"
 #include "../core/math/matrix44.h"
+#include "../resource/resourcemanager.h"
 
 namespace killme
 {
@@ -37,8 +38,8 @@ namespace killme
         rootSigDesc[0][0].set(0, 1);
 
         const auto rootSig = renderSystem.createRootSignature(rootSigDesc);
-        const auto vs = compileShader<VertexShader>(KILLME_T("media/debugdraw_vs.hlsl"));
-        const auto ps = compileShader<PixelShader>(KILLME_T("media/debugdraw_ps.hlsl"));
+        const auto vs = getResourceInterface<VertexShader>("media/debugdraw_vs.vhlsl");
+        const auto ps = getResourceInterface<PixelShader>("media/debugdraw_ps.phlsl");
 
         PipelineStateDescription pipelineDesc;
         pipelineDesc.rootSignature = rootSig;
@@ -128,7 +129,7 @@ namespace killme
         vertexData.addVertices(VertexSemantic::color, 0, colorBuffer);
 
         const auto rootSignature = pipeline_->describe().rootSignature;
-        const auto inputLayout = pipeline_->describe().vertexShader->getInputLayout();
+        const auto inputLayout = pipeline_->describe().vertexShader.access()->getInputLayout();
         const auto& binder = vertexData.getBinder(inputLayout);
 
         // Begin drawing to all debugs

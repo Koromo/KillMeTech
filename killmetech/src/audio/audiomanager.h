@@ -3,6 +3,7 @@
 
 #include "../windows/winsupport.h"
 #include "xaudiosupport.h"
+#include "../resource/resource.h"
 #include <xaudio2.h>
 #include <memory>
 
@@ -30,7 +31,7 @@ namespace killme
         bool isActive() const;
 
         /** Creates a source voice */
-        std::shared_ptr<SourceVoice> createSourceVoice(const std::shared_ptr<const AudioClip>& clip);
+        std::shared_ptr<SourceVoice> createSourceVoice(const Resource<AudioClip>& clip);
     };
 
     extern AudioManager audioManager;

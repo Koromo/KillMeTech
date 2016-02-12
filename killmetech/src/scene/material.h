@@ -4,6 +4,7 @@
 #include "../renderer/shader.h"
 #include "../renderer/constantbuffer.h"
 #include "../core/optional.h"
+#include "../resource/resource.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -31,7 +32,7 @@ namespace killme
 
     public:
         /** Constructs with each shaders */
-        Material(const std::shared_ptr<VertexShader>& vs, const std::shared_ptr<PixelShader>& ps);
+        Material(const Resource<VertexShader>& vs, const Resource<PixelShader>& ps);
 
         /** Stores a constant buffer into the heap */
         void storeConstantBuffer(const std::string& name, const std::shared_ptr<ConstantBuffer>& buffer);

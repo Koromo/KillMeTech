@@ -5,12 +5,17 @@
 #include "constantbuffer.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
+#include "shader.h"
 #include "vertexshader.h"
 #include "pixelshader.h"
 #include "inputlayout.h"
 #include "commandlist.h"
 #include "d3dsupport.h"
+#include "../resource/resource.h"
+#include "../resource/resourcemanager.h"
 #include "../core/exception.h"
+#include "../core/string.h"
+#include <string>
 #include <cstring>
 #include <cassert>
 
@@ -148,6 +153,10 @@ namespace killme
         defViewport_.height = static_cast<float>(clientHeight);
         defViewport_.minDepth = 0;
         defViewport_.maxDepth = 1;
+
+        // Set renderer resource loaders
+        resourceManager.setLoader("vhlsl", [](const std::string& path) { return compileShader<VertexShader>(toCharSet(path)); });
+        resourceManager.setLoader("phlsl", [](const std::string& path) { return compileShader<PixelShader>(toCharSet(path)); });
     }
 
     void RenderSystem::shutdown()
@@ -381,10 +390,10 @@ namespace killme
         // Create the Direct3D pipeline state
         D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dStateDesc;
         ZeroMemory(&d3dStateDesc, sizeof(d3dStateDesc));
-        d3dStateDesc.InputLayout = stateDesc.vertexShader->getInputLayout()->getD3DLayout();
+        d3dStateDesc.InputLayout = stateDesc.vertexShader.access()->getInputLayout()->getD3DLayout();
         d3dStateDesc.pRootSignature = stateDesc.rootSignature->getD3DRootSignature();
-        d3dStateDesc.VS = {stateDesc.vertexShader->getByteCode(), stateDesc.vertexShader->getByteCodeSize()};
-        d3dStateDesc.PS = {stateDesc.pixelShader->getByteCode(), stateDesc.pixelShader->getByteCodeSize()};
+        d3dStateDesc.VS = {stateDesc.vertexShader.access()->getByteCode(), stateDesc.vertexShader.access()->getByteCodeSize()};
+        d3dStateDesc.PS = {stateDesc.pixelShader.access()->getByteCode(), stateDesc.pixelShader.access()->getByteCodeSize()};
         d3dStateDesc.RasterizerState = rasterizerState;
         d3dStateDesc.BlendState = blendState;
         d3dStateDesc.DepthStencilState = depthStencilState;

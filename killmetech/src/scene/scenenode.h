@@ -40,7 +40,7 @@ namespace killme
 
     public:
         /** Constructs */
-        SceneNode(const std::shared_ptr<SceneNode>& parent);
+        SceneNode(const std::weak_ptr<SceneNode>& parent);
 
         /** Creates the child node */
         std::shared_ptr<SceneNode> createChild();

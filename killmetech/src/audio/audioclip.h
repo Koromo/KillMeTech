@@ -1,6 +1,7 @@
 #ifndef _KILLME_AUDIOCLIP_H_
 #define _KILLME_AUDIOCLIP_H_
 
+#include "../resource/resource.h"
 #include "../core/string.h"
 #include <Windows.h>
 #include <memory>
@@ -8,7 +9,7 @@
 namespace killme
 {
     /** The Audio clip */
-    class AudioClip
+    class AudioClip : public IsResource
     {
     private:
         std::unique_ptr<const unsigned char[]> data_;
@@ -30,7 +31,7 @@ namespace killme
     };
 
     /** Load an audio from file */
-    std::shared_ptr<AudioClip> loadAudio(const tstring& filename);
+    std::shared_ptr<AudioClip> loadAudioClip(const tstring& path);
 }
 
 #endif

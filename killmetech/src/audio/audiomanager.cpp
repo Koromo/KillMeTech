@@ -1,7 +1,10 @@
 #include "audiomanager.h"
 #include "audio3d.h"
-#include "../core/exception.h"
 #include "sourcevoice.h"
+#include "audioclip.h"
+#include "../resource/resourcemanager.h"
+#include "../core/exception.h"
+#include "../core/string.h"
 
 namespace killme
 {
@@ -38,6 +41,9 @@ namespace killme
         masteringVoice_->GetVoiceDetails(&details);
 
         audio3D.startup(channelMask, details.InputChannels);
+
+        /** Set audio resource loaders */
+        resourceManager.setLoader("wav", [](const std::string& path) { return loadAudioClip(toCharSet(path)); });
     }
     
     void AudioManager::shutdown()
@@ -54,7 +60,7 @@ namespace killme
         return !!xAudio_;
     }
 
-    std::shared_ptr<SourceVoice> AudioManager::createSourceVoice(const std::shared_ptr<const AudioClip>& clip)
+    std::shared_ptr<SourceVoice> AudioManager::createSourceVoice(const Resource<AudioClip>& clip)
     {
         return std::make_shared<SourceVoice>(xAudio_.get(), clip);
     }

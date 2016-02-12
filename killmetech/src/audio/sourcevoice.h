@@ -2,6 +2,7 @@
 #define _KILLME_SOURCEVOICE_H_
 
 #include "xaudiosupport.h"
+#include "../resource/resource.h"
 #include <xaudio2.h>
 #include <memory>
 
@@ -27,13 +28,13 @@ namespace killme
         };
 
         VoiceUniquePtr<IXAudio2SourceVoice> sourceVoice_;
-        std::shared_ptr<const AudioClip> clip_;
+        Resource<AudioClip> clip_;
         VoiceCallback callBack_;
         bool isPlaying_;
 
     public:
         /** Constructs with an audio clip */
-        SourceVoice(IXAudio2* xAudio, const std::shared_ptr<const AudioClip>& clip);
+        SourceVoice(IXAudio2* xAudio, const Resource<AudioClip>& clip);
 
         /** Destructs */
         ~SourceVoice();

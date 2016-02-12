@@ -9,6 +9,7 @@
 #include "../scene/debugdrawmanager.h"
 #include "../physics/physicsmanager.h"
 #include "../renderer/rendersystem.h"
+#include "../resource/resourcemanager.h"
 
 namespace killme
 {
@@ -57,6 +58,9 @@ namespace killme
 
         window_.reset(window);
 
+        eventManager.startup();
+        resourceManager.startup();
+
         // Initialize audio system
         audioManager.startup();
 
@@ -77,7 +81,8 @@ namespace killme
         renderSystem.shutdown();
         audioManager.shutdown();
         inputManager.shutdown();
-        eventManager.disconnectAll();
+        resourceManager.shutdown();
+        eventManager.shutdown();
         window_.reset();
     }
 

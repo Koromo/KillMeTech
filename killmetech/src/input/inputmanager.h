@@ -9,14 +9,14 @@
 namespace killme
 {
     class Event;
-    class EventHookHandle;
+    class EventConnection;
 
     /** The input manager */
     class InputManager
     {
     private:
         std::array<bool, NUM_KEY_CODES> keyStatus_;
-        std::vector<std::shared_ptr<EventHookHandle>> hooks_;
+        std::vector<EventConnection> hooks_;
 
     public:
         /** Initializes */

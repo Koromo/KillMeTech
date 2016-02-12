@@ -34,6 +34,9 @@
     <Filter Include="src\physics">
       <UniqueIdentifier>{7096531d-cb16-40a9-935b-49b72d1501dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\resource">
+      <UniqueIdentifier>{c34ef27a-4aad-4a53-98ea-54fe77dc4c8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -134,6 +137,12 @@
     </ClCompile>
     <ClCompile Include="src\scene\debugdrawmanager.cpp">
       <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resource\resourcemanager.cpp">
+      <Filter>src\resource</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resource\resource.cpp">
+      <Filter>src\resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -292,6 +301,12 @@
     </ClInclude>
     <ClInclude Include="src\core\platform.h">
       <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource\resource.h">
+      <Filter>src\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource\resourcemanager.h">
+      <Filter>src\resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

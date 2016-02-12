@@ -19,7 +19,7 @@ namespace killme
         virtual ~SceneEntity() = default;
 
         /** Sets an owner */
-        void setOwner(const std::shared_ptr<SceneNode>& owner) { owner_ = owner; }
+        void setOwner(const std::weak_ptr<SceneNode>& owner) { owner_ = owner; }
 
         /** Returns the owner */
         std::shared_ptr<SceneNode> lockOwner() { return owner_.lock(); }

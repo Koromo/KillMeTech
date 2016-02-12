@@ -21,13 +21,13 @@ namespace killme
         throw XAudioException("Any error occurred in source buffer.");
     }
 
-    SourceVoice::SourceVoice(IXAudio2* xAudio, const std::shared_ptr<const AudioClip>& clip)
+    SourceVoice::SourceVoice(IXAudio2* xAudio, const Resource<AudioClip>& clip)
         : sourceVoice_()
         , clip_(clip)
         , callBack_()
         , isPlaying_(false)
     {
-        const auto format = clip_->getFormat();
+        const auto format = clip_.access()->getFormat();
         IXAudio2SourceVoice* voice;
         enforce<XAudioException>(
             SUCCEEDED(xAudio->CreateSourceVoice(&voice, &format, 0, 2, &callBack_)),
@@ -60,8 +60,8 @@ namespace killme
         XAUDIO2_BUFFER buffer;
         ZeroMemory(&buffer, sizeof(buffer));
         buffer.Flags = XAUDIO2_END_OF_STREAM;
-        buffer.AudioBytes = static_cast<UINT32>(clip_->getSize());
-        buffer.pAudioData = clip_->getData();
+        buffer.AudioBytes = static_cast<UINT32>(clip_.access()->getSize());
+        buffer.pAudioData = clip_.access()->getData();
         buffer.PlayBegin = 0;
         buffer.PlayLength = 0;
         buffer.LoopBegin = 0;
