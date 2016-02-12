@@ -1,5 +1,6 @@
 #include "shader.h"
 #include "../core/exception.h"
+#include <cstring>
 
 namespace killme
 {
@@ -31,6 +32,14 @@ namespace killme
             VariableDescription varDesc;
             varDesc.size = d3dVarDesc.Size;
             varDesc.offset = d3dVarDesc.StartOffset;
+
+            if (d3dVarDesc.DefaultValue != NULL)
+            {
+                const auto p = new unsigned char[d3dVarDesc.Size];
+                std::memcpy(p, d3dVarDesc.DefaultValue, d3dVarDesc.Size);
+                varDesc.defValue = std::shared_ptr<const unsigned char>(p, std::default_delete<const unsigned char[]>());
+            }
+
             variables_.insert({d3dVarDesc.Name, varDesc});
         }
     }

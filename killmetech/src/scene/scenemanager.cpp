@@ -104,53 +104,53 @@ namespace killme
         transformBuffer_->update(&viewMatrix, sizeof(Matrix44), sizeof(Matrix44));
         transformBuffer_->update(&projMatrix, sizeof(Matrix44) * 2, sizeof(Matrix44));
 
-        // For each mesh entities
         const auto viewport = camera->getViewport();
 
-        for (const auto& entity : visitor.entities)
+        for (const auto& entity : visitor.entities) // For each mesh entities
         {
             // Update the constant buffer about world matrix
             const auto worldMatrix = transpose(entity->lockOwner()->getWorldMatrix());
             transformBuffer_->update(&worldMatrix, 0, sizeof(Matrix44));
 
-            // Get render resources
             const auto mesh = entity->getMesh();
-            const auto material = mesh->getMaterial();
-
-            const auto vertexData = mesh->getVertexData();
-            const auto pipelineState = material->getPipelineState();
-            const auto rootSignature = pipelineState->describe().rootSignature;
-            const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
-            const auto& vertexBinder = vertexData->getBinder(inputLayout);
-            const auto indexBuffer = vertexData->getIndexBuffer();
-            const auto heaps = { material->getConstantBufferHeap() };
-            const auto heapTables = material->getConstantBufferHeapTables();
-
-            // Add draw commands
-            renderSystem.resetCommandList(commandList_, pipelineState);
-
-            commandList_->resourceBarrior(renderTarget, ResourceState::present, ResourceState::renderTarget);
-            commandList_->setRenderTarget(renderTarget, depthStencil);
-            commandList_->setViewport(viewport);
-            commandList_->setScissorRect(scissorRect_);
-            commandList_->setPrimitiveTopology(PrimitiveTopology::triangeList);
-            commandList_->setVertexBuffers(vertexBinder);
-            commandList_->setIndexBuffer(indexBuffer);
-
-            commandList_->setRootSignature(rootSignature);
-            commandList_->setGpuResourceHeaps(heaps, 1);
-            for (const auto& t : heapTables)
+            for (const auto& subMesh : mesh->getSubMeshes()) // For each sub meshes
             {
-                commandList_->setGpuResourceTable(t.first, t.second);
+                const auto vertexData = subMesh.second->getVertexData();
+                const auto material = subMesh.second->getMaterial();
+                const auto pipelineState = material->getPipelineState();
+                const auto rootSignature = pipelineState->describe().rootSignature;
+                const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
+                const auto& vertexBinder = vertexData->getBinder(inputLayout);
+                const auto indexBuffer = vertexData->getIndexBuffer();
+                const auto heaps = { material->getConstantBufferHeap() };
+                const auto heapTables = material->getConstantBufferHeapTables();
+
+                // Add draw commands
+                renderSystem.resetCommandList(commandList_, pipelineState);
+
+                commandList_->resourceBarrior(renderTarget, ResourceState::present, ResourceState::renderTarget);
+                commandList_->setRenderTarget(renderTarget, depthStencil);
+                commandList_->setViewport(viewport);
+                commandList_->setScissorRect(scissorRect_);
+                commandList_->setPrimitiveTopology(PrimitiveTopology::triangeList);
+                commandList_->setVertexBuffers(vertexBinder);
+                commandList_->setIndexBuffer(indexBuffer);
+
+                commandList_->setRootSignature(rootSignature);
+                commandList_->setGpuResourceHeaps(heaps, 1);
+                for (const auto& t : heapTables)
+                {
+                    commandList_->setGpuResourceTable(t.first, t.second);
+                }
+
+                commandList_->drawIndexed(indexBuffer->getNumIndices());
+                commandList_->resourceBarrior(renderTarget, ResourceState::renderTarget, ResourceState::present);
+
+                commandList_->close();
+
+                // Draw entity
+                renderSystem.executeCommandList(commandList_);
             }
-
-            commandList_->drawIndexed(indexBuffer->getNumIndices());
-            commandList_->resourceBarrior(renderTarget, ResourceState::renderTarget, ResourceState::present);
-
-            commandList_->close();
-
-            // Draw entity
-            renderSystem.executeCommandList(commandList_);
         }
     }
 

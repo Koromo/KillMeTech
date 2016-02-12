@@ -79,11 +79,25 @@ namespace killme
         {
             vsParamBuffer_ = renderSystem.createConstantBuffer(vsParamDesc_->getSize());
             storeConstantBuffer(vsParamDesc_->getName(), vsParamBuffer_);
+            for (const auto var : vsParamDesc_->describeVariables())
+            {
+                if (var.second.defValue)
+                {
+                    setVariableImpl(var.first, var.second.defValue.get());
+                }
+            }
         }
         if (psParamDesc_)
         {
             psParamBuffer_ = renderSystem.createConstantBuffer(psParamDesc_->getSize());
             storeConstantBuffer(psParamDesc_->getName(), psParamBuffer_);
+            for (const auto var : psParamDesc_->describeVariables())
+            {
+                if (var.second.defValue)
+                {
+                    setVariableImpl(var.first, var.second.defValue.get());
+                }
+            }
         }
     }
 
@@ -104,5 +118,21 @@ namespace killme
     std::shared_ptr<GpuResourceHeap> Material::getConstantBufferHeap()
     {
         return cbufferHeap_;
+    }
+
+    void Material::setVariableImpl(const std::string& name, const void* data)
+    {
+        if (const auto var = vsParamDesc_ ? vsParamDesc_->describeVariable(name) : nullopt)
+        {
+            const auto size = var->size;
+            const auto offset = var->offset;
+            vsParamBuffer_->update(data, offset, size);
+        }
+        else if (const auto var = psParamDesc_ ? psParamDesc_->describeVariable(name) : nullopt)
+        {
+            const auto size = var->size;
+            const auto offset = var->offset;
+            psParamBuffer_->update(data, offset, size);
+        }
     }
 }

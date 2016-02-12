@@ -29,6 +29,7 @@ namespace killme
     {
         size_t size;
         size_t offset;
+        std::shared_ptr<const unsigned char> defValue;
     };
 
     /** The constant buffer description */
@@ -55,6 +56,13 @@ namespace killme
 
         /** Returns the description of variable */
         Optional<VariableDescription> describeVariable(const std::string& name) const;
+
+        /** Returns descriptions of variable */
+        auto describeVariables() const
+            -> decltype(makeRange(variables_))
+        {
+            return makeRange(variables_);
+        }
     };
 
     /** The basic implementation for each shaders */

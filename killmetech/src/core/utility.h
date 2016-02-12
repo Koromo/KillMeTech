@@ -20,6 +20,17 @@ namespace killme
             {
             }
 
+            It begin()
+            {
+                return begin_;
+            }
+
+            It end()
+            {
+                return end_;
+
+            }
+
             It begin() const
             {
                 return begin_;
@@ -45,6 +56,13 @@ namespace killme
         -> decltype(makeRange(std::cbegin(c), std::cend(c)))
     {
         return makeRange(std::cbegin(c), std::cend(c));
+    }
+
+    template <class C>
+    auto makeRange(C& c)
+        -> decltype(makeRange(std::begin(c), std::end(c)))
+    {
+        return makeRange(std::begin(c), std::end(c));
     }
 
     /** The type converter */

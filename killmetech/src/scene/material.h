@@ -41,18 +41,7 @@ namespace killme
         template <class T>
         void setVariable(const std::string& name, const T& value)
         {
-            if (const auto var = vsParamDesc_ ? vsParamDesc_->describeVariable(name) : nullopt)
-            {
-                const auto size = var->size;
-                const auto offset = var->offset;
-                vsParamBuffer_->update(&value, offset, size);
-            }
-            else if (const auto var = psParamDesc_ ? psParamDesc_->describeVariable(name) : nullopt)
-            {
-                const auto size = var->size;
-                const auto offset = var->offset;
-                psParamBuffer_->update(&value, offset, size);
-            }
+            setVariableImpl(name, &value);
         }
 
         /** Returns the pipeline state */
@@ -67,6 +56,9 @@ namespace killme
         {
             return{ std::make_pair(0, cbufferHeap_), std::make_pair(1, cbufferHeap_) };
         }
+
+    private:
+        void setVariableImpl(const std::string& name, const void* data);
     };
 }
 
