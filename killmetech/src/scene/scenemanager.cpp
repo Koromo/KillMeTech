@@ -50,6 +50,9 @@ namespace killme
 
     void SceneManager::shutdown()
     {
+        resourceManager.removeLoader("material");
+        resourceManager.removeLoader("fbx");
+
         importManager_.reset();
         rootNode_.reset();
         transformBuffer_.reset();

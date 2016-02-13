@@ -161,6 +161,9 @@ namespace killme
 
     void RenderSystem::shutdown()
     {
+        resourceManager.removeLoader("vhlsl");
+        resourceManager.removeLoader("phlsl");
+
         CloseHandle(fenceEvent_);
         fence_.reset();
         depthStencil_.reset();

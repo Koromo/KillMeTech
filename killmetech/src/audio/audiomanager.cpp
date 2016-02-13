@@ -48,6 +48,7 @@ namespace killme
     
     void AudioManager::shutdown()
     {
+        resourceManager.removeLoader("wav");
         audio3D.shutdown();
         xAudio_->StopEngine();
         masteringVoice_.reset();

@@ -24,6 +24,15 @@ namespace killme
         loaderMap_[lowers] = loader;
     }
 
+    void ResourceManager::removeLoader(const std::string& ext)
+    {
+        const auto it = loaderMap_.find(toLowers(ext));
+        if (it != std::cend(loaderMap_))
+        {
+            loaderMap_.erase(it);
+        }
+    }
+
     namespace detail
     {
         std::string getExtension(const std::string& path)

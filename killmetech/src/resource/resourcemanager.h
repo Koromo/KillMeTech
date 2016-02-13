@@ -30,6 +30,9 @@ namespace killme
         /** Sets the resource loader */
         void setLoader(const std::string& ext, Loader loader);
 
+        /** Removes the resource loader */
+        void removeLoader(const std::string& ext);
+
         // For getManagedResource()
         template <class T>
         Resource<T> getInterface(const std::string& path, bool immediateLoading)
