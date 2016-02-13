@@ -286,8 +286,8 @@ namespace killme
 
         const auto fovY = fovX / aspect;
         const auto n11 = 1 / std::tan(fovX * 0.5f);
-		//const auto n22 = 1 / std::tan(fovY * 0.5f);
-        const auto n22 = n11 / aspect;
+		const auto n22 = 1 / std::tan(fovY * 0.5f);
+        //const auto n22 = n11 / aspect;
         const auto n33 = zf / (zf - zn);
         const auto n43 = -n33 * zn;
         return {

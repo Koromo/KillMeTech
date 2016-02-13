@@ -34,6 +34,7 @@
     <ClCompile Include="src\engine\killmeengine.cpp" />
     <ClCompile Include="src\event\event.cpp" />
     <ClCompile Include="src\event\eventmanager.cpp" />
+    <ClCompile Include="src\import\fbxmeshimporter.cpp" />
     <ClCompile Include="src\input\inputmanager.cpp" />
     <ClCompile Include="src\input\keycode.cpp" />
     <ClCompile Include="src\physics\collisionshape.cpp" />
@@ -76,6 +77,8 @@
     <ClInclude Include="src\engine\killmeengine.h" />
     <ClInclude Include="src\event\event.h" />
     <ClInclude Include="src\event\eventmanager.h" />
+    <ClInclude Include="src\import\fbxmeshimporter.h" />
+    <ClInclude Include="src\import\fbxsupport.h" />
     <ClInclude Include="src\input\inputmanager.h" />
     <ClInclude Include="src\input\keycode.h" />
     <ClInclude Include="src\physics\bulletsupport.h" />
@@ -164,7 +167,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\Users\progg\btphysics\bullet3-2.83.7\src;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\shared;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\include;D:\Users\progg\btphysics\bullet3-2.83.7\src;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\shared;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

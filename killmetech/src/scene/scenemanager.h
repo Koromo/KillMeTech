@@ -11,6 +11,7 @@ namespace killme
     class SceneNode;
     class CommandList;
     class ConstantBuffer;
+    class FbxMeshImporter;
 
     /** The scene manager */
     class SceneManager
@@ -19,6 +20,7 @@ namespace killme
         std::shared_ptr<CommandList> commandList_;
         std::shared_ptr<ConstantBuffer> transformBuffer_;
         ScissorRect scissorRect_;
+        std::unique_ptr<FbxMeshImporter> importManager_;
         std::shared_ptr<SceneNode> rootNode_;
 
     public:

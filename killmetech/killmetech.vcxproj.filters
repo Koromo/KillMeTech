@@ -37,6 +37,9 @@
     <Filter Include="src\resource">
       <UniqueIdentifier>{c34ef27a-4aad-4a53-98ea-54fe77dc4c8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\import">
+      <UniqueIdentifier>{24b4a62d-6726-46dd-b976-bfef4f177168}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -146,6 +149,9 @@
     </ClCompile>
     <ClCompile Include="src\scene\materialparser.cpp">
       <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\import\fbxmeshimporter.cpp">
+      <Filter>src\import</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -310,6 +316,12 @@
     </ClInclude>
     <ClInclude Include="src\resource\resourcemanager.h">
       <Filter>src\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\import\fbxsupport.h">
+      <Filter>src\import</Filter>
+    </ClInclude>
+    <ClInclude Include="src\import\fbxmeshimporter.h">
+      <Filter>src\import</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

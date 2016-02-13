@@ -3,6 +3,7 @@
 
 #include "sceneentity.h"
 #include "scenevisitor.h"
+#include "../resource/resource.h"
 #include <memory>
 
 namespace killme
@@ -13,14 +14,14 @@ namespace killme
     class MeshEntity : public SceneEntity, public std::enable_shared_from_this<MeshEntity>
     {
     private:
-        std::shared_ptr<Mesh> mesh_;
+        Resource<Mesh> mesh_;
 
     public:
         /** Constructs */
-        MeshEntity(const std::shared_ptr<Mesh>& mesh) : mesh_(mesh) {}
+        MeshEntity(const Resource<Mesh>& mesh) : mesh_(mesh) {}
 
         /** Returns the mesh */
-        std::shared_ptr<Mesh> getMesh() { return mesh_; }
+        Resource<Mesh> getMesh() { return mesh_; }
 
         bool accept(SceneVisitor& v) { return v(lockOwner(), shared_from_this()); }
     };

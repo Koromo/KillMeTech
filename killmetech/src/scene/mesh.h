@@ -35,7 +35,7 @@ namespace killme
     };
 
     /** The mesh */
-    class Mesh
+    class Mesh : public IsResource
     {
     private:
         using Pair = std::pair<std::string, std::shared_ptr<SubMesh>>;

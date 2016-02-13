@@ -5,6 +5,7 @@
 #include "meshentity.h"
 #include "mesh.h"
 #include "material.h"
+#include "../import/fbxmeshimporter.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/constantbuffer.h"
 #include "../renderer/commandlist.h"
@@ -40,12 +41,16 @@ namespace killme
         // Create the root scene node
         rootNode_ = std::make_shared<SceneNode>(std::shared_ptr<SceneNode>());
 
+        importManager_ = std::make_unique<FbxMeshImporter>();
+
         // Set scene resource loaders
         resourceManager.setLoader("material", [](const std::string& path) { return loadMaterial(path); });
+        resourceManager.setLoader("fbx", [&](const std::string& path) { return importManager_->import(path); });
     }
 
     void SceneManager::shutdown()
     {
+        importManager_.reset();
         rootNode_.reset();
         transformBuffer_.reset();
         commandList_.reset();
@@ -117,7 +122,7 @@ namespace killme
             transformBuffer_->update(&worldMatrix, 0, sizeof(Matrix44));
 
             const auto mesh = entity->getMesh();
-            for (const auto& subMesh : mesh->getSubMeshes()) // For each sub meshes
+            for (const auto& subMesh : mesh.access()->getSubMeshes()) // For each sub meshes
             {
                 const auto vertexData = subMesh.second->getVertexData();
                 const auto material = subMesh.second->getMaterial();

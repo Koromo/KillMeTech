@@ -24,11 +24,12 @@ namespace killme
         /** Constructs */
         Camera()
             : fovX_(radian(60))
-            , aspect_(16 / 9.0f)
+            , aspect_()
             , nearZ_(0.1f)
             , farZ_(1000)
             , viewport_(renderSystem.getDefaultViewport())
         {
+            aspect_ = viewport_.width / viewport_.height;
         }
 
         /** Sets a viewport */
