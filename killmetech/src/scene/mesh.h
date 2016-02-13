@@ -1,6 +1,7 @@
 #ifndef _KILLME_MESH_H_
 #define _KILLME_MESH_H_
 
+#include "../resource/resource.h"
 #include "../core/utility.h"
 #include <memory>
 #include <vector>
@@ -17,11 +18,11 @@ namespace killme
     {
     private:
         std::shared_ptr<VertexData> vertexData_;
-        std::shared_ptr<Material> material_;
+        Resource<Material> material_;
 
     public:
         /** Constructs with a vertices and a material */
-        SubMesh(const std::shared_ptr<VertexData>& vertexData, const std::shared_ptr<Material>& material)
+        SubMesh(const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
             : vertexData_(vertexData)
             , material_(material)
         {}
@@ -30,7 +31,7 @@ namespace killme
         std::shared_ptr<VertexData> getVertexData() { return vertexData_; }
 
         /** Returns the material */
-        std::shared_ptr<Material> getMaterial() const { return material_; }
+        Resource<Material> getMaterial() const { return material_; }
     };
 
     /** The mesh */
@@ -42,7 +43,7 @@ namespace killme
 
     public:
         /** Creates the sub mesh */
-        std::shared_ptr<SubMesh> createSubMesh(const std::string& name, const std::shared_ptr<VertexData>& vertexData, const std::shared_ptr<Material>& material)
+        std::shared_ptr<SubMesh> createSubMesh(const std::string& name, const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
         {
             const auto sm = std::make_shared<SubMesh>(vertexData, material);
             subMeshes_.emplace_back(name, sm);

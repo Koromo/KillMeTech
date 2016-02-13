@@ -14,6 +14,7 @@
 #include "../renderer/vertexshader.h"
 #include "../core/math/matrix44.h"
 #include "../core/math/color.h"
+#include "../resource/resourcemanager.h"
 #include <vector>
 
 namespace killme
@@ -38,6 +39,9 @@ namespace killme
 
         // Create the root scene node
         rootNode_ = std::make_shared<SceneNode>(std::shared_ptr<SceneNode>());
+
+        // Set scene resource loaders
+        resourceManager.setLoader("material", [](const std::string& path) { return loadMaterial(path); });
     }
 
     void SceneManager::shutdown()
@@ -117,13 +121,13 @@ namespace killme
             {
                 const auto vertexData = subMesh.second->getVertexData();
                 const auto material = subMesh.second->getMaterial();
-                const auto pipelineState = material->getPipelineState();
+                const auto pipelineState = material.access()->getPipelineState();
                 const auto rootSignature = pipelineState->describe().rootSignature;
                 const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
                 const auto& vertexBinder = vertexData->getBinder(inputLayout);
                 const auto indexBuffer = vertexData->getIndexBuffer();
-                const auto heaps = { material->getConstantBufferHeap() };
-                const auto heapTables = material->getConstantBufferHeapTables();
+                const auto heaps = { material.access()->getConstantBufferHeap() };
+                const auto heapTables = material.access()->getConstantBufferHeapTables();
 
                 // Add draw commands
                 renderSystem.resetCommandList(commandList_, pipelineState);

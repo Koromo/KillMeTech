@@ -51,6 +51,7 @@
     <ClCompile Include="src\resource\resourcemanager.cpp" />
     <ClCompile Include="src\scene\debugdrawmanager.cpp" />
     <ClCompile Include="src\scene\material.cpp" />
+    <ClCompile Include="src\scene\materialparser.cpp" />
     <ClCompile Include="src\scene\scenemanager.cpp" />
     <ClCompile Include="src\scene\scenenode.cpp" />
     <ClCompile Include="src\windows\console.cpp" />

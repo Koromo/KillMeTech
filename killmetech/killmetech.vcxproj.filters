@@ -144,6 +144,9 @@
     <ClCompile Include="src\resource\resource.cpp">
       <Filter>src\resource</Filter>
     </ClCompile>
+    <ClCompile Include="src\scene\materialparser.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">

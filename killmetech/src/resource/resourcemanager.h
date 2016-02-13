@@ -30,7 +30,7 @@ namespace killme
         /** Sets the resource loader */
         void setLoader(const std::string& ext, Loader loader);
 
-        // For getResourceInterface()
+        // For getManagedResource()
         template <class T>
         Resource<T> getInterface(const std::string& path, bool immediateLoading)
         {
@@ -63,9 +63,19 @@ namespace killme
 
     /** Returns the interface of resource */
     template <class T>
-    Resource<T> getResourceInterface(const std::string& path, bool immediateLoading = true)
+    Resource<T> getManagedResource(const std::string& path, bool immediateLoading = true)
     {
         return resourceManager.template getInterface<T>(path, immediateLoading);
+    }
+
+    template <class T>
+    Resource<T> getNonmanagedResource(std::function<std::shared_ptr<T>()> loader, bool immediateLoading = true)
+    {
+        if (immediateLoading)
+        {
+            return Resource<T>(loader(), loader);
+        }
+        return Resource<T>(nullptr, loader);
     }
 }
 

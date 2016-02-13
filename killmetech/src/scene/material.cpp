@@ -101,6 +101,11 @@ namespace killme
         }
     }
 
+    Material::Material(const Material& lhs)
+        : Material(lhs.pipelineState_->describe().vertexShader, lhs.pipelineState_->describe().pixelShader)
+    {
+    }
+
     void Material::storeConstantBuffer(const std::string& name, const std::shared_ptr<ConstantBuffer>& buffer)
     {
         const auto it = indexMap_.find(name);

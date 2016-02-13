@@ -69,9 +69,6 @@ namespace killme
             23, 20, 22
         };
 
-        const auto vertexShader = getResourceInterface<VertexShader>("vs.vhlsl");
-        const auto pixelShader = getResourceInterface<PixelShader>("ps.phlsl");
-
         const auto mesh = std::make_shared<Mesh>();
         const std::string names[] = { "top", "bottom", "left", "right", "front", "back" };
         for (int i = 0; i < 6; ++i)
@@ -88,8 +85,8 @@ namespace killme
             vertexData->addVertices(VertexSemantic::position, 0, positionBuffer);
             vertexData->setIndices(indexBuffer);
 
-            const auto material = std::make_shared<Material>(vertexShader, pixelShader);
-            mesh->createSubMesh(names[i], vertexData, material);
+            const auto m = getManagedResource<Material>("box.material");
+            mesh->createSubMesh(names[i], vertexData, getNonmanagedResource<Material>([&]() { return std::make_shared<Material>(*m.access()); }));
         }
 
         return mesh;

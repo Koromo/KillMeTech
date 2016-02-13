@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 #include <cassert>
 
 namespace killme
@@ -26,46 +27,156 @@ namespace killme
     class Resource
     {
     private:
-        std::string path_;
-        mutable std::weak_ptr<T> resource_;
+        struct Holder
+        {
+            virtual std::unique_ptr<Holder> copy() const = 0;
+            virtual std::shared_ptr<T> access() const = 0;
+            virtual std::shared_ptr<T> load() const = 0;
+            virtual void unload() const = 0;
+        };
+
+        // For managed resources
+        struct ManagedHolder : Holder
+        {
+            std::string path;
+            mutable std::weak_ptr<T> resource;
+            
+            ManagedHolder(const std::string& p, const std::weak_ptr<T>& r)
+                : path(p)
+                , resource(r)
+            {
+            }
+            
+            std::unique_ptr<Holder> copy() const
+            {
+                return std::make_unique<ManagedHolder>(path, resource);
+            }
+
+            std::shared_ptr<T> access() const
+            {
+                if (resource.expired())
+                {
+                    return load();
+                }
+                return resource.lock();
+            }
+            
+            std::shared_ptr<T> load() const
+            {
+                assert(path != "" && "This resource intarface is not bound any resources.");
+
+                const auto cast = std::dynamic_pointer_cast<T>(detail::loadResource(path));
+                assert(cast && "Mismatch the resource type.");
+                resource = cast;
+                return resource.lock();
+            }
+
+            void unload() const
+            {
+                assert(path != "" && "This resource intarface is not bound any resources.");
+                detail::unloadResource(path);
+            }
+        };
+
+        // For nonmanaged resources
+        struct NonmanagedHolder : Holder
+        {
+            using Loader = std::function<std::shared_ptr<T>()>;
+
+            mutable Loader loader;
+            mutable std::shared_ptr<T> resource;
+
+            NonmanagedHolder(Loader l, const std::shared_ptr<T>& r)
+                : loader(l)
+                , resource(r)
+            {
+            }
+
+            std::unique_ptr<Holder> copy() const
+            {
+                return std::make_unique<NonmanagedHolder>(loader, resource);
+            }
+
+            std::shared_ptr<T> access() const
+            {
+                if (!resource)
+                {
+                    return load();
+                }
+                return resource;
+            }
+
+            std::shared_ptr<T> load() const
+            {
+                resource = loader();
+                return resource;
+            }
+
+            void unload() const
+            {
+                resource.reset();
+            }
+        };
+
+        std::unique_ptr<Holder> holder_;
 
     public:
         /** Constructs */
         Resource() = default;
 
-        /** Constructs with a path of resource */
+        /** Constructs as the managed resource */
         Resource(const std::string& path, const std::weak_ptr<T>& resource)
-            : path_(path)
-            , resource_(resource)
+            : holder_(std::make_unique<ManagedHolder>(path, resource))
         {
         }
+
+        /** Constructs as the nonmanaged resource */
+        /// TODO: (Loader, Resource) signature order is not compilable
+        Resource(const std::shared_ptr<T>& resource, typename NonmanagedHolder::Loader loader)
+            : holder_(std::make_unique<NonmanagedHolder>(loader, resource))
+        {
+        }
+
+        /** Copy constructor */
+        Resource(const Resource& lhs)
+            : holder_()
+        {
+            *this = lhs;
+        }
+
+        /** Move constructor */
+        Resource(Resource&& rhs) = default;
+
+        /** Copy assignment operator */
+        Resource& operator=(const Resource& lhs)
+        {
+            holder_.reset();
+            if (lhs.holder_)
+            {
+                holder_ = lhs.holder_->copy();
+            }
+            return *this;
+        }
+
+        /** Move assignment operator */
+        Resource& operator=(Resource&& rhs) = default;
 
         /** Accesses the resource. If resource is not loaded, load resource immediately. */
         std::shared_ptr<T> access() const
         {
-            if (resource_.expired())
-            {
-                return load();
-            }
-            return resource_.lock();
+            return holder_->access();
         }
 
         /** Loads the resource */
         std::shared_ptr<T> load() const
         {
-            assert(path_ != "" && "This resource intarface is not bound any resources.");
-
-            const auto cast = std::dynamic_pointer_cast<T>(detail::loadResource(path_));
-            assert(cast && "Mismatch the resource type.");
-            resource_ = cast;
-            return resource_.lock();
+            return holder_->load();
         }
 
         /** Unloads the resource */
         void unload() const
         {
-            assert(path_ != "" && "This resource intarface is not bound any resources.");
-            detail::unloadResource(path_);
+            return holder_->unload();
         }
     };
 }

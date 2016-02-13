@@ -38,8 +38,8 @@ namespace killme
         rootSigDesc[0][0].set(0, 1);
 
         const auto rootSig = renderSystem.createRootSignature(rootSigDesc);
-        const auto vs = getResourceInterface<VertexShader>("media/debugdraw_vs.vhlsl");
-        const auto ps = getResourceInterface<PixelShader>("media/debugdraw_ps.phlsl");
+        const auto vs = getManagedResource<VertexShader>("media/debugdraw_vs.vhlsl");
+        const auto ps = getManagedResource<PixelShader>("media/debugdraw_ps.phlsl");
 
         PipelineStateDescription pipelineDesc;
         pipelineDesc.rootSignature = rootSig;

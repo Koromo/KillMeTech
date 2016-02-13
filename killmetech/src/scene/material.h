@@ -19,7 +19,7 @@ namespace killme
     class RootSignature;
 
     /** The material */
-    class Material
+    class Material : public IsResource
     {
     private:
         std::shared_ptr<PipelineState> pipelineState_;
@@ -33,6 +33,10 @@ namespace killme
     public:
         /** Constructs with each shaders */
         Material(const Resource<VertexShader>& vs, const Resource<PixelShader>& ps);
+
+        /** Copy material */
+        /// TOOD: Copy is inefficiency
+        Material(const Material& lhs);
 
         /** Stores a constant buffer into the heap */
         void storeConstantBuffer(const std::string& name, const std::shared_ptr<ConstantBuffer>& buffer);
@@ -60,6 +64,8 @@ namespace killme
     private:
         void setVariableImpl(const std::string& name, const void* data);
     };
+
+    std::shared_ptr<Material> loadMaterial(const std::string& path);
 }
 
 #endif
