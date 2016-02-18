@@ -28,12 +28,13 @@ namespace killme
         std::shared_ptr<World> getWorld() const { return world_; };
 
         /** Build default world */
-        void defaultBuild(const std::string& name)
+        std::shared_ptr<Actor> defaultBuild(const std::string& name)
         {
             const auto actor = world_->spawnActor(name);
             actor->placement<TransformComponent>();
             actor->attachComponent<CameraComponent>("Camera");
             actor->attachComponent<AudioListenerComponent>("Listener");
+            return actor;
         }
 
         /** Build game world */
