@@ -61,7 +61,7 @@ namespace killme
 
         /** Returns root transform */
         template <class T = TransformComponent>
-        std::shared_ptr<TransformComponent> getRootTransform()
+        std::shared_ptr<T> getRootTransform()
         {
             assert(rootTransform_ && "The actor is not placemented into the world.");
 

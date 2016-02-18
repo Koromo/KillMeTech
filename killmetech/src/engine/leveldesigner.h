@@ -7,6 +7,7 @@
 #include "components/audiolistenercomponent.h"
 #include "actor.h"
 #include <memory>
+#include <string>
 
 namespace killme
 {
@@ -27,9 +28,9 @@ namespace killme
         std::shared_ptr<World> getWorld() const { return world_; };
 
         /** Build default world */
-        void defaultBuild()
+        void defaultBuild(const std::string& name)
         {
-            const auto actor = world_->spawnActor("Actor");
+            const auto actor = world_->spawnActor(name);
             actor->placement<TransformComponent>();
             actor->attachComponent<CameraComponent>("Camera");
             actor->attachComponent<AudioListenerComponent>("Listener");

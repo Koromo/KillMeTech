@@ -30,7 +30,6 @@ namespace killme
     void RigidBodyComponent::setPosition(const Vector3& pos)
     {
         TransformComponent::setPosition(pos);
-        const auto p = getWorldPosition();
         body_->setPosition(getWorldPosition());
     }
 
