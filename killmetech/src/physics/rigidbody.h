@@ -24,7 +24,11 @@ namespace killme
         RigidBody(const std::shared_ptr<CollisionShape> shape, float mass);
 
         /** Transform modifiers */
+        Vector3 getPosition() const;
         void setPosition(const Vector3& pos);
+
+        /** ditto */
+        Quaternion getOrientation() const;
         void setOrientation(const Quaternion& q);
 
         /** Returns the bullet body */

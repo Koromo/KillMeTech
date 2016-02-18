@@ -5,6 +5,7 @@
 #include "../core/math/quaternion.h"
 #include "../core/utility.h"
 #include <LinearMath/btVector3.h>
+#include <LinearMath/btQuaternion.h>
 
 namespace killme
 {
@@ -15,6 +16,7 @@ namespace killme
         return btVector3(v.x, v.y, v.z);
     }
 
+    /** Convert 3D vector */
     template <>
     inline Vector3 to<Vector3, btVector3>(const btVector3& v)
     {
@@ -26,6 +28,13 @@ namespace killme
     inline btQuaternion to<btQuaternion, Quaternion>(const Quaternion& q)
     {
         return btQuaternion(q.x, q.y, q.z, q.w);
+    }
+
+    /** Convert Quaternion */
+    template <>
+    inline Quaternion to<Quaternion, btQuaternion>(const btQuaternion& q)
+    {
+        return{ q.w(), q.x(), q.y(), q.z() };
     }
 }
 

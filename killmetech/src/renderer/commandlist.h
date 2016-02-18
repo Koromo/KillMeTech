@@ -2,6 +2,8 @@
 #define _KILLME_COMMANDLIST_H_
 
 #include "vertexdata.h"
+#include "rendertarget.h"
+#include "depthstencil.h"
 #include "gpuresourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -9,8 +11,6 @@
 
 namespace killme
 {
-    class RenderTarget;
-    class DepthStencil;
     class Color;
     class RootSignature;
     struct Viewport;
@@ -28,23 +28,22 @@ namespace killme
         explicit CommandList(ID3D12GraphicsCommandList* list);
 
         /** Command of clear a render target */
-        void clearRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const Color& c);
+        void clearRenderTarget(RenderTarget::View view, const Color& c);
 
         /** Command of clear a depth stencil */
-        void clearDepthStencil(const std::shared_ptr<DepthStencil>& depthStencil, float depth);
+        void clearDepthStencil(DepthStencil::View view, float depth);
 
         /** Command of set a render target and a depth stencil */
-        void setRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const std::shared_ptr<DepthStencil>& depthStencil);
+        void setRenderTarget(RenderTarget::View rtView, DepthStencil::View dsView);
 
         /** Command of set a primitive topology */
         void setPrimitiveTopology(PrimitiveTopology pt);
 
         /** Command of set vertex buffers */
-        template <class Views>
-        void setVertexBuffers(const VertexBinder<Views>& binder)
+        template <class Binder>
+        void setVertexBuffers(const Binder& binder)
         {
-            std::vector<D3D12_VERTEX_BUFFER_VIEW> d3dViews(std::cbegin(binder.views), std::cend(binder.views));
-            list_->IASetVertexBuffers(0, binder.numViews, d3dViews.data());
+            list_->IASetVertexBuffers(0, binder.numViews, binder.views);
         }
 
         /** Command of set an index buffer */
@@ -55,13 +54,13 @@ namespace killme
 
         /** Changes the currently bound resource heaps */
         template <class Range>
-        void setGpuResourceHeaps(Range heaps, size_t numHeaps)
+        void setGpuResourceHeaps(const Range& heaps, size_t numHeaps)
         {
             std::vector<ID3D12DescriptorHeap*> d3dHeaps;
             d3dHeaps.reserve(numHeaps);
             for (const auto& heap: heaps)
             {
-                d3dHeaps.push_back(heap->getD3DHeap());
+                d3dHeaps.emplace_back(heap->getD3DHeap());
             }
             list_->SetDescriptorHeaps(numHeaps, d3dHeaps.data());
         }
@@ -79,7 +78,7 @@ namespace killme
         void resourceBarrior(const std::shared_ptr<RenderTarget>& renderTarget, ResourceState before, ResourceState after);
 
         /** Ends command recording */
-        void close();
+        void endCommands();
 
         /** Draw call */
         void draw(size_t numVertices);

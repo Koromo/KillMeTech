@@ -16,6 +16,14 @@ namespace killme
         /** Constructs with initial values */
         Color(float r_, float g_, float b_, float a_);
 
+        /** Constructs */
+        Color(const Color&) = default;
+        Color(Color&&) = default;
+
+        /** Assignment operator */
+        Color& operator =(const Color&) = default;
+        Color& operator =(Color&&) = default;
+
         /** Accessor */
         const float& operator [](size_t i) const;
         float& operator [](size_t i);

@@ -1,17 +1,16 @@
 #ifndef _KILLME_CAMERA_H_
 #define _KILLME_CAMERA_H_
 
-#include "sceneentity.h"
-#include "scenevisitor.h"
 #include "../renderer/renderstate.h"
-#include "../renderer/rendersystem.h"
 #include "../core/math/math.h"
+#include "../core/math/vector3.h"
+#include "../core/math/quaternion.h"
 #include "../core/math/matrix44.h"
 
 namespace killme
 {
     /** The camera */
-    class Camera : public SceneEntity, public std::enable_shared_from_this<Camera>
+    class Camera
     {
     private:
         float fovX_;
@@ -19,15 +18,19 @@ namespace killme
         float nearZ_;
         float farZ_;
         Viewport viewport_;
+        Vector3 position_;
+        Quaternion orientation_;
 
     public:
         /** Constructs */
-        Camera()
+        Camera(const Viewport& vp)
             : fovX_(radian(60))
             , aspect_()
             , nearZ_(0.1f)
             , farZ_(1000)
-            , viewport_(renderSystem.getDefaultViewport())
+            , viewport_(vp)
+            , position_()
+            , orientation_()
         {
             aspect_ = viewport_.width / viewport_.height;
         }
@@ -47,7 +50,10 @@ namespace killme
         /** Returns the projection matrix */
         Matrix44 getProjectionMatrix() const { return makeProjectionMatrix(fovX_, aspect_, nearZ_, farZ_); }
 
-        bool accept(SceneVisitor& v) { return v(lockOwner(), shared_from_this()); }
+        /** Transform modifiers */
+        void setPosition(const Vector3& pos) { position_ = pos; }
+        void setOrientation(const Quaternion& q) { orientation_ = q; }
+        Matrix44 getViewMatrix() const { return inverse(makeTransformMatrix({1, 1, 1}, orientation_, position_)); }
     };
 }
 

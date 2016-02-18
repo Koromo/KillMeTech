@@ -10,6 +10,11 @@ namespace killme
         , motionState_(std::make_unique<btDefaultMotionState>())
         , shape_(shape)
     {
+        if (shape->getType() == ShapeType::static_)
+        {
+            mass = 0;
+        }
+
         const auto btShape = shape_->getBtShape();
         btVector3 inertia(0, 0, 0);
         if (mass > 0)
@@ -20,12 +25,24 @@ namespace killme
         body_ = std::make_unique<btRigidBody>(ci);
     }
 
+    Vector3 RigidBody::getPosition() const
+    {
+        auto trans = body_->getCenterOfMassTransform();
+        return to<Vector3>(trans.getOrigin());
+    }
+
     void RigidBody::setPosition(const Vector3& pos)
     {
         auto trans = body_->getCenterOfMassTransform();
         trans.setOrigin(to<btVector3>(pos));
         body_->setCenterOfMassTransform(trans);
         body_->activate(true);
+    }
+
+    Quaternion RigidBody::getOrientation() const
+    {
+        auto trans = body_->getCenterOfMassTransform();
+        return to<Quaternion>(trans.getRotation());
     }
 
     void RigidBody::setOrientation(const Quaternion& q)

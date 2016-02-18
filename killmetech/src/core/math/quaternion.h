@@ -18,6 +18,14 @@ namespace killme
         /** Constructs with initial values */
         Quaternion(float nw, float nx, float ny, float nz);
 
+        /** Constructs */
+        Quaternion(const Quaternion&) = default;
+        Quaternion(Quaternion&&) = default;
+
+        /** Assignment operator */
+        Quaternion& operator =(const Quaternion&) = default;
+        Quaternion& operator =(Quaternion&&) = default;
+
         /** Accessor */
         const float& operator [](size_t i) const;
         float& operator [](size_t i);

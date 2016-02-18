@@ -3,7 +3,7 @@
 #include "../scene/material.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/vertexdata.h"
-#include "../resource/resourcemanager.h"
+#include "../resources/resourcemanager.h"
 #include "../core/exception.h"
 #include <stack>
 #include <vector>
@@ -408,12 +408,12 @@ namespace killme
         }
 
         // Parse mesh
-        std::shared_ptr<Mesh> parseMeshScene(const FbxNode* node)
+        std::shared_ptr<Mesh> parseMeshScene(RenderSystem& renderSystem, ResourceManager& resourceManager, const FbxNode* node)
         {
             std::shared_ptr<Mesh> parsedMesh = std::make_shared<Mesh>();
 
             std::stack<const FbxNode*> stack;
-            stack.push(node);
+            stack.emplace(node);
 
             while (!stack.empty())
             {
@@ -437,33 +437,33 @@ namespace killme
                     const auto indexBuffer = renderSystem.createIndexBuffer(cache.indices.data(), sizeof(unsigned short) * cache.indices.size());
 
                     const auto vertexData = std::make_shared<VertexData>();
-                    vertexData->addVertices(VertexSemantic::position, 0, positionBuffer);
+                    vertexData->addVertices(SemanticNames::position, 0, positionBuffer);
                     vertexData->setIndices(indexBuffer);
 
                     if (!cache.uvs.empty())
                     {
                         const auto texcoordBuffer = renderSystem.createVertexBuffer(cache.uvs.data(), sizeof(float) * cache.uvs.size(), sizeof(float) * 2);
-                        vertexData->addVertices(VertexSemantic::texcoord, 0, texcoordBuffer);
+                        vertexData->addVertices(SemanticNames::texcoord, 0, texcoordBuffer);
                     }
                     if (!cache.normals.empty())
                     {
                         const auto normalBuffer = renderSystem.createVertexBuffer(cache.normals.data(), sizeof(float) * cache.normals.size(), sizeof(float) * 3);
-                        vertexData->addVertices(VertexSemantic::normal, 0, normalBuffer);
+                        vertexData->addVertices(SemanticNames::normal, 0, normalBuffer);
                     }
                     if (!cache.colors.empty())
                     {
                         const auto colorBuffer = renderSystem.createVertexBuffer(cache.colors.data(), sizeof(float) * cache.colors.size(), sizeof(float) * 4);
-                        vertexData->addVertices(VertexSemantic::color, 0, colorBuffer);
+                        vertexData->addVertices(SemanticNames::color, 0, colorBuffer);
                     }
 
-                    const auto material = getManagedResource<Material>("media/box.material");
+                    const auto material = accessResource<Material>(resourceManager, "media/box.material");
                     parsedMesh->createSubMesh(fbxMesh->GetName(), vertexData, material);
                 }
 
                 const auto numChildren = top->GetChildCount();
                 for (int i = 0; i < numChildren; ++i)
                 {
-                    stack.push(top->GetChild(i));
+                    stack.emplace(top->GetChild(i));
                 }
             }
 
@@ -471,9 +471,10 @@ namespace killme
         }
     }
 
-    std::shared_ptr<Mesh> FbxMeshImporter::import(const std::string& path)
+    std::shared_ptr<Mesh> FbxMeshImporter::import(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path)
     {
         // Get fullpath
+        /// TODO: _fullpath() is windows only
         char fullpash[512];
         _fullpath(fullpash, path.c_str(), 512);
 
@@ -503,6 +504,6 @@ namespace killme
         converter.Triangulate(scene.get(), true); // Triangle polygon
         converter.SplitMeshesPerMaterial(scene.get(), true); // Submeshes per materials
 
-        return parseMeshScene(scene->GetRootNode());
+        return parseMeshScene(renderSystem, resourceManager, scene->GetRootNode());
     }
 }

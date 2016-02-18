@@ -19,8 +19,9 @@ namespace killme
         class NullOpt;
     }
 
-    /// TODO: Dynamic memory
     /** The Optional */
+    /// NOTE: The Optional allocate memory dynamically.
+    ///       Not support reference type.
     template <class T>
     class Optional
     {
@@ -53,9 +54,8 @@ namespace killme
 
         /** Move constructor */
         Optional(Optional&& rhs)
-            : value_()
+            : value_(std::move(rhs.value_))
         {
-            *this = std::move(rhs);
         }
 
         /** Destructs */
@@ -104,26 +104,26 @@ namespace killme
         }
 
         /** Accesses to the value */
-        const T* operator ->() const noexcept
+        const T* operator ->() const
         {
             enforce<OptionalException>(!!value_, "Optional is null.");
             return value_.get();
         }
 
         /** ditto */
-        T* operator ->() noexcept
+        T* operator ->()
         {
             return const_cast<T*>(static_cast<const Optional&>(*this).operator->());
         }
 
         /** Returns refference of the value */
-        const T& operator *() const noexcept
+        const T& operator *() const
         {
             return *(this->operator->());
         }
 
         /** ditto */
-        T& operator *() noexcept
+        T& operator *()
         {
             return *(this->operator->());
         }

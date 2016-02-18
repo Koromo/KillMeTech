@@ -3,9 +3,10 @@
 #include "../renderer/pixelshader.h"
 #include "../core/exception.h"
 #include "../core/string.h"
-#include "../resource/resourcemanager.h"
+#include "../resources/resourcemanager.h"
 #include <fstream>
 #include <array>
+#include <cassert>
 
 namespace killme
 {
@@ -18,7 +19,7 @@ namespace killme
         }
     }
 
-    std::shared_ptr<Material> loadMaterial(const std::string& path)
+    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path)
     {
         std::ifstream file(path);
         enforce<FileException>(file.is_open(), "Failed to open file (" + path + ").");
@@ -36,14 +37,18 @@ namespace killme
 
             if (parsed[0] == "vertexshader")
             {
-                vs = getManagedResource<VertexShader>(shaderPath);
+                vs = accessResource<VertexShader>(resourceManager, shaderPath);
+            }
+            else if (parsed[0] == "pixelshader")
+            {
+                ps = accessResource<PixelShader>(resourceManager, shaderPath);
             }
             else
             {
-                ps = getManagedResource<PixelShader>(shaderPath);
+                assert(false && "Invalid .material format.");
             }
         }
 
-        return std::make_shared<Material>(vs, ps);
+        return std::make_shared<Material>(renderSystem, vs, ps);
     }
 }

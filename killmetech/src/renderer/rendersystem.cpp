@@ -1,6 +1,4 @@
 #include "rendersystem.h"
-#include "rendertarget.h"
-#include "depthstencil.h"
 #include "vertexdata.h"
 #include "constantbuffer.h"
 #include "rootsignature.h"
@@ -11,8 +9,7 @@
 #include "inputlayout.h"
 #include "commandlist.h"
 #include "d3dsupport.h"
-#include "../resource/resource.h"
-#include "../resource/resourcemanager.h"
+#include "../resources/resource.h"
 #include "../core/exception.h"
 #include "../core/string.h"
 #include <string>
@@ -26,12 +23,23 @@ namespace killme
         const DXGI_FORMAT DEPTH_STENCIL_FORMAT = DXGI_FORMAT_D16_UNORM;
     }
 
-    RenderSystem renderSystem;
-
-    void RenderSystem::startup(HWND window)
+    RenderSystem::RenderSystem(HWND window)
+        : window_(window)
+        , device_()
+        , commandQueue_()
+        , commandAllocator_()
+        , swapChain_()
+        , frameIndex_()
+        , backBufferHeap_()
+        , backBuffers_()
+        , backBufferViews_()
+        , depthStencilHeap_()
+        , depthStencil_()
+        , depthStencilView_()
+        , fence_()
+        , fenceEvent_(nullptr, CloseHandle)
+        , fenceValue_()
     {
-        window_ = window;
-
         // Enable the debug layer
 #ifdef _DEBUG
         ID3D12Debug* debugController;
@@ -106,16 +114,16 @@ namespace killme
 
         frameIndex_ = swapChain_->GetCurrentBackBufferIndex();
 
-        // Create render targets
-        renderTargetHeap_ = createGpuResourceHeap(NUM_BACK_BUFFERS, GpuResourceHeapType::renderTarget, GpuResourceHeapFlag::none);
+        // Create render targets from back buffers
+        backBufferHeap_ = createGpuResourceHeap(NUM_BACK_BUFFERS, GpuResourceHeapType::renderTarget, GpuResourceHeapFlag::none);
         for (UINT i = 0; i < NUM_BACK_BUFFERS; ++i)
         {
-            ID3D12Resource* renderTarget;
+            ID3D12Resource* backBuffer;
             enforce<Direct3DException>(
-                SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTarget))),
+                SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&backBuffer))),
                 "Failed to get the back buffer.");
-            renderTargets_[i] = std::make_shared<RenderTarget>(renderTarget);
-            storeGpuResource(renderTargetHeap_, i, renderTargets_[i]);
+            backBuffers_[i] = std::make_shared<RenderTarget>(backBuffer);
+            backBufferViews_[i] = createGpuResourceView(backBufferHeap_, i, backBuffers_[i]);
         }
 
         // Create the depth stencil
@@ -136,7 +144,7 @@ namespace killme
             "Failed to create the depth stencil.");
 
         depthStencil_ = std::make_shared<DepthStencil>(depthStencil);
-        storeGpuResource(depthStencilHeap_, 0, depthStencil_);
+        depthStencilView_ = createGpuResourceView(depthStencilHeap_, 0, depthStencil_);
 
         // Create the fence
         ID3D12Fence* fence;
@@ -144,39 +152,8 @@ namespace killme
             SUCCEEDED(device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))),
             "Failed to create the fence.");
         fence_ = makeComUnique(fence);
-        fenceEvent_ = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
+        fenceEvent_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
         fenceValue_ = 1;
-
-        // Setup default viewport
-        defViewport_.topLeftX = defViewport_.topLeftY = 0;
-        defViewport_.width = static_cast<float>(clientWidth);
-        defViewport_.height = static_cast<float>(clientHeight);
-        defViewport_.minDepth = 0;
-        defViewport_.maxDepth = 1;
-
-        // Set renderer resource loaders
-        resourceManager.setLoader("vhlsl", [](const std::string& path) { return compileShader<VertexShader>(toCharSet(path)); });
-        resourceManager.setLoader("phlsl", [](const std::string& path) { return compileShader<PixelShader>(toCharSet(path)); });
-    }
-
-    void RenderSystem::shutdown()
-    {
-        resourceManager.removeLoader("vhlsl");
-        resourceManager.removeLoader("phlsl");
-
-        CloseHandle(fenceEvent_);
-        fence_.reset();
-        depthStencil_.reset();
-        depthStencilHeap_.reset();
-        for (auto rt : renderTargets_)
-        {
-            rt.reset();
-        }
-        renderTargetHeap_.reset();
-        swapChain_.reset();
-        commandAllocator_.reset();
-        commandQueue_.reset();
-        device_.reset();
     }
 
     HWND RenderSystem::getTargetWindow()
@@ -184,19 +161,13 @@ namespace killme
         return window_;
     }
 
-    Viewport RenderSystem::getDefaultViewport() const
+    FrameResource RenderSystem::getCurrentFrameResource()
     {
-        return defViewport_;
-    }
-
-    std::shared_ptr<RenderTarget> RenderSystem::getCurrentBackBuffer()
-    {
-        return renderTargets_[frameIndex_];
-    }
-
-    std::shared_ptr<DepthStencil> RenderSystem::getDepthStencil()
-    {
-        return depthStencil_;
+        FrameResource frame;
+        frame.backBuffer = backBuffers_[frameIndex_];
+        frame.backBufferView = backBufferViews_[frameIndex_];
+        frame.depthStencilView = depthStencilView_;
+        return frame;
     }
 
     std::shared_ptr<VertexBuffer> RenderSystem::createVertexBuffer(const void* data, size_t size, size_t stride)
@@ -223,7 +194,7 @@ namespace killme
         std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
         buffer->Unmap(0, nullptr);
 
-        return std::make_shared<VertexBuffer>(buffer, size, stride);
+        return std::make_shared<VertexBuffer>(buffer, stride);
     }
 
     std::shared_ptr<IndexBuffer> RenderSystem::createIndexBuffer(const unsigned short* data, size_t size)
@@ -248,7 +219,7 @@ namespace killme
         std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
         buffer->Unmap(0, nullptr);
 
-        return std::make_shared<IndexBuffer>(buffer, size);
+        return std::make_shared<IndexBuffer>(buffer);
     }
 
     std::shared_ptr<ConstantBuffer> RenderSystem::createConstantBuffer(size_t size)
@@ -339,7 +310,7 @@ namespace killme
         return std::make_shared<RootSignature>(rootSignature);
     }
 
-    std::shared_ptr<PipelineState> RenderSystem::createPipelineState(const PipelineStateDescription& stateDesc)
+    std::shared_ptr<PipelineState> RenderSystem::createPipelineState(const PipelineStateDescription& pipelineDesc)
     {
         // Define the rasterizer state
         D3D12_RASTERIZER_DESC rasterizerState;
@@ -391,28 +362,28 @@ namespace killme
         depthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 
         // Create the Direct3D pipeline state
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dStateDesc;
-        ZeroMemory(&d3dStateDesc, sizeof(d3dStateDesc));
-        d3dStateDesc.InputLayout = stateDesc.vertexShader.access()->getInputLayout()->getD3DLayout();
-        d3dStateDesc.pRootSignature = stateDesc.rootSignature->getD3DRootSignature();
-        d3dStateDesc.VS = {stateDesc.vertexShader.access()->getByteCode(), stateDesc.vertexShader.access()->getByteCodeSize()};
-        d3dStateDesc.PS = {stateDesc.pixelShader.access()->getByteCode(), stateDesc.pixelShader.access()->getByteCodeSize()};
-        d3dStateDesc.RasterizerState = rasterizerState;
-        d3dStateDesc.BlendState = blendState;
-        d3dStateDesc.DepthStencilState = depthStencilState;
-        d3dStateDesc.DSVFormat = DEPTH_STENCIL_FORMAT;
-        d3dStateDesc.SampleMask = UINT_MAX;
-        d3dStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        d3dStateDesc.NumRenderTargets = 1;
-        d3dStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-        d3dStateDesc.SampleDesc.Count = 1;
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC d3dDesc;
+        ZeroMemory(&d3dDesc, sizeof(d3dDesc));
+        d3dDesc.InputLayout = pipelineDesc.vertexShader.access()->getInputLayout()->getD3DLayout();
+        d3dDesc.pRootSignature = pipelineDesc.rootSignature->getD3DRootSignature();
+        d3dDesc.VS = { pipelineDesc.vertexShader.access()->getByteCode(), pipelineDesc.vertexShader.access()->getByteCodeSize() };
+        d3dDesc.PS = { pipelineDesc.pixelShader.access()->getByteCode(), pipelineDesc.pixelShader.access()->getByteCodeSize() };
+        d3dDesc.RasterizerState = rasterizerState;
+        d3dDesc.BlendState = blendState;
+        d3dDesc.DepthStencilState = depthStencilState;
+        d3dDesc.DSVFormat = DEPTH_STENCIL_FORMAT;
+        d3dDesc.SampleMask = UINT_MAX;
+        d3dDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        d3dDesc.NumRenderTargets = 1;
+        d3dDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        d3dDesc.SampleDesc.Count = 1;
 
         ID3D12PipelineState* pipelineState;
         enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dStateDesc, IID_PPV_ARGS(&pipelineState))),
+            SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dDesc, IID_PPV_ARGS(&pipelineState))),
             "Failed to create the pipeline state.");
 
-        return std::make_shared<PipelineState>(pipelineState, stateDesc);
+        return std::make_shared<PipelineState>(pipelineState, pipelineDesc);
     }
 
     std::shared_ptr<CommandList> RenderSystem::createCommandList()
@@ -425,19 +396,19 @@ namespace killme
         return std::make_shared<CommandList>(list);
     }
 
-    void RenderSystem::resetCommandList(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipelineState)
+    void RenderSystem::beginCommands(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipeline)
     {
         enforce<Direct3DException>(
             SUCCEEDED(commandAllocator_->Reset()),
             "Failed to reset the command allocator.");
 
-        const auto d3dPipeline = pipelineState ? pipelineState->getD3DPipelineState() : nullptr;
+        const auto d3dPipeline = pipeline ? pipeline->getD3DPipelineState() : nullptr;
         enforce<Direct3DException>(
             SUCCEEDED(list->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
             "Faild to reset the command list.");
     }
 
-    void RenderSystem::executeCommandList(const std::shared_ptr<CommandList>& list)
+    void RenderSystem::executeCommands(const std::shared_ptr<CommandList>& list)
     {
         ID3D12CommandList* d3dLists[] = {list->getD3DCommandList()};
         commandQueue_->ExecuteCommandLists(1, d3dLists);
@@ -449,9 +420,9 @@ namespace killme
         if (fence_->GetCompletedValue() < fenceValue_)
         {
             enforce<Direct3DException>(
-                SUCCEEDED(fence_->SetEventOnCompletion(fenceValue_, fenceEvent_)),
+                SUCCEEDED(fence_->SetEventOnCompletion(fenceValue_, fenceEvent_.get())),
                 "Failed to set the signal event.");
-            WaitForSingleObject(fenceEvent_, INFINITE);
+            WaitForSingleObject(fenceEvent_.get(), INFINITE);
         }
         ++fenceValue_;
     }

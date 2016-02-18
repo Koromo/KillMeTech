@@ -58,6 +58,7 @@ namespace killme
         ranges_.reserve(numRanges);
         for (auto& d3dRange : d3dRanges_)
         {
+            ZeroMemory(&d3dRange, sizeof(d3dRange));
             ranges_.emplace_back(d3dRange);
         }
     }

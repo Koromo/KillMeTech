@@ -1,5 +1,4 @@
 #include "shader.h"
-#include "../core/exception.h"
 #include <cstring>
 
 namespace killme
@@ -37,10 +36,10 @@ namespace killme
             {
                 const auto p = new unsigned char[d3dVarDesc.Size];
                 std::memcpy(p, d3dVarDesc.DefaultValue, d3dVarDesc.Size);
-                varDesc.defValue = std::shared_ptr<const unsigned char>(p, std::default_delete<const unsigned char[]>());
+                varDesc.defaultValue = std::shared_ptr<const unsigned char>(p, std::default_delete<const unsigned char[]>());
             }
 
-            variables_.insert({d3dVarDesc.Name, varDesc});
+            variables_.emplace(d3dVarDesc.Name, varDesc);
         }
     }
 
@@ -95,43 +94,5 @@ namespace killme
     size_t BasicShader::getByteCodeSize() const
     {
         return byteCode_->GetBufferSize();
-    }
-
-    std::vector<D3D12_SIGNATURE_PARAMETER_DESC> BasicShader::getD3DInputSignature()
-    {
-        std::vector<D3D12_SIGNATURE_PARAMETER_DESC> params(desc_.InputParameters);
-        for (size_t i = 0; i < desc_.InputParameters; ++i)
-        {
-            enforce<Direct3DException>(
-                SUCCEEDED(reflection_->GetInputParameterDesc(i, &(params[i]))),
-                "Failed to get the description of input parameter of shader.");
-        }
-        return params;
-    }
-
-    std::vector<ConstantBufferDescription> BasicShader::describeConstnatBuffers()
-    {
-        std::vector<ConstantBufferDescription> cbuffers;
-        cbuffers.reserve(desc_.ConstantBuffers);
-
-        for (UINT i = 0; i < desc_.BoundResources; ++i)
-        {
-            // Get the description of the i'th resource
-            D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
-            enforce<Direct3DException>(
-                SUCCEEDED(reflection_->GetResourceBindingDesc(i, &resourceDesc)),
-                "Failed to get the description of the resource.");
-
-            if (resourceDesc.Type == D3D_SIT_CBUFFER)
-            {
-                // Get the reflection of the constant buffer
-                const auto cbuffer = enforce<Direct3DException>(
-                    reflection_->GetConstantBufferByName(resourceDesc.Name),
-                    "Failed to get the reflection of the constant buffer.");
-                cbuffers.emplace_back(cbuffer, resourceDesc.BindPoint);
-            }
-        }
-
-        return cbuffers;
     }
 }

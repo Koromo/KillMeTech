@@ -3,8 +3,9 @@
 
 #include "../renderer/shader.h"
 #include "../renderer/constantbuffer.h"
+#include "../resources/resource.h"
 #include "../core/optional.h"
-#include "../resource/resource.h"
+#include "../core/utility.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -17,14 +18,18 @@ namespace killme
     class PixelShader;
     class PipelineState;
     class RootSignature;
+    class RootSignatureDescription;
+    class RenderSystem;
+    class ResourceManager;
+    struct SceneConstantBuffers;
 
     /** The material */
     class Material : public IsResource
     {
     private:
-        std::shared_ptr<PipelineState> pipelineState_;
-        std::shared_ptr<GpuResourceHeap> cbufferHeap_;
-        std::unordered_map<std::string, size_t> indexMap_; // Index in heap
+        std::shared_ptr<PipelineState> pipeline_;
+        std::shared_ptr<GpuResourceHeap> paramHeap_;
+        std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>> paramHeapTable_;
         Optional<ConstantBufferDescription> vsParamDesc_;
         Optional<ConstantBufferDescription> psParamDesc_;
         std::shared_ptr<ConstantBuffer> vsParamBuffer_;
@@ -32,14 +37,7 @@ namespace killme
 
     public:
         /** Constructs with each shaders */
-        Material(const Resource<VertexShader>& vs, const Resource<PixelShader>& ps);
-
-        /** Copy material */
-        /// TOOD: Copy is inefficiency
-        Material(const Material& lhs);
-
-        /** Stores a constant buffer into the heap */
-        void storeConstantBuffer(const std::string& name, const std::shared_ptr<ConstantBuffer>& buffer);
+        Material(RenderSystem& renderSystem, const Resource<VertexShader>& vs, const Resource<PixelShader>& ps);
 
         /** Sets a variable parameter */
         template <class T>
@@ -52,20 +50,29 @@ namespace killme
         std::shared_ptr<PipelineState> getPipelineState();
 
         /** Returns the constant buffer heap */
-        std::shared_ptr<GpuResourceHeap> getConstantBufferHeap();
+        auto getConstantBufferHeaps()
+            -> decltype(makeRange(std::vector<std::shared_ptr<GpuResourceHeap>>()))
+        {
+            std::vector<std::shared_ptr<GpuResourceHeap>> heaps = { paramHeap_ };
+            return makeRange(std::move(heaps));
+        }
 
         /** Returns bind tables that are pair of the root parameter index and the heap */
         auto getConstantBufferHeapTables()
-            -> std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>>
+            -> decltype(makeRange(paramHeapTable_))
         {
-            return{ std::make_pair(0, cbufferHeap_), std::make_pair(1, cbufferHeap_) };
+            return makeRange(paramHeapTable_);
         }
 
     private:
+        std::shared_ptr<ConstantBuffer> initParams(RenderSystem& renderSystem,
+            const ConstantBufferDescription& paramDesc, RootSignatureDescription& rootSigDesc,
+            ShaderType visible, size_t rootParamIndex, size_t offsetInHeap);
+
         void setVariableImpl(const std::string& name, const void* data);
     };
 
-    std::shared_ptr<Material> loadMaterial(const std::string& path);
+    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path);
 }
 
 #endif

@@ -16,8 +16,7 @@ namespace killme
 
     public:
         /** Constructs with Direct3D input element descriptions */
-        template <class Elems>
-        explicit InputLayout(Elems&& elems)
+        explicit InputLayout(std::vector<D3D12_INPUT_ELEMENT_DESC>&& elems)
             : elems_(std::move(elems))
             , layout_()
         {

@@ -1,16 +1,16 @@
 #ifndef _KILLME_VERTEXDATA_H_
 #define _KILLME_VERTEXDATA_H_
 
+#include "inputlayout.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <vector>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace killme
 {
-    class InputLayout;
-
     /** The vertex buffer */
     class VertexBuffer
     {
@@ -20,7 +20,7 @@ namespace killme
 
     public:
         /** Constructs with a vertices */
-        VertexBuffer(ID3D12Resource* buffer, size_t size, size_t stride);
+        VertexBuffer(ID3D12Resource* buffer, size_t stride);
 
         /** Returns the Direct3D view */
         D3D12_VERTEX_BUFFER_VIEW getD3DView();
@@ -35,7 +35,7 @@ namespace killme
 
     public:
         /** Constructs with an indices */
-        IndexBuffer(ID3D12Resource* buffer, size_t size);
+        explicit IndexBuffer(ID3D12Resource* buffer);
 
         /** Returns the Direct3D view */
         D3D12_INDEX_BUFFER_VIEW getD3DView();
@@ -52,7 +52,7 @@ namespace killme
     };
 
     /** Vertex semantic definitions */
-    struct VertexSemantic
+    struct SemanticNames
     {
         static const std::string position;
         static const std::string color;
@@ -61,10 +61,10 @@ namespace killme
     };
 
     /** The vertex binder */
-    template <class Views>
     struct VertexBinder
     {
-        Views views;
+        std::vector<D3D12_VERTEX_BUFFER_VIEW> viewsArray;
+        const D3D12_VERTEX_BUFFER_VIEW* views;
         size_t numViews;
     };
 
@@ -72,14 +72,14 @@ namespace killme
     class VertexData
     {
     private:
-        struct Semantic
+        struct VBuffer
         {
             std::string name;
             size_t index;
             std::shared_ptr<VertexBuffer> buffer;
         };
 
-        std::vector<Semantic> vertexBuffers_;
+        std::vector<VBuffer> vertexBuffers_;
         std::shared_ptr<IndexBuffer> indexBuffer_;
 
     public:
@@ -90,7 +90,7 @@ namespace killme
         void setIndices(const std::shared_ptr<IndexBuffer>& indices);
 
         /** Returns the vertex binder from an input layout */
-        VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> getBinder(const std::shared_ptr<InputLayout>& layout);
+        VertexBinder getBinder(const std::shared_ptr<InputLayout>& layout);
 
         /** Returns the index buffer */
         std::shared_ptr<IndexBuffer> getIndexBuffer();

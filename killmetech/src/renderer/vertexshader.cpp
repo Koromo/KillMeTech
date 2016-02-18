@@ -1,6 +1,7 @@
 #include "vertexshader.h"
 #include "inputlayout.h"
 #include <vector>
+#include <utility>
 #include <cassert>
 
 namespace killme
@@ -37,7 +38,7 @@ namespace killme
             elem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
             elem.InstanceDataStepRate = 0;
 
-            elems.push_back(elem);
+            elems.emplace_back(elem);
         }
 
         inputLayout_ = std::make_shared<InputLayout>(std::move(elems));

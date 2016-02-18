@@ -26,7 +26,7 @@ namespace killme
     std::string toUppers(const std::string& s);
     std::wstring toUppers(const std::wstring& s);
 
-    /** Compare strings with lower */
+    /** Compare strings with lowers */
     int strcmpLow(const std::string& a, const std::string& b);
     int strcmpLow(const std::wstring& a, const std::wstring& b);
 

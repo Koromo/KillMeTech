@@ -128,6 +128,11 @@ namespace killme
         return {v.x * k.x, v.y * k.y, v.z * k.z};
     }
 
+    Vector3 invScale(const Vector3& v, const Vector3& k)
+    {
+        return{ v.x / k.x, v.y / k.y, v.z / k.z };
+    }
+
     float norm(const Vector3& v)
     {
         return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);

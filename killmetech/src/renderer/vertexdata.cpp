@@ -1,15 +1,14 @@
 #include "vertexdata.h"
-#include "inputlayout.h"
 #include <cassert>
 
 namespace killme
 {
-    VertexBuffer::VertexBuffer(ID3D12Resource* buffer, size_t size, size_t stride)
+    VertexBuffer::VertexBuffer(ID3D12Resource* buffer, size_t stride)
         : buffer_(makeComUnique(buffer))
         , view_()
     {
         view_.BufferLocation = buffer_->GetGPUVirtualAddress();
-        view_.SizeInBytes = static_cast<UINT>(size);
+        view_.SizeInBytes = static_cast<UINT>(buffer->GetDesc().Width);
         view_.StrideInBytes = static_cast<UINT>(stride);
     }
 
@@ -18,12 +17,12 @@ namespace killme
         return view_;
     }
 
-    IndexBuffer::IndexBuffer(ID3D12Resource* buffer, size_t size)
+    IndexBuffer::IndexBuffer(ID3D12Resource* buffer)
         : buffer_(makeComUnique(buffer))
         , view_()
     {
         view_.BufferLocation = buffer_->GetGPUVirtualAddress();
-        view_.SizeInBytes = static_cast<UINT>(size);
+        view_.SizeInBytes = static_cast<UINT>(buffer->GetDesc().Width);
         view_.Format = DXGI_FORMAT_R16_UINT;
     }
 
@@ -37,14 +36,14 @@ namespace killme
         return view_.SizeInBytes / sizeof(unsigned short);
     }
 
-    const std::string VertexSemantic::position = "POSITION";
-    const std::string VertexSemantic::color = "COLOR";
-    const std::string VertexSemantic::normal = "NORMAL";
-    const std::string VertexSemantic::texcoord = "TEXCOORD";
+    const std::string SemanticNames::position   = "POSITION";
+    const std::string SemanticNames::color      = "COLOR";
+    const std::string SemanticNames::normal     = "NORMAL";
+    const std::string SemanticNames::texcoord   = "TEXCOORD";
 
     void VertexData::addVertices(const std::string& semanticName, size_t semanticIndex, const std::shared_ptr<VertexBuffer>& vertices)
     {
-        vertexBuffers_.push_back({semanticName, semanticIndex, vertices});
+        vertexBuffers_.emplace_back(VBuffer{ semanticName, semanticIndex, vertices });
     }
 
     void VertexData::setIndices(const std::shared_ptr<IndexBuffer>& indices)
@@ -52,14 +51,14 @@ namespace killme
         indexBuffer_ = indices;
     }
 
-    VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> VertexData::getBinder(const std::shared_ptr<InputLayout>& layout)
+    VertexBinder VertexData::getBinder(const std::shared_ptr<InputLayout>& layout)
     {
         // Collect vertex buffer views by the input layout
         const auto d3dLayout = layout->getD3DLayout();
 
-        VertexBinder<std::vector<D3D12_VERTEX_BUFFER_VIEW>> binder;
+        VertexBinder binder;
+        binder.viewsArray.resize(d3dLayout.NumElements);
         binder.numViews = d3dLayout.NumElements;
-        binder.views.resize(d3dLayout.NumElements);
 
         for (size_t i = 0; i < d3dLayout.NumElements; ++i)
         {
@@ -72,7 +71,7 @@ namespace killme
             {
                 if (vertices.name == semanticName && vertices.index == semanticIndex)
                 {
-                    binder.views[i] = vertices.buffer->getD3DView();
+                    binder.viewsArray[i] = vertices.buffer->getD3DView();
                     found = true;
                     break;
                 }
@@ -81,9 +80,10 @@ namespace killme
             assert(found && "The vertex data is not usable for the input layout of argments.");
         }
 
+        binder.views = binder.viewsArray.data();
         return binder;
-    }
 
+    }
     std::shared_ptr<IndexBuffer> VertexData::getIndexBuffer()
     {
         return indexBuffer_;

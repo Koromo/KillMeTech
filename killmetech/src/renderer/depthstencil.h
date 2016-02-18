@@ -13,31 +13,31 @@ namespace killme
     private:
         ComUniquePtr<ID3D12Resource> depthStencil_;
         DXGI_FORMAT format_;
-        D3D12_CPU_DESCRIPTOR_HANDLE view_;
 
     public:
+        /** The resource view */
+        struct View
+        {
+            D3D12_CPU_DESCRIPTOR_HANDLE d3dView;
+        };
+
         /** Constructs with a Direct3D depth stencil */
         explicit DepthStencil(ID3D12Resource* depthStencil)
             : depthStencil_(makeComUnique(depthStencil))
             , format_(depthStencil->GetDesc().Format)
-            , view_()
         {
         }
 
-        /** Returns the Direct3D view */
-        D3D12_CPU_DESCRIPTOR_HANDLE getD3DView() { return view_; }
-
         /** Creates the Direct3D view into a desctipror heap */
-        void createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
+        View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
         {
             D3D12_DEPTH_STENCIL_VIEW_DESC viewDesc;
             viewDesc.Format = format_;
             viewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
             viewDesc.Texture2D.MipSlice = 0;
             viewDesc.Flags = D3D12_DSV_FLAG_NONE;
-
             device->CreateDepthStencilView(depthStencil_.get(), &viewDesc, location);
-            view_ = location;
+            return{ location };
         }
     };
 }

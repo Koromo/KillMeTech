@@ -15,22 +15,20 @@ namespace killme
     {
     }
 
-    void CommandList::clearRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const Color& c)
+    void CommandList::clearRenderTarget(RenderTarget::View view, const Color& c)
     {
         const float rgba[] = {c.r, c.g, c.b, c.a};
-        list_->ClearRenderTargetView(renderTarget->getD3DView(), rgba, 0, nullptr);
+        list_->ClearRenderTargetView(view.d3dView, rgba, 0, nullptr);
     }
 
-    void CommandList::clearDepthStencil(const std::shared_ptr<DepthStencil>& depthStencil, float depth)
+    void CommandList::clearDepthStencil(DepthStencil::View view, float depth)
     {
-        list_->ClearDepthStencilView(depthStencil->getD3DView(), D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
+        list_->ClearDepthStencilView(view.d3dView, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
     }
 
-    void CommandList::setRenderTarget(const std::shared_ptr<RenderTarget>& renderTarget, const std::shared_ptr<DepthStencil>& depthStencil)
+    void CommandList::setRenderTarget(RenderTarget::View rtView, DepthStencil::View dsView)
     {
-        const auto rtv = renderTarget->getD3DView();
-        const auto dsv = depthStencil->getD3DView();
-        list_->OMSetRenderTargets(1, &rtv, TRUE, &dsv);
+        list_->OMSetRenderTargets(1, &rtView.d3dView, TRUE, &dsView.d3dView);
     }
 
     namespace
@@ -51,7 +49,7 @@ namespace killme
 
     void CommandList::setPrimitiveTopology(PrimitiveTopology pt)
     {
-        list_->IASetPrimitiveTopology(toD3DPrimitiveTopology(pt));
+        list_->IASetPrimitiveTopology(toD3DPrimitiveTopology(pt)); /// TODO: ERROR #611 when used LINELIST
     }
 
     void CommandList::setIndexBuffer(const std::shared_ptr<IndexBuffer>& buffer)
@@ -141,7 +139,7 @@ namespace killme
         list_->ResourceBarrier(1, &barrier);
     }
 
-    void CommandList::close()
+    void CommandList::endCommands()
     {
         auto hr = list_->Close();
         enforce<Direct3DException>(SUCCEEDED(hr), "Failed to close the command list.");

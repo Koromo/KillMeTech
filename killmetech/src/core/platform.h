@@ -1,5 +1,5 @@
 #ifndef _KILLME_PLATFORM_H_
-#define _KILLME_PLATFORM_H
+#define _KILLME_PLATFORM_H_
 
 /** Whether support unicode or not */
 #ifdef _UNICODE

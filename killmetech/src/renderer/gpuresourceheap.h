@@ -3,6 +3,7 @@
 
 #include "../windows/winsupport.h"
 #include <d3d12.h>
+#include <memory>
 
 namespace killme
 {

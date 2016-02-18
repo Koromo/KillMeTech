@@ -1,35 +1,29 @@
 #ifndef _KILLME_UTILITY_H_
 #define _KILLME_UTILITY_H_
 
+#include <utility>
+
 namespace killme
 {
     namespace detail
     {
-        // For the makeRange()
         template <class It>
-        class IteratorRange
+        struct RangeFromIterator
         {
-        private:
             It begin_;
             It end_;
 
-        public:
-            IteratorRange(It begin, It end)
+            RangeFromIterator(It begin, It end)
                 : begin_(begin)
                 , end_(end)
             {
             }
 
-            It begin()
-            {
-                return begin_;
-            }
+            RangeFromIterator(const RangeFromIterator&) = default;
+            RangeFromIterator(RangeFromIterator&&) = default;
 
-            It end()
-            {
-                return end_;
-
-            }
+            RangeFromIterator& operator =(const RangeFromIterator&) = default;
+            RangeFromIterator& operator =(RangeFromIterator&&) = default;
 
             It begin() const
             {
@@ -40,17 +34,77 @@ namespace killme
             {
                 return end_;
             }
+
+            size_t length() const
+            {
+                return end_ - begin_;
+            }
+        };
+
+        template <class C>
+        struct RangeWithMove
+        {
+            C c_;
+
+            RangeWithMove(C&& c)
+                : c_(std::move(c))
+            {
+            }
+
+            RangeWithMove(RangeWithMove&& rhs)
+                : c_(std::move(rhs.c_))
+            {
+            }
+
+            RangeWithMove(const RangeWithMove&) = delete;
+
+            RangeWithMove& operator =(RangeWithMove&& rhs)
+            {
+                c_ = std::move(rhs.c_);
+                return *this;
+            }
+
+            RangeWithMove& operator =(const RangeWithMove&) = delete;
+
+            auto begin()
+                -> decltype(std::begin(c_))
+            {
+                return std::begin(c_);
+            }
+
+            auto end()
+                -> decltype(std::end(c_))
+            {
+                return std::end(c_);
+            }
+
+            auto begin() const
+                -> decltype(std::cbegin(c_))
+            {
+                return std::cbegin(c_);
+            }
+
+            auto end() const
+                -> decltype(std::cend(c_))
+            {
+                return std::cend(c_);
+            }
+
+            size_t length() const
+            {
+                return std::cend(c_) - std::cbegin(c_);
+            }
         };
     }
 
-    /** Create a range from a iterator range*/
+    /** Create the range from an iterator range */
     template <class It>
-    detail::IteratorRange<It> makeRange(It begin, It end)
+    detail::RangeFromIterator<It> makeRange(It begin, It end)
     {
-        return detail::IteratorRange<It>(begin, end);
+        return detail::RangeFromIterator<It>(begin, end);
     }
 
-    /** Create a range from a container */
+    /** Create the range from a container */
     template <class C>
     auto makeRange(const C& c)
         -> decltype(makeRange(std::cbegin(c), std::cend(c)))
@@ -58,6 +112,7 @@ namespace killme
         return makeRange(std::cbegin(c), std::cend(c));
     }
 
+    /** ditto */
     template <class C>
     auto makeRange(C& c)
         -> decltype(makeRange(std::begin(c), std::end(c)))
@@ -65,12 +120,16 @@ namespace killme
         return makeRange(std::begin(c), std::end(c));
     }
 
+    /** Create the range with move a right value container */
+    template <class C>
+    detail::RangeWithMove<C> makeRange(C&& c)
+    {
+        return detail::RangeWithMove<C>(std::move(c));
+    }
+
     /** The type converter */
     template <class T, class U>
-    T to(const U& u)
-    {
-        return u;
-    }
+    T to(const U& u);
 }
 
 #endif

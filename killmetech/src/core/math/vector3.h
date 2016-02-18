@@ -18,6 +18,14 @@ namespace killme
         /** Constructs with initial values */
         Vector3(float nx, float ny, float nz);
 
+        /** Constructs */
+        Vector3(const Vector3&) = default;
+        Vector3(Vector3&&) = default;
+
+        /** Assignment operator */
+        Vector3& operator =(const Vector3&) = default;
+        Vector3& operator =(Vector3&&) = default;
+
         /** Accessor */
         const float& operator [](size_t i) const;
         float& operator [](size_t i);
@@ -50,6 +58,7 @@ namespace killme
 
     /** Scale the vector */
     Vector3 scale(const Vector3& v, const Vector3& k);
+    Vector3 invScale(const Vector3& v, const Vector3& k);
 
     /** Returns the norm */
     float norm(const Vector3& v);

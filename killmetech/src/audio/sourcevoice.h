@@ -2,7 +2,7 @@
 #define _KILLME_SOURCEVOICE_H_
 
 #include "xaudiosupport.h"
-#include "../resource/resource.h"
+#include "../resources/resource.h"
 #include <xaudio2.h>
 #include <memory>
 
@@ -27,6 +27,7 @@ namespace killme
             void CALLBACK OnVoiceProcessingPassStart(unsigned) {}
         };
 
+        std::weak_ptr<IXAudio2> xAudio_;
         VoiceUniquePtr<IXAudio2SourceVoice> sourceVoice_;
         Resource<AudioClip> clip_;
         VoiceCallback callBack_;
@@ -34,21 +35,27 @@ namespace killme
 
     public:
         /** Constructs with an audio clip */
-        SourceVoice(IXAudio2* xAudio, const Resource<AudioClip>& clip);
+        SourceVoice(const std::weak_ptr<IXAudio2>& xAudio, const Resource<AudioClip>& clip);
 
         /** Destructs */
         ~SourceVoice();
 
-        /** Plays the audio */
-        void play(size_t numLoops);
+        /** Submits the audio buffer into buffer queue */
+        void submit(size_t numLoops);
 
-        /** Stops the audio */
+        /** Returns count of queued buffers */
+        size_t getNumQueued();
+
+        /** Start voice */
+        void start();
+
+        /** Stops audio */
         void stop();
 
-        /** Pauses the audio */
-        void pause();
+        /** Flushs audio */
+        void flush();
 
-        /** Returns true if the audio is playing now */
+        /** Returns true if audio is playing now */
         bool isPlaying() const;
 
         /** Applies the frequency ratio */

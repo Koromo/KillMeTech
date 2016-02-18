@@ -6,7 +6,7 @@
 namespace killme
 {
     class SceneNode;
-    class SceneVisitor;
+    class RenderQueue;
 
     /** The scene entity */
     class SceneEntity
@@ -18,14 +18,14 @@ namespace killme
         /** Fro drived classes */
         virtual ~SceneEntity() = default;
 
-        /** Sets an owner */
+        /** Sets the owner */
         void setOwner(const std::weak_ptr<SceneNode>& owner) { owner_ = owner; }
 
         /** Returns the owner */
-        std::shared_ptr<SceneNode> lockOwner() { return owner_.lock(); }
+        std::weak_ptr<SceneNode> getOwner() { return owner_; }
 
-        /** Accepts a visitor */
-        virtual bool accept(SceneVisitor& v) = 0;
+        /** Accept render queue */
+        virtual void collectRenderer(RenderQueue&) {}
     };
 }
 

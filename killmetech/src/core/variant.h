@@ -13,7 +13,8 @@ namespace killme
     class VariantException : public Exception
     {
     public:
-        VariantException(const std::string& msg) : Exception(msg) {}
+        VariantException(const std::string& msg)
+            : Exception(msg) {}
     };
 
     /** The Variant type */
@@ -60,11 +61,10 @@ namespace killme
         Variant() noexcept = default;
 
         /** Constructs with a value  */
-        template <class T>
+        template <class T, class U = FixedType<T>>
         explicit Variant(T&& value)
-            : holder_()
+            : holder_(std::make_shared<TypedHolder<U>>(std::forward<T>(value)))
         {
-            *this = std::forward<T>(value);
         }
 
         /** Copy constructor */
@@ -76,9 +76,8 @@ namespace killme
 
         /** Move constructor */
         Variant(Variant&& rhs)
-            : holder_()
+            : holder_(std::move(rhs.holder_))
         {
-            *this = std::move(rhs);
         }
 
         /** Assignment operator with a value */
@@ -118,7 +117,7 @@ namespace killme
 
         /** Equivalent test */
         template <class T, class U = FixedType<T>>
-        bool operator==(const T& a) const
+        bool operator ==(const T& a) const
         {
             if (!hasValue() || !killme::is<U>(*this))
             {
@@ -127,7 +126,7 @@ namespace killme
             return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value == a;
         }
 
-        // For the killme::is()
+        /** For killme::is() */
         template <class T>
         bool is() const noexcept
         {

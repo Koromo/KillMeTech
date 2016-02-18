@@ -1,7 +1,7 @@
 #ifndef _KILLME_PIPELINESTATE_H_
 #define _KILLME_PIPELINESTATE_H_
 
-#include "../resource/resource.h"
+#include "../resources/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <memory>

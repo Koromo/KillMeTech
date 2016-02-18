@@ -4,6 +4,16 @@ namespace killme
 {
     std::function<void()> detail::ScopeExit::relay;
 
+    detail::ScopeExit::ScopeExit(std::function<void()> fun)
+        : fun_(fun)
+    {
+    }
+
+    detail::ScopeExit::~ScopeExit()
+    {
+        fun_();
+    }
+
     Exception::Exception(const std::string& msg)
         : msg_(msg)
     {

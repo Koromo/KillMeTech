@@ -13,32 +13,32 @@ namespace killme
         renderTarget
     };
 
-    /** The render target */
     class RenderTarget
     {
     private:
         ComUniquePtr<ID3D12Resource> renderTarget_;
-        D3D12_CPU_DESCRIPTOR_HANDLE view_;
 
     public:
+        /** The resource view */
+        struct View
+        {
+            D3D12_CPU_DESCRIPTOR_HANDLE d3dView;
+        };
+
         /** Constructs with a Direct3D render target */
         explicit RenderTarget(ID3D12Resource* renderTarget)
             : renderTarget_(makeComUnique(renderTarget))
-            , view_()
         {
         }
 
         /** Returns the Direct3D render target */
         ID3D12Resource* getD3DRenderTarget() { return renderTarget_.get(); }
 
-        /** Returns the Direct3D view */
-        D3D12_CPU_DESCRIPTOR_HANDLE getD3DView() { return view_; }
-
         /** Creates the Direct3D view into a desctipror heap */
-        void createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
+        View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
         {
             device->CreateRenderTargetView(renderTarget_.get(), nullptr, location);
-            view_ = location;
+            return{ location };
         }
     };
 }

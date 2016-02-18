@@ -7,15 +7,6 @@
     <Filter Include="src\audio">
       <UniqueIdentifier>{ee6d43cf-0a89-4f77-a924-5837ea23e426}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\engine">
-      <UniqueIdentifier>{3292b6dc-bcc5-46d5-9f72-cda6d30b23e2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\input">
-      <UniqueIdentifier>{f00b0e90-52b6-48d2-ac6a-ddcd3f7376a9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\event">
-      <UniqueIdentifier>{0552df4d-d6f2-48c6-b0d4-5e52cc4ca5ed}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\windows">
       <UniqueIdentifier>{208c32dc-ea35-4348-a986-ebaf57f567bc}</UniqueIdentifier>
     </Filter>
@@ -28,17 +19,29 @@
     <Filter Include="src\renderer">
       <UniqueIdentifier>{939c5dc6-ea4e-46a4-afbf-fc46b6a4033b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\scene">
-      <UniqueIdentifier>{a6025d3b-52ea-499b-8b11-c6db824a8b38}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\physics">
       <UniqueIdentifier>{7096531d-cb16-40a9-935b-49b72d1501dc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\resource">
+    <Filter Include="src\resources">
       <UniqueIdentifier>{c34ef27a-4aad-4a53-98ea-54fe77dc4c8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\processes">
+      <UniqueIdentifier>{49a40820-ee69-44ae-b530-7a8631361825}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\scene">
+      <UniqueIdentifier>{0883153e-8597-4155-afbd-e47cabd61863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine">
+      <UniqueIdentifier>{2d422d0b-9602-4a69-b9a4-ebdee9b0d04e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\import">
-      <UniqueIdentifier>{24b4a62d-6726-46dd-b976-bfef4f177168}</UniqueIdentifier>
+      <UniqueIdentifier>{101d6d2d-c3cc-478b-aaeb-bd83e2bd89ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\events">
+      <UniqueIdentifier>{0552df4d-d6f2-48c6-b0d4-5e52cc4ca5ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\hid">
+      <UniqueIdentifier>{f00b0e90-52b6-48d2-ac6a-ddcd3f7376a9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -48,20 +51,11 @@
     <ClCompile Include="src\audio\sourcevoice.cpp">
       <Filter>src\audio</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\killmeengine.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\string.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="src\windows\console.cpp">
       <Filter>src\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\input\keycode.cpp">
-      <Filter>src\input</Filter>
-    </ClCompile>
-    <ClCompile Include="src\input\inputmanager.cpp">
-      <Filter>src\input</Filter>
     </ClCompile>
     <ClCompile Include="src\core\math\color.cpp">
       <Filter>src\core\math</Filter>
@@ -99,59 +93,98 @@
     <ClCompile Include="src\renderer\pixelshader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\scenemanager.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\scene\scenenode.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\d3dsupport.cpp">
       <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\audio\audiomanager.cpp">
-      <Filter>src\audio</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\shader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\material.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\optional.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\event\eventmanager.cpp">
-      <Filter>src\event</Filter>
-    </ClCompile>
-    <ClCompile Include="src\event\event.cpp">
-      <Filter>src\event</Filter>
-    </ClCompile>
-    <ClCompile Include="src\audio\audio3d.cpp">
-      <Filter>src\audio</Filter>
-    </ClCompile>
     <ClCompile Include="src\physics\collisionshape.cpp">
-      <Filter>src\physics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\physics\physicsmanager.cpp">
       <Filter>src\physics</Filter>
     </ClCompile>
     <ClCompile Include="src\physics\rigidbody.cpp">
       <Filter>src\physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\debugdrawmanager.cpp">
+    <ClCompile Include="src\resources\resource.cpp">
+      <Filter>src\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\resourcemanager.cpp">
+      <Filter>src\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\audio\audioengine.cpp">
+      <Filter>src\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\physics\physicsworld.cpp">
+      <Filter>src\physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\material.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\resource\resourcemanager.cpp">
-      <Filter>src\resource</Filter>
+    <ClCompile Include="src\scene\meshentity.cpp">
+      <Filter>src\scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\resource\resource.cpp">
-      <Filter>src\resource</Filter>
+    <ClCompile Include="src\scene\scene.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenenode.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\processes\process.cpp">
+      <Filter>src\processes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\processes\processscheduler.cpp">
+      <Filter>src\processes</Filter>
     </ClCompile>
     <ClCompile Include="src\scene\materialparser.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
     <ClCompile Include="src\import\fbxmeshimporter.cpp">
       <Filter>src\import</Filter>
+    </ClCompile>
+    <ClCompile Include="src\events\eventdispatcher.cpp">
+      <Filter>src\events</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\events.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hid\inputstatus.cpp">
+      <Filter>src\hid</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\inputs.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\audio.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\resources.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\actor.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\world.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\runtime.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\processes.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\graphics.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\physics.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\debugdrawmanager.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\debug.cpp">
+      <Filter>src\engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -164,29 +197,17 @@
     <ClInclude Include="src\audio\xaudiosupport.h">
       <Filter>src\audio</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\killmeengine.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\exception.h">
       <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\string.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\event\event.h">
-      <Filter>src\event</Filter>
-    </ClInclude>
-    <ClInclude Include="src\input\keycode.h">
-      <Filter>src\input</Filter>
-    </ClInclude>
     <ClInclude Include="src\windows\console.h">
       <Filter>src\windows</Filter>
     </ClInclude>
     <ClInclude Include="src\windows\winsupport.h">
       <Filter>src\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\input\inputmanager.h">
-      <Filter>src\input</Filter>
     </ClInclude>
     <ClInclude Include="src\core\math\color.h">
       <Filter>src\core\math</Filter>
@@ -242,38 +263,8 @@
     <ClInclude Include="src\renderer\pipelinestate.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\camera.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\material.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\mesh.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\meshentity.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\sceneentity.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\scenemanager.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\scenenode.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\scenevisitor.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\boxmesh.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\renderer\depthstencil.h">
       <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\audio\audiomanager.h">
-      <Filter>src\audio</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\gpuresourceheap.h">
       <Filter>src\renderer</Filter>
@@ -287,9 +278,6 @@
     <ClInclude Include="src\core\utility.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\event\eventmanager.h">
-      <Filter>src\event</Filter>
-    </ClInclude>
     <ClInclude Include="src\audio\audio3d.h">
       <Filter>src\audio</Filter>
     </ClInclude>
@@ -299,29 +287,140 @@
     <ClInclude Include="src\physics\bulletsupport.h">
       <Filter>src\physics</Filter>
     </ClInclude>
-    <ClInclude Include="src\physics\physicsmanager.h">
-      <Filter>src\physics</Filter>
-    </ClInclude>
     <ClInclude Include="src\physics\rigidbody.h">
       <Filter>src\physics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\debugdrawmanager.h">
-      <Filter>src\scene</Filter>
     </ClInclude>
     <ClInclude Include="src\core\platform.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\resource\resource.h">
-      <Filter>src\resource</Filter>
+    <ClInclude Include="src\core\math\transform.h">
+      <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\resource\resourcemanager.h">
-      <Filter>src\resource</Filter>
+    <ClInclude Include="src\resources\resource.h">
+      <Filter>src\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\resourcemanager.h">
+      <Filter>src\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audioengine.h">
+      <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\physics\physicsworld.h">
+      <Filter>src\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\camera.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\material.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\mesh.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\meshentity.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scene.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\sceneentity.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenenode.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\renderqueue.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\processes\process.h">
+      <Filter>src\processes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\processes\processscheduler.h">
+      <Filter>src\processes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\import\fbxmeshimporter.h">
+      <Filter>src\import</Filter>
     </ClInclude>
     <ClInclude Include="src\import\fbxsupport.h">
       <Filter>src\import</Filter>
     </ClInclude>
-    <ClInclude Include="src\import\fbxmeshimporter.h">
-      <Filter>src\import</Filter>
+    <ClInclude Include="src\engine\inputs.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\events.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\events\event.h">
+      <Filter>src\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\events\eventdispatcher.h">
+      <Filter>src\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hid\inputstatus.h">
+      <Filter>src\hid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hid\keycode.h">
+      <Filter>src\hid</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\audio.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\resources.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\actor.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\actorcomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\transformcomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\world.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\runtime.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\audioemittercomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\audiolistenercomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\processes.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\leveldesigner.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\actordesigner.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\killmetech.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\graphics.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\physics.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\debugdrawmanager.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\cameracomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\meshcomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\rigidbodycomponent.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\debug.h">
+      <Filter>src\engine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

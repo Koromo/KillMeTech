@@ -13,7 +13,8 @@ namespace killme
     {
     public:
         /** Constructs with a message */
-        explicit XAudioException(const std::string& msg) : Exception(msg) {}
+        explicit XAudioException(const std::string& msg)
+            : Exception(msg) {}
     };
 
     namespace detail

@@ -14,6 +14,9 @@ namespace killme
     class CommandList;
     class ConstantBuffer;
     class GpuResourceHeap;
+    class RenderSystem;
+    class Camera;
+    struct FrameResource;
 
 #ifdef KILLME_DEBUG
 
@@ -23,6 +26,7 @@ namespace killme
         std::vector<Vector3> positions_;
         std::vector<Color> colors_;
 
+        std::shared_ptr<RenderSystem> renderSystem_;
         std::shared_ptr<ConstantBuffer> viewProjBuffer_;
         std::shared_ptr<GpuResourceHeap> viewProjHeap_;
         std::shared_ptr<PipelineState> pipeline_;
@@ -30,10 +34,10 @@ namespace killme
         ScissorRect scissorRect_;
 
     public:
-        void startup();
+        void startup(const std::shared_ptr<RenderSystem>& renderSystem);
         void shutdown();
         void line(const Vector3& from, const Vector3& to, const Color& color);
-        void drawDebugs();
+        void debugDraw(const Camera& camera, const FrameResource& frame);
     };
 
 #else
@@ -41,10 +45,10 @@ namespace killme
     class DebugDrawManager
     {
     public:
-        void startup();
+        void startup(const std::shared_ptr<RenderSystem>&);
         void shutdown();
-        void line(const Vector3& from, const Vector3& to, const Color& color);
-        void drawDebugs();
+        void line(const Vector3&, const Vector3&, const Color&);
+        void debugDraw(const Camera&, const FrameResource&);
     };
 
 #endif

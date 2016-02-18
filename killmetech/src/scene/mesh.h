@@ -1,7 +1,7 @@
 #ifndef _KILLME_MESH_H_
 #define _KILLME_MESH_H_
 
-#include "../resource/resource.h"
+#include "../resources/resource.h"
 #include "../core/utility.h"
 #include <memory>
 #include <vector>

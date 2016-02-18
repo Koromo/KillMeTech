@@ -31,8 +31,16 @@ namespace killme
         /** Constructs with a initializer list */
         Matrix44(std::initializer_list<float> il);
 
+        /** Constructs */
+        Matrix44(const Matrix44&) = default;
+        Matrix44(Matrix44&&) = default;
+
         /** Assignment operator with a initializer list */
         Matrix44& operator =(std::initializer_list<float> il);
+
+        /** Assignment operator */
+        Matrix44& operator =(const Matrix44&) = default;
+        Matrix44& operator =(Matrix44&&) = default;
 
         /** Accessor */
         const float& operator ()(size_t r, size_t c) const;

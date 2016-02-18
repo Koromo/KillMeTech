@@ -1,6 +1,5 @@
 #include "sourcevoice.h"
 #include "audioclip.h"
-#include "audiomanager.h"
 #include "../core/exception.h"
 #include <cassert>
 
@@ -21,8 +20,9 @@ namespace killme
         throw XAudioException("Any error occurred in source buffer.");
     }
 
-    SourceVoice::SourceVoice(IXAudio2* xAudio, const Resource<AudioClip>& clip)
-        : sourceVoice_()
+    SourceVoice::SourceVoice(const std::weak_ptr<IXAudio2>& xAudio, const Resource<AudioClip>& clip)
+        : xAudio_(xAudio)
+        , sourceVoice_()
         , clip_(clip)
         , callBack_()
         , isPlaying_(false)
@@ -30,7 +30,7 @@ namespace killme
         const auto format = clip_.access()->getFormat();
         IXAudio2SourceVoice* voice;
         enforce<XAudioException>(
-            SUCCEEDED(xAudio->CreateSourceVoice(&voice, &format, 0, 2, &callBack_)),
+            SUCCEEDED(xAudio_.lock()->CreateSourceVoice(&voice, &format, 0, 2, &callBack_)),
             "Failed to create IXAudio2SourceVoice."
             );
         sourceVoice_ = makeVoiceUnique(voice);
@@ -38,25 +38,21 @@ namespace killme
 
     SourceVoice::~SourceVoice()
     {
-        if (!audioManager.isActive())
+        if (xAudio_.expired())
         {
             sourceVoice_.release();
         }
     }
 
-    void SourceVoice::play(size_t numLoops)
+    void SourceVoice::submit(size_t numLoops)
     {
-        if (isPlaying_)
-        {
-            return;
-        }
+        assert(numLoops > 0 && "You need numLoops > 0.");
 
         if (numLoops > AUDIO_LOOP_INFINITE)
         {
             numLoops = AUDIO_LOOP_INFINITE;
         }
 
-        // Submit the audio data into the buffer
         XAUDIO2_BUFFER buffer;
         ZeroMemory(&buffer, sizeof(buffer));
         buffer.Flags = XAUDIO2_END_OF_STREAM;
@@ -73,8 +69,17 @@ namespace killme
             SUCCEEDED(sourceVoice_->SubmitSourceBuffer(&buffer)),
             "Failed to submit audio buffer."
             );
+    }
 
-        // Start audio
+    size_t SourceVoice::getNumQueued()
+    {
+        XAUDIO2_VOICE_STATE state;
+        sourceVoice_->GetState(&state);
+        return state.BuffersQueued;
+    }
+
+    void SourceVoice::start()
+    {
         enforce<XAudioException>(
             SUCCEEDED(sourceVoice_->Start(0)),
             "Failed to start source voice."
@@ -84,21 +89,18 @@ namespace killme
 
     void SourceVoice::stop()
     {
-        // Stop audio and flush buffer
-        pause();
-        enforce<XAudioException>(
-            SUCCEEDED(sourceVoice_->FlushSourceBuffers()),
-            "Failed to flush source buffer."
-            );
-    }
-
-    void SourceVoice::pause()
-    {
         enforce<XAudioException>(
             SUCCEEDED(sourceVoice_->Stop()),
             "Failed to stop source voice."
             );
-        isPlaying_ = false;
+    }
+
+    void SourceVoice::flush()
+    {
+        enforce<XAudioException>(
+            SUCCEEDED(sourceVoice_->FlushSourceBuffers()),
+            "Failed to flush source buffer."
+            );
     }
 
     bool SourceVoice::isPlaying() const
