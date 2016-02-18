@@ -37,6 +37,7 @@ namespace killme
         void startup(const std::shared_ptr<RenderSystem>& renderSystem);
         void shutdown();
         void line(const Vector3& from, const Vector3& to, const Color& color);
+        void clear();
         void debugDraw(const Camera& camera, const FrameResource& frame);
     };
 
@@ -48,6 +49,7 @@ namespace killme
         void startup(const std::shared_ptr<RenderSystem>&);
         void shutdown();
         void line(const Vector3&, const Vector3&, const Color&);
+        void clear();
         void debugDraw(const Camera&, const FrameResource&);
     };
 

@@ -66,8 +66,7 @@ namespace killme
         scissorRect_.right = static_cast<int>(clientWidth);
         scissorRect_.bottom = static_cast<int>(clientHeight);
 
-        positions_.clear();
-        colors_.clear();
+        clear();
     }
 
     void DebugDrawManager::shutdown()
@@ -77,8 +76,7 @@ namespace killme
         viewProjHeap_.reset();
         viewProjBuffer_.reset();
         renderSystem_.reset();
-        colors_.clear();
-        positions_.clear();
+        clear();
     }
 
     void DebugDrawManager::line(const Vector3& from, const Vector3& to, const Color& color)
@@ -87,6 +85,12 @@ namespace killme
         positions_.emplace_back(to);
         colors_.emplace_back(color);
         colors_.emplace_back(color);
+    }
+
+    void DebugDrawManager::clear()
+    {
+        positions_.clear();
+        colors_.clear();
     }
 
     void DebugDrawManager::debugDraw(const Camera& camera, const FrameResource& frame)
@@ -138,8 +142,7 @@ namespace killme
 
         renderSystem_->executeCommands(commandList_);
 
-        positions_.clear();
-        colors_.clear();
+        clear();
     }
 
 #else
@@ -147,6 +150,7 @@ namespace killme
     void DebugDrawManager::startup(const std::shared_ptr<RenderSystem>&) {}
     void DebugDrawManager::shutdown() {}
     void DebugDrawManager::line(const Vector3&, const Vector3&, const Color&) {}
+    void DebugDrawManager::clear() {}
     void DebugDrawManager::debugDraw(const Camera&, const FrameResource&) {}
 
 #endif

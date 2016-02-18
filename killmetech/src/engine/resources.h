@@ -6,27 +6,34 @@
 
 namespace killme
 {
-    namespace Resources
+    /** Resource manager subsystem */
+    struct Resources
     {
-        namespace detail
+        struct detail
         {
-            extern ResourceManager* resourceManager;
-        }
+            static ResourceManager* resourceManager;
+        };
 
-        ResourceManager& getManager();
+        /** Return resource manager */
+        static ResourceManager& getManager();
 
-        void startup();
-        void shutdown();
+        /** Initialize */
+        static void startup();
 
-        void registerLoader(const std::string& ext, ResourceManager::Loader loader);
-        void unregisterLoader(const std::string& ext);
+        /** Finalize */
+        static void shutdown();
 
+        /** Resource loader register */
+        static void registerLoader(const std::string& ext, ResourceManager::Loader loader);
+        static void unregisterLoader(const std::string& ext);
+
+        /** Return resource accessor */
         template <class T>
-        Resource<T> load(const std::string& path)
+        static Resource<T> load(const std::string& path)
         {
             return accessResource<T>(*detail::resourceManager, path);
         }
-    }
+    };
 }
 
 #endif

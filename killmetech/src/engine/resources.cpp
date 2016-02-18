@@ -2,13 +2,7 @@
 
 namespace killme
 {
-    namespace Resources
-    {
-        namespace detail
-        {
-            ResourceManager* resourceManager;
-        }
-    }
+    ResourceManager* Resources::detail::resourceManager;
 
     ResourceManager& Resources::getManager()
     {

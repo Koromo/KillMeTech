@@ -1,5 +1,5 @@
 #include "actor.h"
-#include "transformcomponent.h"
+#include "components/transformcomponent.h"
 #include "actordesigner.h"
 #include "world.h"
 

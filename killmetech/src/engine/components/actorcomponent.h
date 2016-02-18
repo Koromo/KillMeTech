@@ -14,11 +14,14 @@ namespace killme
         std::weak_ptr<Actor> owner_;
 
     public:
+        /** For drived classes */
         virtual ~ActorComponent() = default;
 
+        /** Called on attached or dettached into actor */
         virtual void onAttached() {}
         virtual void onDettached() {}
 
+        /** Owner actor accessor */
         void setOwner(const std::weak_ptr<Actor>& owner) { owner_ = owner; }
         std::shared_ptr<Actor> lockOwner() { return owner_.lock(); }
     };

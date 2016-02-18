@@ -7,6 +7,7 @@ namespace killme
 {
     class LevelDesigner;
 
+    /** KillMe Tech runtime engine */
     struct RunTime
     {
         /** Initializes KillMe Tech */

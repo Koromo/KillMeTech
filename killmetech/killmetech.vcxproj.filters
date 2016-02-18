@@ -43,6 +43,9 @@
     <Filter Include="src\hid">
       <UniqueIdentifier>{f00b0e90-52b6-48d2-ac6a-ddcd3f7376a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\engine\components">
+      <UniqueIdentifier>{d79f53fb-c9aa-4e2f-bda1-39cc53b45807}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -185,6 +188,24 @@
     </ClCompile>
     <ClCompile Include="src\engine\debug.cpp">
       <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\audioemittercomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\audiolistenercomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\cameracomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\meshcomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\rigidbodycomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\transformcomponent.cpp">
+      <Filter>src\engine\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -371,22 +392,10 @@
     <ClInclude Include="src\engine\actor.h">
       <Filter>src\engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\actorcomponent.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\transformcomponent.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\world.h">
       <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\runtime.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\audioemittercomponent.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\audiolistenercomponent.h">
       <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\processes.h">
@@ -410,17 +419,29 @@
     <ClInclude Include="src\scene\debugdrawmanager.h">
       <Filter>src\scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\cameracomponent.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\meshcomponent.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\rigidbodycomponent.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\debug.h">
       <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\actorcomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\audioemittercomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\audiolistenercomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\cameracomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\meshcomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\rigidbodycomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\transformcomponent.h">
+      <Filter>src\engine\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

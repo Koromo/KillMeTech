@@ -1,7 +1,7 @@
 #ifndef _KILLME_ACTOR_H_
 #define _KILLME_ACTOR_H_
 
-#include "actorcomponent.h"
+#include "components/actorcomponent.h"
 #include <memory>
 #include <unordered_map>
 #include <utility>
