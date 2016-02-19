@@ -145,6 +145,12 @@ namespace killme
             impl.frameTimes_ms[2] = 0;
             break;
 
+        case FrameRate::_120:
+            impl.frameTimes_ms[0] = 8;
+            impl.frameTimes_ms[1] = 8;
+            impl.frameTimes_ms[2] = 9;
+            break;
+
         case FrameRate::_60:
             impl.frameTimes_ms[0] = 16;
             impl.frameTimes_ms[1] = 17;
