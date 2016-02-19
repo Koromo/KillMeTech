@@ -7,6 +7,16 @@ namespace killme
 {
     class LevelDesigner;
 
+    enum class FrameRate : size_t
+    {
+        noLimit,
+        _120,
+        _60,
+        _30,
+        _20,
+        _15
+    };
+
     /** KillMe Tech runtime engine */
     struct RunTime
     {
@@ -15,6 +25,16 @@ namespace killme
 
         /** Finalizes KillMe Tech */
         static void shutdown();
+
+        /** Set FPS */
+        static void setFrameRate(FrameRate fps);
+
+        /** Return delta time[s] of current frame from previous */
+        static float getDeltaTime();
+
+        /** Return average fps of current n frame */
+        /// NOTE: n <= 120
+        static float getCurrentFrameRate(size_t n);
 
         /** Starts game */
         static void run(LevelDesigner& designer);

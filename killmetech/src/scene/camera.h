@@ -43,7 +43,7 @@ namespace killme
 
         /** Updates the projection */
         void setFovX(float rad) { fovX_ = rad; }
-        void setAspectRate(float aspect) { aspect_ = aspect; }
+        void setAspectRate(float aspect) { aspect_ = aspect; } /// NOTE: w/h
         void setNearZ(float z) { nearZ_ = z; }
         void setFarZ(float z) { farZ_ = z; }
 

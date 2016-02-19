@@ -46,11 +46,11 @@ namespace killme
         return it->second;
     }
 
-    void World::tickActors()
+    void World::tickActors(float dt_s)
     {
         for (const auto& actor : actors_)
         {
-            actor.second->tick();
+            actor.second->tick(dt_s);
         }
     }
 }

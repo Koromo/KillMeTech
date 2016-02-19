@@ -1,7 +1,7 @@
 #include "audiolistenercomponent.h"
 #include "../processes.h"
 #include "../audio.h"
-#include "../../audio/audio3d.h"
+#include "../runtime.h"
 
 namespace killme
 {
@@ -19,9 +19,15 @@ namespace killme
 
     void AudioListenerComponent::tickAudioWorld()
     {
-        ListenerParams params;
-        params.position = getWorldPosition();
-        params.orientation = getWorldOrientation();
-        Audio::set3DListener(params);
+        const auto dt_s = RunTime::getDeltaTime();
+
+        const auto nowPos = getWorldPosition();
+        const auto prePos = params_.position;
+
+        params_.position = nowPos;
+        params_.orientation = getWorldOrientation();
+        params_.velocity = (nowPos - prePos) / dt_s;
+
+        Audio::set3DListener(params_);
     }
 }

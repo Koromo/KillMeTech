@@ -5,6 +5,7 @@
 #include "engine/actordesigner.h"
 #include "engine/leveldesigner.h"
 #include "engine/world.h"
+#include "engine/debug.h"
 #include "engine/runtime.h"
 #include "engine/processes.h"
 #include "engine/audio.h"

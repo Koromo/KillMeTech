@@ -41,7 +41,7 @@ namespace killme
         virtual void build() {}
 
         /** Tick game world */
-        virtual void tick() {}
+        virtual void tick(float dt_s) {}
     };
 }
 

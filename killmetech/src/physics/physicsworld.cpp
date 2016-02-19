@@ -88,9 +88,10 @@ namespace killme
         }
     }
 
-    void PhysicsWorld::tick(float dt)
+    void PhysicsWorld::tick(float dt_s)
     {
-        world_->stepSimulation(dt);
+        const auto fixedTimeStep = 0.01666666754f;
+        world_->stepSimulation(dt_s, static_cast<int>(dt_s / fixedTimeStep + 1.0001f), fixedTimeStep);
         if (debugDrawer_)
         {
             world_->debugDrawWorld();

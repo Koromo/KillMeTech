@@ -8,6 +8,7 @@
 namespace killme
 {
     class Camera;
+    struct Viewport;
 
     /** The camera component adds definition of virtual camera for render scene into an actor */
     class CameraComponent : public TransformComponent
@@ -19,6 +20,15 @@ namespace killme
     public:
         /** Constructs */
         CameraComponent();
+
+        /** Set viewport */
+        void setViewport(const Viewport& vp);
+
+        /** Projection modifiers */
+        void setFovX(float rad);
+        void setAspectRate(float aspect); /// NOTE: w/h
+        void setNearZ(float z);
+        void setFarZ(float z);
 
         void onAttached();
         void onDettached();

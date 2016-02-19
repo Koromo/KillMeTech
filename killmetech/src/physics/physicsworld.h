@@ -47,7 +47,7 @@ namespace killme
         void removeRigidBody(const std::shared_ptr<RigidBody>& body);
 
         /** Advance world time */
-        void tick(float dt);
+        void tick(float dt_s);
     };
 }
 

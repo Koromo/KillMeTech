@@ -81,11 +81,11 @@ namespace killme
         }
     }
 
-    void Actor::tick()
+    void Actor::tick(float dt_s)
     {
         if (designer_)
         {
-            designer_->onTicked();
+            designer_->onTicked(dt_s);
         }
     }
 

@@ -2,6 +2,7 @@
 #define _KILLME_AUDIOEMITTERCOMPONENT_H_
 
 #include "transformcomponent.h"
+#include "../../audio/audio3d.h"
 #include "../../processes/process.h"
 #include <memory>
 #include <string>
@@ -15,6 +16,7 @@ namespace killme
     {
     private:
         std::shared_ptr<SourceVoice> voice_;
+        EmitterParams params_;
         Process process_;
 
     public:

@@ -104,7 +104,7 @@ namespace killme
         }
 
         /** Tick actor */
-        void tick();
+        void tick(float dt_s);
 
     private:
         template <class T, class... Args>

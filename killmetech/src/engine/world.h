@@ -47,7 +47,7 @@ namespace killme
         std::shared_ptr<Actor> findActor(const std::string& name);
 
         /** Tick actors */
-        void tickActors();
+        void tickActors(float dt_s);
     };
 }
 

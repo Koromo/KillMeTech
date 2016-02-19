@@ -3,6 +3,7 @@
 
 #include "transformcomponent.h"
 #include "../../processes/process.h"
+#include "../../audio/audio3d.h"
 
 namespace killme
 {
@@ -11,6 +12,7 @@ namespace killme
     {
     private:
         Process process_;
+        ListenerParams params_;
 
     public:
         void onAttached();

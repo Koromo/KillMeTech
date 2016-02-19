@@ -28,7 +28,7 @@ namespace killme
         virtual void onKilled() {}
 
         /** Called on actor ticked */
-        virtual void onTicked() {}
+        virtual void onTicked(float dt_s) {}
     };
 }
 

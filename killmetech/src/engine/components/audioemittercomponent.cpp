@@ -2,16 +2,18 @@
 #include "../audio.h"
 #include "../resources.h"
 #include "../processes.h"
+#include "../runtime.h"
 #include "../../audio/sourcevoice.h"
 #include "../../audio/audioclip.h"
-#include "../../audio/audio3d.h"
 
 namespace killme
 {
     AudioEmitterComponent::AudioEmitterComponent(const std::string& path)
         : voice_(Audio::createSourceVoice(Resources::load<AudioClip>(path)))
+        , params_()
         , process_()
     {
+        params_.voice = voice_;
     }
 
     void AudioEmitterComponent::play()
@@ -65,10 +67,16 @@ namespace killme
 
     void AudioEmitterComponent::tickAudioWorld()
     {
-        EmitterParams params;
-        params.position = getWorldPosition();
-        params.orientation = getWorldOrientation();
-        params.voice = voice_;
-        Audio::apply3DEmission(params);
+        const auto dt_s = RunTime::getDeltaTime();
+
+        const auto nowPos = getWorldPosition();
+        const auto prePos = params_.position;
+
+        params_.position = getWorldPosition();
+        params_.orientation = getWorldOrientation();
+        params_.velocity = (nowPos - prePos) / dt_s;
+        params_.voice = voice_;
+
+        Audio::apply3DEmission(params_);
     }
 }
