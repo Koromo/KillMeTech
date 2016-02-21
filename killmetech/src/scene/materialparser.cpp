@@ -26,13 +26,13 @@ namespace killme
     {
         struct ParseNode;
         struct RootParser;
-        struct Block_Parameters;
+        struct Block_parameters;
         struct Elem_float4;
-        //struct Block_Shader;
+        //struct Block_shader;
         struct Elem_compile;
         struct Elem_map;
-        struct Block_Technique;
-        struct Block_Pass;
+        struct Block_technique;
+        struct Block_pass;
         //struct Elem_shaderRef;
 
         // For parse .material
@@ -179,10 +179,10 @@ namespace killme
             }
         };
 
-        // Parse "Parameters" block
-        struct Block_Parameters : ParseNode
+        // Parse "parameters" block
+        struct Block_parameters : ParseNode
         {
-            Block_Parameters()
+            Block_parameters()
             {
                 mapChildParser<Elem_float4>("float4");
             }
@@ -261,13 +261,13 @@ namespace killme
             }
         };
 
-        // Parse "VertexShader" and "PixelShader" block
+        // Parse "vertex_shader" and "pixel_shader" block
         template <class Shader>
-        struct Block_Shader : ParseNode
+        struct Block_shader : ParseNode
         {
             std::string refName;
 
-            Block_Shader()
+            Block_shader()
             {
                 mapChildParser<Elem_compile>("compile");
                 mapChildParser<Elem_map>("map");
@@ -305,11 +305,11 @@ namespace killme
             }
         };
 
-        // Parse "vertexShaderRef" and "pixelShaderRef" element
+        // Parse "vertex_shader_ref" and "pixel_shader_ref" element
         template <class Shader>
         struct Elem_shaderRef : ParseNode
         {
-            std::string useShaderRef;
+            std::string useShader;
 
             void parse(ParseContext& context)
             {
@@ -317,7 +317,7 @@ namespace killme
                 ++context.currentToken;
 
                 // Store reference shader
-                useShaderRef = *context.currentToken;
+                useShader = *context.currentToken;
                 context.currentToken += 3;
             }
 
@@ -325,19 +325,19 @@ namespace killme
             {
                 // Set shader reference into current builder
                 context.currentPass->shaderRef<Shader>() =
-                    context.shaderRefMap<Shader>()[useShaderRef].make<Shader>(context.renderSystem, context.resourceManager);
+                    context.shaderRefMap<Shader>()[useShader].make<Shader>(context.renderSystem, context.resourceManager);
             }
         };
 
-        // Parse "Pass" block
-        struct Block_Pass : ParseNode
+        // Parse "pass" block
+        struct Block_pass : ParseNode
         {
             size_t index;
 
-            Block_Pass()
+            Block_pass()
             {
-                mapChildParser<Elem_shaderRef<VertexShader>>("vertexShaderRef");
-                mapChildParser<Elem_shaderRef<PixelShader>>("pixelShaderRef");
+                mapChildParser<Elem_shaderRef<VertexShader>>("vertex_shader_ref");
+                mapChildParser<Elem_shaderRef<PixelShader>>("pixel_shader_ref");
             }
 
             void parse(ParseContext& context)
@@ -371,14 +371,14 @@ namespace killme
             }
         };
 
-        // Parse "Technique" block
-        struct Block_Technique : ParseNode
+        // Parse "technique" block
+        struct Block_technique : ParseNode
         {
             std::string name;
 
-            Block_Technique()
+            Block_technique()
             {
-                mapChildParser<Block_Pass>("Pass");
+                mapChildParser<Block_pass>("pass");
             }
 
             void parse(ParseContext& context)
@@ -417,10 +417,10 @@ namespace killme
         {
             RootParser()
             {
-                mapChildParser<Block_Parameters>("Parameters");
-                mapChildParser<Block_Shader<VertexShader>>("VertexShader");
-                mapChildParser<Block_Shader<PixelShader>>("PixelShader");
-                mapChildParser<Block_Technique>("Technique");
+                mapChildParser<Block_parameters>("parameters");
+                mapChildParser<Block_shader<VertexShader>>("vertex_shader");
+                mapChildParser<Block_shader<PixelShader>>("pixel_shader");
+                mapChildParser<Block_technique>("technique");
             }
 
             void parse(ParseContext& context)
