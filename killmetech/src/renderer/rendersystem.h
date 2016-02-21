@@ -88,8 +88,8 @@ namespace killme
         std::shared_ptr<CommandList> createCommandList();
 
         /** Stores a resource into a resource heap */
-        template <class Resource>
-        typename Resource::View createGpuResourceView(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<Resource>& resource)
+        template <class GpuResource>
+        typename GpuResource::View createGpuResourceView(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<GpuResource>& resource)
         {
             const auto d3dHeap = heap->getD3DHeap();
             const auto heapType = heap->getType();

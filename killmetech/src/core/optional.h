@@ -39,9 +39,14 @@ namespace killme
         }
 
         /** Constructs with a value */
-        template <class U>
-        Optional(U&& value)
-            : value_(std::make_unique<T>(std::forward<U>(value)))
+        Optional(const T& value)
+            : value_(std::make_unique<T>(value))
+        {
+        }
+
+        /** ditto */
+        Optional(T&& value)
+            : value_(std::make_unique<T>(std::move(value)))
         {
         }
 
@@ -69,6 +74,7 @@ namespace killme
         }
 
         /** Assignment operator with a value */
+        /// TODO:
         template <class U>
         Optional& operator =(U&& value)
         {

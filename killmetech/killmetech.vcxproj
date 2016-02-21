@@ -66,6 +66,9 @@
     <ClCompile Include="src\resources\resource.cpp" />
     <ClCompile Include="src\resources\resourcemanager.cpp" />
     <ClCompile Include="src\scene\debugdrawmanager.cpp" />
+    <ClCompile Include="src\scene\effectpass.cpp" />
+    <ClCompile Include="src\scene\effectshaderref.cpp" />
+    <ClCompile Include="src\scene\effecttechnique.cpp" />
     <ClCompile Include="src\scene\material.cpp" />
     <ClCompile Include="src\scene\materialparser.cpp" />
     <ClCompile Include="src\scene\meshentity.cpp" />
@@ -89,6 +92,7 @@
     <ClInclude Include="src\core\math\vector3.h" />
     <ClInclude Include="src\core\optional.h" />
     <ClInclude Include="src\core\string.h" />
+    <ClInclude Include="src\core\tree.h" />
     <ClInclude Include="src\core\utility.h" />
     <ClInclude Include="src\core\variant.h" />
     <ClInclude Include="src\engine\actor.h" />
@@ -143,6 +147,9 @@
     <ClInclude Include="src\resources\resourcemanager.h" />
     <ClInclude Include="src\scene\camera.h" />
     <ClInclude Include="src\scene\debugdrawmanager.h" />
+    <ClInclude Include="src\scene\effectpass.h" />
+    <ClInclude Include="src\scene\effectshaderref.h" />
+    <ClInclude Include="src\scene\effecttechnique.h" />
     <ClInclude Include="src\scene\material.h" />
     <ClInclude Include="src\scene\mesh.h" />
     <ClInclude Include="src\scene\meshentity.h" />

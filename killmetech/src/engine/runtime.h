@@ -7,6 +7,7 @@ namespace killme
 {
     class LevelDesigner;
 
+    /** Frame rate definition */
     enum class FrameRate : size_t
     {
         noLimit,

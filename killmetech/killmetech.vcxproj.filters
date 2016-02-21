@@ -207,6 +207,15 @@
     <ClCompile Include="src\engine\components\transformcomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
+    <ClCompile Include="src\scene\effecttechnique.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\effectpass.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\effectshaderref.cpp">
+      <Filter>src\scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -442,6 +451,18 @@
     </ClInclude>
     <ClInclude Include="src\engine\components\transformcomponent.h">
       <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\tree.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\effectshaderref.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\effectpass.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\effecttechnique.h">
+      <Filter>src\scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,74 +1,42 @@
 #ifndef _KILLME_MATERIAL_H_
 #define _KILLME_MATERIAL_H_
 
-#include "../renderer/shader.h"
-#include "../renderer/constantbuffer.h"
 #include "../resources/resource.h"
-#include "../core/optional.h"
-#include "../core/utility.h"
-#include <memory>
 #include <string>
 #include <unordered_map>
-#include <utility>
+#include <memory>
 
 namespace killme
 {
-    class GpuResourceHeap;
-    class VertexShader;
-    class PixelShader;
-    class PipelineState;
-    class RootSignature;
-    class RootSignatureDescription;
     class RenderSystem;
     class ResourceManager;
-    struct SceneConstantBuffers;
+    class EffectTechnique;
 
-    /** The material */
+    /** The material control the view of vertices */
     class Material : public IsResource
     {
     private:
-        std::shared_ptr<PipelineState> pipeline_;
-        std::shared_ptr<GpuResourceHeap> paramHeap_;
-        std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>> paramHeapTable_;
-        Optional<ConstantBufferDescription> vsParamDesc_;
-        Optional<ConstantBufferDescription> psParamDesc_;
-        std::shared_ptr<ConstantBuffer> vsParamBuffer_;
-        std::shared_ptr<ConstantBuffer> psParamBuffer_;
+        std::string useTech_;
+        std::unordered_map<std::string, std::shared_ptr<EffectTechnique>> techMap_;
 
     public:
-        /** Constructs with each shaders */
-        Material(RenderSystem& renderSystem, const Resource<VertexShader>& vs, const Resource<PixelShader>& ps);
-
-        /** Sets a variable parameter */
+        /** Set  variable parameter */
         template <class T>
         void setVariable(const std::string& name, const T& value)
         {
             setVariableImpl(name, &value);
         }
 
-        /** Returns the pipeline state */
-        std::shared_ptr<PipelineState> getPipelineState();
+        /** Add technique */
+        void addTechnique(const std::string& name, const std::shared_ptr<EffectTechnique>& tech);
 
-        /** Returns the constant buffer heap */
-        auto getConstantBufferHeaps()
-            -> decltype(makeRange(std::vector<std::shared_ptr<GpuResourceHeap>>()))
-        {
-            std::vector<std::shared_ptr<GpuResourceHeap>> heaps = { paramHeap_ };
-            return makeRange(std::move(heaps));
-        }
+        /** Return current technique */
+        std::shared_ptr<EffectTechnique> getUseTechnique();
 
-        /** Returns bind tables that are pair of the root parameter index and the heap */
-        auto getConstantBufferHeapTables()
-            -> decltype(makeRange(paramHeapTable_))
-        {
-            return makeRange(paramHeapTable_);
-        }
+        /** Change current technique */
+        void selectTechnique(const std::string& name);
 
     private:
-        std::shared_ptr<ConstantBuffer> initParams(RenderSystem& renderSystem,
-            const ConstantBufferDescription& paramDesc, RootSignatureDescription& rootSigDesc,
-            ShaderType visible, size_t rootParamIndex, size_t offsetInHeap);
-
         void setVariableImpl(const std::string& name, const void* data);
     };
 

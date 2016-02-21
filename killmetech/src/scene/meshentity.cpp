@@ -1,6 +1,8 @@
 #include "meshentity.h"
 #include "mesh.h"
 #include "material.h"
+#include "effecttechnique.h"
+#include "effectpass.h"
 #include "renderqueue.h"
 #include "scene.h"
 #include "scenenode.h"
@@ -45,44 +47,46 @@ namespace killme
         {
             // Update constant buffers
             const auto material = subMesh.second->getMaterial();
-            material.access()->setVariable("viewMatrix", context.viewMatrix);
-            material.access()->setVariable("projMatrix", context.projMatrix);
-            material.access()->setVariable("worldMatrix", worldMatrix);
+            material.access()->setVariable("_ViewMatrix", context.viewMatrix);
+            material.access()->setVariable("_ProjMatrix", context.projMatrix);
+            material.access()->setVariable("_WorldMatrix", worldMatrix);
 
-            // Collect render resources
             const auto vertexData = subMesh.second->getVertexData();
-            const auto pipelineState = material.access()->getPipelineState();
-            const auto rootSignature = pipelineState->describe().rootSignature;
-            const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
-            const auto& vertexBinder = vertexData->getBinder(inputLayout);
             const auto indexBuffer = vertexData->getIndexBuffer();
-            const auto heaps = material.access()->getConstantBufferHeaps();
-            const auto heapTables = material.access()->getConstantBufferHeapTables();
-
-            // Add draw commands
-            context.renderSystem->beginCommands(context.commandList, pipelineState);
-
-            context.commandList->resourceBarrior(context.frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-            context.commandList->setRenderTarget(context.frame.backBufferView, context.frame.depthStencilView);
-            context.commandList->setViewport(context.viewport);
-            context.commandList->setScissorRect(context.scissorRect);
-            context.commandList->setPrimitiveTopology(PrimitiveTopology::triangeList);
-            context.commandList->setVertexBuffers(vertexBinder);
-            context.commandList->setIndexBuffer(indexBuffer);
-
-            context.commandList->setRootSignature(rootSignature);
-            context.commandList->setGpuResourceHeaps(heaps, heaps.length());
-            for (const auto& t : heapTables)
+            for (const auto& pass : material.access()->getUseTechnique()->getPasses()) // For each passes
             {
-                context.commandList->setGpuResourceTable(t.first, t.second);
+                const auto pipelineState = pass.second->getPipelineState();
+                const auto rootSignature = pipelineState->describe().rootSignature;
+                const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
+                const auto& vertexBinder = vertexData->getBinder(inputLayout);
+                const auto heaps = pass.second->getGpuResourceHeaps();
+                const auto heapTables = pass.second->getGpuResourceHeapTables();
+
+                // Add draw commands
+                context.renderSystem->beginCommands(context.commandList, pipelineState);
+
+                context.commandList->resourceBarrior(context.frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+                context.commandList->setRenderTarget(context.frame.backBufferView, context.frame.depthStencilView);
+                context.commandList->setViewport(context.viewport);
+                context.commandList->setScissorRect(context.scissorRect);
+                context.commandList->setPrimitiveTopology(PrimitiveTopology::triangeList);
+                context.commandList->setVertexBuffers(vertexBinder);
+                context.commandList->setIndexBuffer(indexBuffer);
+
+                context.commandList->setRootSignature(rootSignature);
+                context.commandList->setGpuResourceHeaps(heaps, heaps.length());
+                for (const auto& t : heapTables)
+                {
+                    context.commandList->setGpuResourceTable(t.first, t.second);
+                }
+
+                context.commandList->drawIndexed(indexBuffer->getNumIndices());
+                context.commandList->resourceBarrior(context.frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+
+                context.commandList->endCommands();
+
+                context.renderSystem->executeCommands(context.commandList);
             }
-
-            context.commandList->drawIndexed(indexBuffer->getNumIndices());
-            context.commandList->resourceBarrior(context.frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
-
-            context.commandList->endCommands();
-            
-            context.renderSystem->executeCommands(context.commandList);
         }
     }
 }
