@@ -35,6 +35,7 @@
     <ClCompile Include="src\engine\components\audioemittercomponent.cpp" />
     <ClCompile Include="src\engine\components\audiolistenercomponent.cpp" />
     <ClCompile Include="src\engine\components\cameracomponent.cpp" />
+    <ClCompile Include="src\engine\components\lightcomponent.cpp" />
     <ClCompile Include="src\engine\components\meshcomponent.cpp" />
     <ClCompile Include="src\engine\components\rigidbodycomponent.cpp" />
     <ClCompile Include="src\engine\components\transformcomponent.cpp" />
@@ -58,6 +59,7 @@
     <ClCompile Include="src\renderer\commandlist.cpp" />
     <ClCompile Include="src\renderer\d3dsupport.cpp" />
     <ClCompile Include="src\renderer\pixelshader.cpp" />
+    <ClCompile Include="src\renderer\renderstate.cpp" />
     <ClCompile Include="src\renderer\rendersystem.cpp" />
     <ClCompile Include="src\renderer\rootsignature.cpp" />
     <ClCompile Include="src\renderer\shader.cpp" />
@@ -102,6 +104,7 @@
     <ClInclude Include="src\engine\components\audioemittercomponent.h" />
     <ClInclude Include="src\engine\components\audiolistenercomponent.h" />
     <ClInclude Include="src\engine\components\cameracomponent.h" />
+    <ClInclude Include="src\engine\components\lightcomponent.h" />
     <ClInclude Include="src\engine\components\meshcomponent.h" />
     <ClInclude Include="src\engine\components\rigidbodycomponent.h" />
     <ClInclude Include="src\engine\components\transformcomponent.h" />
@@ -150,6 +153,7 @@
     <ClInclude Include="src\scene\effectpass.h" />
     <ClInclude Include="src\scene\effectshaderref.h" />
     <ClInclude Include="src\scene\effecttechnique.h" />
+    <ClInclude Include="src\scene\light.h" />
     <ClInclude Include="src\scene\material.h" />
     <ClInclude Include="src\scene\mesh.h" />
     <ClInclude Include="src\scene\meshentity.h" />

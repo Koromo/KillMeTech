@@ -22,6 +22,32 @@ namespace killme
         int right;
         int bottom;
     };
+
+    /** The blend state */
+    enum class Blend
+    {
+        one,
+        zero
+    };
+
+    enum class BlendOp
+    {
+        add,
+        subtract,
+        min,
+        max
+    };
+
+    struct BlendState
+    {
+        bool enable;
+        Blend src;
+        Blend dest;
+        BlendOp op;
+
+        /** Default blend state */
+        static const BlendState DEFAULT;
+    };
 }
 
 #endif

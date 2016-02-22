@@ -73,10 +73,11 @@ namespace killme
 
     void PhysicsWorld::addRigidBody(const std::shared_ptr<RigidBody>& body)
     {
-        const auto check = rigidBodies_.emplace(body);
-        assert(check.second && "Conflicts the rigid body.");
-
-        world_->addRigidBody(body->getBtBody());
+        const auto added = rigidBodies_.emplace(body);
+        if (added.second)
+        {
+            world_->addRigidBody(body->getBtBody());
+        }
     }
 
     void PhysicsWorld::removeRigidBody(const std::shared_ptr<RigidBody>& body)

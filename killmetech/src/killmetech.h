@@ -19,6 +19,7 @@
 #include "engine/components/audioemittercomponent.h"
 #include "engine/components/audiolistenercomponent.h"
 #include "engine/components/cameracomponent.h"
+#include "engine/components/lightcomponent.h"
 #include "engine/components/meshcomponent.h"
 #include "engine/components/rigidbodycomponent.h"
 
@@ -43,7 +44,11 @@
 #include "hid/keycode.h"
 
 #include "scene/camera.h"
+#include "scene/light.h"
 #include "scene/material.h"
+#include "scene/effecttechnique.h"
+#include "scene/effectpass.h"
+#include "scene/effectshaderref.h"
 #include "scene/mesh.h"
 #include "scene/meshentity.h"
 #include "scene/renderqueue.h"

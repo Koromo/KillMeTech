@@ -52,6 +52,7 @@ namespace killme
         pipelineDesc.rootSignature = rootSig;
         pipelineDesc.vertexShader = vs;
         pipelineDesc.pixelShader = ps;
+        pipelineDesc.blend = BlendState::DEFAULT;
         pipeline_ = renderSystem_->createPipelineState(pipelineDesc);
 
         commandList_ = renderSystem_->createCommandList();

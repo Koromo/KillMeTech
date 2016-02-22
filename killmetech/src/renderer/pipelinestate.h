@@ -1,6 +1,7 @@
 #ifndef _KILLME_PIPELINESTATE_H_
 #define _KILLME_PIPELINESTATE_H_
 
+#include "renderstate.h"
 #include "../resources/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -18,6 +19,7 @@ namespace killme
         std::shared_ptr<RootSignature> rootSignature;
         Resource<VertexShader> vertexShader;
         Resource<PixelShader> pixelShader;
+        BlendState blend;
     };
 
     /** The pipeline state */

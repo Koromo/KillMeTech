@@ -1,6 +1,7 @@
 #ifndef _KILLME_EFFECTPASS_H_
 #define _KILLME_EFFECTPASS_H_
 
+#include "../renderer/renderstate.h"
 #include "../core/utility.h"
 #include <memory>
 #include <unordered_map>
@@ -13,6 +14,14 @@ namespace killme
     class PipelineState;
     class GpuResourceHeap;
 
+    struct EffectPassCreation
+    {
+        std::shared_ptr<EffectShaderRef> vsRef;
+        std::shared_ptr<EffectShaderRef> psRef;
+        bool forEachLight;
+        BlendState blendState;
+    };
+
     /** Effect pass */
     class EffectPass
     {
@@ -22,11 +31,14 @@ namespace killme
         std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>> resourceHeapTable_;
         std::shared_ptr<EffectShaderRef> vsRef_;
         std::shared_ptr<EffectShaderRef> psRef_;
+        bool forEachLight_;
 
     public:
         /** Construct */
-        EffectPass(RenderSystem& renderSystem,
-            const std::shared_ptr<EffectShaderRef>& vsRef, const std::shared_ptr<EffectShaderRef>& psRef);
+        EffectPass(RenderSystem& renderSystem, const EffectPassCreation& creation);
+
+        /** Whether this is lighting pass */
+        bool forEachLight() const;
 
         /** Update constant */
         void updateConstant(const std::string& param, const void* data);

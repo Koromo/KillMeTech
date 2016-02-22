@@ -2,6 +2,7 @@
 #define _KILLME_UTILITY_H_
 
 #include <utility>
+#include <type_traits>
 
 namespace killme
 {
@@ -12,6 +13,8 @@ namespace killme
         {
             It begin_;
             It end_;
+
+            RangeFromIterator() = default;
 
             RangeFromIterator(It begin, It end)
                 : begin_(begin)
@@ -45,6 +48,8 @@ namespace killme
         struct RangeWithMove
         {
             C c_;
+
+            RangeWithMove() = default;
 
             RangeWithMove(C&& c)
                 : c_(std::move(c))
@@ -126,6 +131,10 @@ namespace killme
     {
         return detail::RangeWithMove<C>(std::move(c));
     }
+
+    /** The alias of decltype(makeRange(C)) */
+    template <class C>
+    using Range_t = decltype(makeRange(std::forward<C>(std::declval<C>())));
 
     /** The type converter */
     template <class T, class U>

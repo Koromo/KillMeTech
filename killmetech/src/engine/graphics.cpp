@@ -61,6 +61,21 @@ namespace killme
         renderSystem.reset();
     }
 
+    void Graphics::setAmbientLight(const Color& c)
+    {
+        scene->setAmbientLight(c);
+    }
+    
+    void Graphics::addLight(const std::shared_ptr<Light>& light)
+    {
+        scene->addLight(light);
+    }
+    
+    void Graphics::removeLight(const std::shared_ptr<Light>& light)
+    {
+        scene->removeLight(light);
+    }
+
     std::shared_ptr<RenderSystem> Graphics::getRenderSystem()
     {
         return renderSystem;

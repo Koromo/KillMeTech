@@ -9,14 +9,16 @@
 
 namespace killme
 {
-    EffectPass::EffectPass(RenderSystem& renderSystem,
-        const std::shared_ptr<EffectShaderRef>& vsRef, const std::shared_ptr<EffectShaderRef>& psRef)
+    EffectPass::EffectPass(RenderSystem& renderSystem, const EffectPassCreation& creation)
         : pipeline_()
         , resourceHeap_()
         , resourceHeapTable_()
-        , vsRef_(vsRef)
-        , psRef_(psRef)
+        , vsRef_(creation.vsRef)
+        , psRef_(creation.psRef)
+        , forEachLight_(creation.forEachLight)
     {
+        assert((vsRef_ && psRef_) && "Effect pass creation error.");
+
         const auto vsCBuffer = vsRef_->describeConstantBuffer();
         const auto psCBuffer = psRef_->describeConstantBuffer();
 
@@ -54,7 +56,13 @@ namespace killme
         pipelineDesc.rootSignature = renderSystem.createRootSignature(rootSigDesc);
         pipelineDesc.vertexShader = vsRef_->getReferenceVertexShader();
         pipelineDesc.pixelShader = psRef_->getReferencePixelShader();
+        pipelineDesc.blend = creation.blendState;
         pipeline_ = renderSystem.createPipelineState(pipelineDesc);
+    }
+
+    bool EffectPass::forEachLight() const
+    {
+        return forEachLight_;
     }
 
     void EffectPass::updateConstant(const std::string& param, const void* data)

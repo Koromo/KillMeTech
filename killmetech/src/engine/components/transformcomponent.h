@@ -28,7 +28,6 @@ namespace killme
 #endif
 
         void onAttached();
-
         void onDettached();
 
     protected:

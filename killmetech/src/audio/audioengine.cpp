@@ -65,29 +65,31 @@ namespace killme
         return std::make_shared<SourceVoice>(xAudio_, clip);
     }
 
-    template <>
-    X3DAUDIO_VECTOR to<X3DAUDIO_VECTOR, Vector3>(const Vector3& v)
+    namespace
     {
-        return{ v.x, v.y, v.z };
+        X3DAUDIO_VECTOR toX3DAudioVector(const Vector3& v)
+        {
+            return{ v.x, v.y, v.z };
 
+        }
     }
 
     void AudioEngine::set3DListener(const ListenerParams& params)
     {
-        listener_.OrientFront = to<X3DAUDIO_VECTOR>(params.orientation * Vector3::UNIT_Z);
-        listener_.OrientTop = to<X3DAUDIO_VECTOR>(params.orientation * Vector3::UNIT_Y);
-        listener_.Position = to<X3DAUDIO_VECTOR>(params.position);
-        listener_.Velocity = to<X3DAUDIO_VECTOR>(params.velocity);
+        listener_.OrientFront = toX3DAudioVector(params.orientation * Vector3::UNIT_Z);
+        listener_.OrientTop = toX3DAudioVector(params.orientation * Vector3::UNIT_Y);
+        listener_.Position = toX3DAudioVector(params.position);
+        listener_.Velocity = toX3DAudioVector(params.velocity);
     }
 
     void AudioEngine::apply3DEmission(const EmitterParams& params)
     {
         X3DAUDIO_EMITTER emitter;
         ZeroMemory(&emitter, sizeof(emitter));
-        emitter.OrientFront = to<X3DAUDIO_VECTOR>(params.orientation * Vector3::UNIT_Z);
-        emitter.OrientTop = to<X3DAUDIO_VECTOR>(params.orientation * Vector3::UNIT_Y);
-        emitter.Position = to<X3DAUDIO_VECTOR>(params.position);
-        emitter.Velocity = to<X3DAUDIO_VECTOR>(params.velocity);
+        emitter.OrientFront = toX3DAudioVector(params.orientation * Vector3::UNIT_Z);
+        emitter.OrientTop = toX3DAudioVector(params.orientation * Vector3::UNIT_Y);
+        emitter.Position = toX3DAudioVector(params.position);
+        emitter.Velocity = toX3DAudioVector(params.velocity);
 
         /// TODO:
         emitter.InnerRadius = 30;

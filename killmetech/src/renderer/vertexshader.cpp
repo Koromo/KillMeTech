@@ -14,6 +14,8 @@ namespace killme
         DXGI_FORMAT getVertexFormat(const std::string& semanticName)
         {
             if (semanticName == "POSITION") { return DXGI_FORMAT_R32G32B32_FLOAT; }
+            if (semanticName == "NORMAL") { return DXGI_FORMAT_R32G32B32_FLOAT; }
+            if (semanticName == "TEXCOORD") { return DXGI_FORMAT_R32G32_FLOAT; }
             if (semanticName == "COLOR")    { return DXGI_FORMAT_R32G32B32A32_FLOAT; }
             assert(false && "Invalid vertex semantic name.");
             return DXGI_FORMAT_UNKNOWN; // For warnings

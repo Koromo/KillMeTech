@@ -9,7 +9,9 @@ namespace killme
     class Scene;
     class SceneNode;
     class Camera;
+    class Light;
     class RenderSystem;
+    class Color;
     struct Viewport;
 
     /** Rendering subsystem */
@@ -20,6 +22,15 @@ namespace killme
 
         /** Shutdown rendering subsystem */
         static void shutdown();
+
+        /** Set amgient light */
+        static void setAmbientLight(const Color& c);
+
+        /** Set a light */
+        static void addLight(const std::shared_ptr<Light>& light);
+
+        /** Remove a light */
+        static void removeLight(const std::shared_ptr<Light>& light);
 
         /** Returns render system */
         static std::shared_ptr<RenderSystem> getRenderSystem();

@@ -2,6 +2,7 @@
 #include "effecttechnique.h"
 #include "effectpass.h"
 #include "effectshaderref.h"
+#include "../renderer/renderstate.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/vertexshader.h"
 #include "../renderer/pixelshader.h"
@@ -24,16 +25,64 @@ namespace killme
 {
     namespace
     {
+        Blend toBlend(const std::string& str)
+        {
+            if (str == "one")
+            {
+                return Blend::one;
+            }
+            else if (str == "zero")
+            {
+               return  Blend::zero;
+            }
+            else
+            {
+                assert(false && "Invalid blend.");
+                return Blend::one;
+            }
+        }
+
+        BlendOp toBlendOp(const std::string& str)
+        {
+            if (str == "add")
+            {
+                return BlendOp::add;
+            }
+            else if (str == "subtract")
+            {
+                return  BlendOp::subtract;
+            }
+            else if (str == "min")
+            {
+                return  BlendOp::min;
+            }
+            else if (str == "max")
+            {
+                return BlendOp::max;
+            }
+            else
+            {
+                assert(false && "Invalid blend.");
+                return BlendOp::add;
+            }
+        }
+
         struct ParseNode;
         struct RootParser;
         struct Block_parameters;
         struct Elem_float4;
         //struct Block_shader;
-        struct Elem_compile;
+        struct Elem_source;
         struct Elem_map;
         struct Block_technique;
         struct Block_pass;
         //struct Elem_shaderRef;
+        struct Elem_forEachLight;
+        struct Elem_blend_enable;
+        struct Elem_blend_src;
+        struct Elem_blend_dest;
+        struct Elem_blend_op;
+
 
         // For parse .material
         struct ParseContext
@@ -67,8 +116,14 @@ namespace killme
         // Build infomations for pass
         struct PassBuild
         {
-            std::shared_ptr<EffectShaderRef> vsRef;
-            std::shared_ptr<EffectShaderRef> psRef;
+            EffectPassCreation creation;
+
+            PassBuild()
+                : creation()
+            {
+                creation.forEachLight = false;
+                creation.blendState = BlendState::DEFAULT;
+            }
 
             template <class Shader>
             std::shared_ptr<EffectShaderRef>& shaderRef();
@@ -76,20 +131,19 @@ namespace killme
             template <>
             std::shared_ptr<EffectShaderRef>& shaderRef<VertexShader>()
             {
-                return vsRef;
+                return creation.vsRef;
             }
 
             template <>
             std::shared_ptr<EffectShaderRef>& shaderRef<PixelShader>()
             {
-                return psRef;
+                return creation.psRef;
             }
 
             // Make EffectPass
             std::shared_ptr<EffectPass> make(RenderSystem& rs)
             {
-                assert((vsRef && psRef) && "Build pass error.");
-                return std::make_shared<EffectPass>(rs, vsRef, psRef);
+                 return std::make_shared<EffectPass>(rs, creation);
             }
         };
 
@@ -114,6 +168,9 @@ namespace killme
                 params.emplace("_WorldMatrix");
                 params.emplace("_ViewMatrix");
                 params.emplace("_ProjMatrix");
+                params.emplace("_AmbientLight");
+                params.emplace("_LightColor");
+                params.emplace("_LightDirection");
             }
 
             template <class T>
@@ -211,19 +268,19 @@ namespace killme
             }
         };
 
-        // Parse "compile" element
-        struct Elem_compile : ParseNode
+        // Parse "source" element
+        struct Elem_source : ParseNode
         {
             std::string path;
 
             void parse(ParseContext& context)
             {
-                assert(*context.currentToken == "(" && "Material parse error.");
+                assert(*context.currentToken == "=" && "Material parse error.");
                 ++context.currentToken;
 
                 // Store shader path
                 path = *context.currentToken;
-                context.currentToken += 3;
+                context.currentToken += 2;
             }
 
             void build(BuildContext& context)
@@ -269,7 +326,7 @@ namespace killme
 
             Block_shader()
             {
-                mapChildParser<Elem_compile>("compile");
+                mapChildParser<Elem_source>("source");
                 mapChildParser<Elem_map>("map");
             }
 
@@ -305,6 +362,116 @@ namespace killme
             }
         };
 
+        // Parse "blend_enable" element
+        struct Elem_blend_enable : ParseNode
+        {
+            bool enable;
+
+            void parse(ParseContext& context)
+            {
+                assert(*context.currentToken == "=" && "Material parse error.");
+                ++context.currentToken;
+
+                // Store
+                enable = (*context.currentToken == "true");
+                context.currentToken += 2;
+            }
+
+            void build(BuildContext& context)
+            {
+                // Set flag into current builder
+                context.currentPass->creation.blendState.enable = enable;
+            }
+        };
+
+        // Parse "blend_src" element
+        struct Elem_blend_src : ParseNode
+        {
+            Blend srcBlend;
+
+            void parse(ParseContext& context)
+            {
+                assert(*context.currentToken == "=" && "Material parse error.");
+                ++context.currentToken;
+
+                // Store
+                srcBlend = toBlend(*context.currentToken);
+                context.currentToken += 2;
+            }
+
+            void build(BuildContext& context)
+            {
+                // Set into current builder
+                context.currentPass->creation.blendState.src = srcBlend;
+            }
+        };
+
+        // Parse "blend_dest" element
+        struct Elem_blend_dest : ParseNode
+        {
+            Blend destBlend;
+
+            void parse(ParseContext& context)
+            {
+                assert(*context.currentToken == "=" && "Material parse error.");
+                ++context.currentToken;
+
+                // Store
+                destBlend = toBlend(*context.currentToken);
+                context.currentToken += 2;
+            }
+
+            void build(BuildContext& context)
+            {
+                // Set into current builder
+                context.currentPass->creation.blendState.dest = destBlend;
+            }
+        };
+
+        // Parse "blend_op" element
+        struct Elem_blend_op : ParseNode
+        {
+            BlendOp blendOp;
+
+            void parse(ParseContext& context)
+            {
+                assert(*context.currentToken == "=" && "Material parse error.");
+                ++context.currentToken;
+
+                // Store
+                blendOp = toBlendOp(*context.currentToken);
+                context.currentToken += 2;
+            }
+
+            void build(BuildContext& context)
+            {
+                // Set into current builder
+                context.currentPass->creation.blendState.op = blendOp;
+            }
+        };
+
+        // Parse "for_each_light" element
+        struct Elem_forEachLight : ParseNode
+        {
+            bool iterate;
+
+            void parse(ParseContext& context)
+            {
+                assert(*context.currentToken == "=" && "Material parse error.");
+                ++context.currentToken;
+
+                // Store
+                iterate = (*context.currentToken == "true");
+                context.currentToken += 2;
+            }
+
+            void build(BuildContext& context)
+            {
+                // Set flag into current builder
+                context.currentPass->creation.forEachLight = iterate;
+            }
+        };
+
         // Parse "vertex_shader_ref" and "pixel_shader_ref" element
         template <class Shader>
         struct Elem_shaderRef : ParseNode
@@ -313,12 +480,12 @@ namespace killme
 
             void parse(ParseContext& context)
             {
-                assert(*context.currentToken == "(" && "Material parse error.");
+                assert(*context.currentToken == "=" && "Material parse error.");
                 ++context.currentToken;
 
                 // Store reference shader
                 useShader = *context.currentToken;
-                context.currentToken += 3;
+                context.currentToken += 2;
             }
 
             void build(BuildContext& context)
@@ -338,6 +505,11 @@ namespace killme
             {
                 mapChildParser<Elem_shaderRef<VertexShader>>("vertex_shader_ref");
                 mapChildParser<Elem_shaderRef<PixelShader>>("pixel_shader_ref");
+                mapChildParser<Elem_forEachLight>("for_each_light");
+                mapChildParser<Elem_blend_enable>("blend_enable");
+                mapChildParser<Elem_blend_src>("blend_src");
+                mapChildParser<Elem_blend_dest>("blend_dest");
+                mapChildParser<Elem_blend_op>("blend_op");
             }
 
             void parse(ParseContext& context)
@@ -469,7 +641,7 @@ namespace killme
         }
 
         // Delimiters definition
-        const std::string delims = " \t\n,(){};";
+        const std::string delims = " \t\n,=(){};";
 
         // Step position by find nonspace character
         size_t stepByNonspace(size_t p, const std::string& str)

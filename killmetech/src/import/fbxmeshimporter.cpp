@@ -7,6 +7,7 @@
 #include "../core/exception.h"
 #include <stack>
 #include <vector>
+#include <utility>
 #include <cstdlib>
 #include <cassert>
 
@@ -23,32 +24,87 @@ namespace killme
     {
         struct MeshCache
         {
-            std::vector<float> controlPoints;
+            std::vector<float> positions;
             std::vector<float> uvs;
             std::vector<float> normals;
             std::vector<float> colors;
             std::vector<unsigned short> indices;
         };
 
-        // Parse positions
-        void storeControlPoints(const FbxMesh* mesh, MeshCache& out)
+        const size_t POLYGON_SIZE = 3; // Triange polygon
+
+        // Convert vertices mapped by control point to mapped by polygon vertex
+        std::vector<float> toByPolygonVertexFromByControlPoint(const FbxMesh* mesh, const std::vector<float>& byCP, size_t numElemsInStride)
         {
+            const auto numPolygonVertices = mesh->GetPolygonVertexCount();
+            assert(numPolygonVertices > 0 && "Invalid .fbx mesh.");
+
+            std::vector<float> byPV(numPolygonVertices * numElemsInStride);
+
+            const auto numPolygons = mesh->GetPolygonCount();
+            for (int polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
+            {
+                assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
+                {
+                    const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                    const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexIndex);
+                    for (size_t elemIndexInStride = 0; elemIndexInStride < numElemsInStride; ++elemIndexInStride)
+                    {
+                        byPV[pvIndex  * numElemsInStride + elemIndexInStride] = byCP[cpIndex * numElemsInStride + elemIndexInStride];
+                    }
+                }
+            }
+
+            return byPV;
+        }
+
+        // Parse positions
+        void storePositions(const FbxMesh* mesh, MeshCache& out)
+        {
+            const auto NUM_ELEMS_IN_STRIDE = 3;
+
             const auto numControlPoints = mesh->GetControlPointsCount();
-            out.controlPoints.resize(numControlPoints * 3);
+            std::vector<float> byCP(numControlPoints * NUM_ELEMS_IN_STRIDE);
 
             const auto controlPoints = mesh->GetControlPoints();
-            for (int i = 0; i < numControlPoints; ++i)
+            for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
             {
-                const auto cp = controlPoints[i];
-                out.controlPoints[i * 3] = static_cast<float>(cp[0]);
-                out.controlPoints[i * 3 + 1] = static_cast<float>(cp[1]);
-                out.controlPoints[i * 3 + 2] = static_cast<float>(cp[2]);
+                const auto cp = controlPoints[cpIndex];
+                byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(cp[0]);
+                byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(cp[1]);
+                byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(cp[2]);
+            }
+
+            out.positions = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
+        }
+
+        // Parse indices
+        /// TODO:
+        void storeIndices(const FbxMesh* mesh, MeshCache& out)
+        {
+            const auto numPolygonVertices = mesh->GetPolygonVertexCount();
+            assert(numPolygonVertices > 0 && "Invalid .fbx mesh.");
+
+            out.indices.resize(numPolygonVertices);
+
+            const auto numPolygons = mesh->GetPolygonCount();
+            for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
+            {
+                assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
+                {
+                    const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                    out.indices[pvIndex] = static_cast<unsigned char>(pvIndex);
+                }
             }
         }
 
         // Parse vertex texcoords
         void storeUVs(const FbxMesh* mesh, MeshCache& out)
         {
+            const auto NUM_ELEMS_IN_STRIDE = 2;
+
             const auto numUVElems = mesh->GetElementUVCount();
             assert(numUVElems <= 1 && "Not supported multiple geometry elements about texcoords.");
 
@@ -56,10 +112,6 @@ namespace killme
             {
                 return;
             }
-
-            const auto numStrideElems = 2;
-            const auto numControlPoints = mesh->GetControlPointsCount();
-            out.uvs.resize(numControlPoints * numStrideElems);
 
             const auto uvElem = mesh->GetElementUV(0);
             const auto& directArray = uvElem->GetDirectArray();
@@ -69,7 +121,10 @@ namespace killme
 
             switch (mappingMode)
             {
-            case FbxGeometryElement::eByControlPoint:
+            case FbxGeometryElement::eByControlPoint: {
+                const auto numControlPoints = mesh->GetControlPointsCount();
+                std::vector<float> byCP(numControlPoints * NUM_ELEMS_IN_STRIDE);
+
                 switch (referenceMode)
                 {
                 case FbxGeometryElement::eDirect: {
@@ -78,8 +133,9 @@ namespace killme
                     for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
                     {
                         const auto id = cpIndex;
-                        out.uvs[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                        out.uvs[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
+                        const auto uv = directArray.GetAt(id);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(uv[0]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(uv[1]);
                     }
                     break;
                 }
@@ -90,8 +146,9 @@ namespace killme
                     for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
                     {
                         const auto id = indexArray.GetAt(cpIndex);
-                        out.uvs[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                        out.uvs[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
+                        const auto uv = directArray.GetAt(id);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(uv[0]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(uv[1]);
                     }
                     break;
                 }
@@ -100,9 +157,15 @@ namespace killme
                     assert(false && "The not suppoted reference mode.");
                     break;
                 }
-                break;
 
-            case FbxGeometryElement::eByPolygonVertex:
+                out.uvs = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
+                break;
+            }
+
+            case FbxGeometryElement::eByPolygonVertex: {
+                const auto numPolygonVertices = mesh->GetPolygonVertexCount();
+                std::vector<float> byPV(numPolygonVertices * NUM_ELEMS_IN_STRIDE);
+
                 switch (referenceMode)
                 {
                 case FbxGeometryElement::eDirect: {
@@ -111,15 +174,14 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        const auto polygonSize = mesh->GetPolygonSize(polygonIndex);
-                        assert(polygonSize == 3 && "Not supportted to no triangle polygon.");
-
-                        for (int vertexId = 0; vertexId < polygonSize; ++vertexId)
+                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
-                            const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexId);
-                            const auto id = polygonIndex * 3 + vertexId;
-                            out.uvs[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                            out.uvs[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
+                            const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                            const auto id = pvIndex;
+                            const auto uv = directArray.GetAt(id);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(uv[0]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(uv[1]);
                         }
                     }
                     break;
@@ -131,15 +193,14 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        const auto polygonSize = mesh->GetPolygonSize(polygonIndex);
-                        assert(polygonSize == 3 && "Not supportted to no triangle polygon.");
-
-                        for (int vertexId = 0; vertexId < polygonSize; ++vertexId)
+                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
-                            const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexId);
-                            const auto id = indexArray.GetAt(polygonIndex * 3 + vertexId);
-                            out.uvs[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                            out.uvs[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
+                            const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                            const auto id = indexArray.GetAt(pvIndex);
+                            const auto uv = directArray.GetAt(id);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(uv[0]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(uv[1]);
                         }
                     }
                     break;
@@ -149,7 +210,10 @@ namespace killme
                     assert(false && "The not suppoted reference mode.");
                     break;
                 }
+
+                out.uvs = std::move(byPV);
                 break;
+            }
 
             default:
                 assert(false && "The not suppoted mapping mode.");
@@ -160,17 +224,15 @@ namespace killme
         // Parse vertex normals
         void storeNormals(const FbxMesh* mesh, MeshCache& out)
         {
+            const auto NUM_ELEMS_IN_STRIDE = 3;
+
             const auto numNormalElems = mesh->GetElementNormalCount();
-            assert(numNormalElems <= 1 && "Not supported multiple geometry elements about normal.");
+            assert(numNormalElems <= 1 && "Not supported multiple geometry elements about normals.");
 
             if (numNormalElems == 0)
             {
                 return;
             }
-
-            const auto numStrideElems = 3;
-            const auto numControlPoints = mesh->GetControlPointsCount();
-            out.normals.resize(numControlPoints * numStrideElems);
 
             const auto normalElem = mesh->GetElementNormal(0);
             const auto& directArray = normalElem->GetDirectArray();
@@ -180,7 +242,10 @@ namespace killme
 
             switch (mappingMode)
             {
-            case FbxGeometryElement::eByControlPoint:
+            case FbxGeometryElement::eByControlPoint: {
+                const auto numControlPoints = mesh->GetControlPointsCount();
+                std::vector<float> byCP(numControlPoints * NUM_ELEMS_IN_STRIDE);
+
                 switch (referenceMode)
                 {
                 case FbxGeometryElement::eDirect: {
@@ -189,9 +254,10 @@ namespace killme
                     for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
                     {
                         const auto id = cpIndex;
-                        out.normals[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                        out.normals[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
-                        out.normals[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id)[2]);
+                        const auto normal = directArray.GetAt(id);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(normal[0]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(normal[1]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(normal[2]);
                     }
                     break;
                 }
@@ -202,9 +268,10 @@ namespace killme
                     for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
                     {
                         const auto id = indexArray.GetAt(cpIndex);
-                        out.normals[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                        out.normals[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
-                        out.normals[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id)[2]);
+                        const auto normal = directArray.GetAt(id);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(normal[0]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(normal[1]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(normal[2]);
                     }
                     break;
                 }
@@ -213,9 +280,15 @@ namespace killme
                     assert(false && "The not suppoted reference mode.");
                     break;
                 }
-                break;
 
-            case FbxGeometryElement::eByPolygonVertex:
+                out.normals = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
+                break;
+            }
+
+            case FbxGeometryElement::eByPolygonVertex: {
+                const auto numPolygonVertices = mesh->GetPolygonVertexCount();
+                std::vector<float> byPV(numPolygonVertices * NUM_ELEMS_IN_STRIDE);
+
                 switch (referenceMode)
                 {
                 case FbxGeometryElement::eDirect: {
@@ -224,16 +297,15 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        const auto polygonSize = mesh->GetPolygonSize(polygonIndex);
-                        assert(polygonSize == 3 && "Not supportted to no triangle polygon.");
-
-                        for (int vertexId = 0; vertexId < polygonSize; ++vertexId)
+                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
-                            const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexId);
-                            const auto id = polygonIndex * 3 + vertexId;
-                            out.normals[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                            out.normals[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
-                            out.normals[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id)[2]);
+                            const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                            const auto id = pvIndex;
+                            const auto normal = directArray.GetAt(id);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(normal[0]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(normal[1]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(normal[2]);
                         }
                     }
                     break;
@@ -245,16 +317,15 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        const auto polygonSize = mesh->GetPolygonSize(polygonIndex);
-                        assert(polygonSize == 3 && "Not supportted to no triangle polygon.");
-
-                        for (int vertexId = 0; vertexId < polygonSize; ++vertexId)
+                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
-                            const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexId);
-                            const auto id = indexArray.GetAt(polygonIndex * 3 + vertexId);
-                            out.normals[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id)[0]);
-                            out.normals[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id)[1]);
-                            out.normals[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id)[2]);
+                            const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                            const auto id = indexArray.GetAt(pvIndex);
+                            const auto normal = directArray.GetAt(id);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(normal[0]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(normal[1]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(normal[2]);
                         }
                     }
                     break;
@@ -264,7 +335,10 @@ namespace killme
                     assert(false && "The not suppoted reference mode.");
                     break;
                 }
+
+                out.normals = std::move(byPV);
                 break;
+            }
 
             default:
                 assert(false && "The not suppoted mapping mode.");
@@ -275,17 +349,15 @@ namespace killme
         // Parse vertex colors
         void storeColors(const FbxMesh* mesh, MeshCache& out)
         {
+            const auto NUM_ELEMS_IN_STRIDE = 4;
+
             const auto numColorElems = mesh->GetElementVertexColorCount();
-            assert(numColorElems <= 1 && "Not supported multiple geometry elements about color.");
+            assert(numColorElems <= 1 && "Not supported multiple geometry elements about colors.");
 
             if (numColorElems == 0)
             {
                 return;
             }
-
-            const auto numStrideElems = 4;
-            const auto numControlPoints = mesh->GetControlPointsCount();
-            out.colors.resize(numControlPoints * numStrideElems);
 
             const auto colorElem = mesh->GetElementVertexColor(0);
             const auto& directArray = colorElem->GetDirectArray();
@@ -295,7 +367,10 @@ namespace killme
 
             switch (mappingMode)
             {
-            case FbxGeometryElement::eByControlPoint:
+            case FbxGeometryElement::eByControlPoint: {
+                const auto numControlPoints = mesh->GetControlPointsCount();
+                std::vector<float> byCP(numControlPoints * NUM_ELEMS_IN_STRIDE);
+
                 switch (referenceMode)
                 {
                 case FbxGeometryElement::eDirect: {
@@ -304,10 +379,11 @@ namespace killme
                     for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
                     {
                         const auto id = cpIndex;
-                        out.colors[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id).mRed);
-                        out.colors[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id).mGreen);
-                        out.colors[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id).mBlue);
-                        out.colors[cpIndex * numStrideElems + 3] = static_cast<float>(directArray.GetAt(id).mAlpha);
+                        const auto color = directArray.GetAt(id);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(color[0]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(color[1]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(color[2]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 3] = static_cast<float>(color[3]);
                     }
                     break;
                 }
@@ -318,10 +394,11 @@ namespace killme
                     for (int cpIndex = 0; cpIndex < numControlPoints; ++cpIndex)
                     {
                         const auto id = indexArray.GetAt(cpIndex);
-                        out.colors[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id).mRed);
-                        out.colors[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id).mGreen);
-                        out.colors[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id).mBlue);
-                        out.colors[cpIndex * numStrideElems + 3] = static_cast<float>(directArray.GetAt(id).mAlpha);
+                        const auto color = directArray.GetAt(id);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(color[0]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(color[1]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(color[2]);
+                        byCP[cpIndex * NUM_ELEMS_IN_STRIDE + 3] = static_cast<float>(color[3]);
                     }
                     break;
                 }
@@ -330,9 +407,15 @@ namespace killme
                     assert(false && "The not suppoted reference mode.");
                     break;
                 }
-                break;
 
-            case FbxGeometryElement::eByPolygonVertex:
+                out.colors = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
+                break;
+            }
+
+            case FbxGeometryElement::eByPolygonVertex: {
+                const auto numPolygonVertices = mesh->GetPolygonVertexCount();
+                std::vector<float> byPV(numPolygonVertices * NUM_ELEMS_IN_STRIDE);
+
                 switch (referenceMode)
                 {
                 case FbxGeometryElement::eDirect: {
@@ -341,17 +424,16 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        const auto polygonSize = mesh->GetPolygonSize(polygonIndex);
-                        assert(polygonSize == 3 && "Not supportted to no triangle polygon.");
-
-                        for (int vertexId = 0; vertexId < polygonSize; ++vertexId)
+                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
-                            const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexId);
-                            const auto id = polygonIndex * 3 + vertexId;
-                            out.colors[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id).mRed);
-                            out.colors[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id).mGreen);
-                            out.colors[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id).mBlue);
-                            out.colors[cpIndex * numStrideElems + 3] = static_cast<float>(directArray.GetAt(id).mAlpha);
+                            const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                            const auto id = pvIndex;
+                            const auto color = directArray.GetAt(id);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(color[0]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(color[1]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(color[2]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 3] = static_cast<float>(color[3]);
                         }
                     }
                     break;
@@ -363,17 +445,16 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        const auto polygonSize = mesh->GetPolygonSize(polygonIndex);
-                        assert(polygonSize == 3 && "Not supportted to no triangle polygon.");
-
-                        for (int vertexId = 0; vertexId < polygonSize; ++vertexId)
+                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
-                            const auto cpIndex = mesh->GetPolygonVertex(polygonIndex, vertexId);
-                            const auto id = indexArray.GetAt(polygonIndex * 3 + vertexId);
-                            out.colors[cpIndex * numStrideElems] = static_cast<float>(directArray.GetAt(id).mRed);
-                            out.colors[cpIndex * numStrideElems + 1] = static_cast<float>(directArray.GetAt(id).mGreen);
-                            out.colors[cpIndex * numStrideElems + 2] = static_cast<float>(directArray.GetAt(id).mBlue);
-                            out.colors[cpIndex * numStrideElems + 3] = static_cast<float>(directArray.GetAt(id).mAlpha);
+                            const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
+                            const auto id = indexArray.GetAt(pvIndex);
+                            const auto color = directArray.GetAt(id);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE] = static_cast<float>(color[0]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 1] = static_cast<float>(color[1]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 2] = static_cast<float>(color[2]);
+                            byPV[pvIndex * NUM_ELEMS_IN_STRIDE + 3] = static_cast<float>(color[3]);
                         }
                     }
                     break;
@@ -383,27 +464,14 @@ namespace killme
                     assert(false && "The not suppoted reference mode.");
                     break;
                 }
+
+                out.colors = std::move(byPV);
                 break;
+            }
 
             default:
                 assert(false && "The not suppoted mapping mode.");
                 break;
-            }
-        }
-
-        // Parse indices
-        void storeIndices(const FbxMesh* mesh, MeshCache& out)
-        {
-            const auto numIndices = mesh->GetPolygonVertexCount();
-            out.indices.resize(numIndices);
-
-            const auto numPolygons = mesh->GetPolygonCount();
-            for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
-            {
-                assert(mesh->GetPolygonSize(polygonIndex) == 3 && "Not supportted to the no triangle polygon.");
-                out.indices[polygonIndex * 3] = mesh->GetPolygonVertex(polygonIndex, 0);
-                out.indices[polygonIndex * 3 + 1] = mesh->GetPolygonVertex(polygonIndex, 1);
-                out.indices[polygonIndex * 3 + 2] = mesh->GetPolygonVertex(polygonIndex, 2);
             }
         }
 
@@ -427,13 +495,13 @@ namespace killme
 
                     // Parse the fbx mesh and create mesh resources
                     MeshCache cache;
-                    storeControlPoints(fbxMesh, cache);
+                    storePositions(fbxMesh, cache);
                     storeUVs(fbxMesh, cache);
                     storeNormals(fbxMesh, cache);
                     storeColors(fbxMesh, cache);
                     storeIndices(fbxMesh, cache);
 
-                    const auto positionBuffer = renderSystem.createVertexBuffer(cache.controlPoints.data(), sizeof(float) * cache.controlPoints.size(), sizeof(float) * 3);
+                    const auto positionBuffer = renderSystem.createVertexBuffer(cache.positions.data(), sizeof(float) * cache.positions.size(), sizeof(float) * 3);
                     const auto indexBuffer = renderSystem.createIndexBuffer(cache.indices.data(), sizeof(unsigned short) * cache.indices.size());
 
                     const auto vertexData = std::make_shared<VertexData>();

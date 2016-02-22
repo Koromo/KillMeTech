@@ -216,6 +216,12 @@
     <ClCompile Include="src\scene\effectshaderref.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\renderstate.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\lightcomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -463,6 +469,12 @@
     </ClInclude>
     <ClInclude Include="src\scene\effecttechnique.h">
       <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\light.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\lightcomponent.h">
+      <Filter>src\engine\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

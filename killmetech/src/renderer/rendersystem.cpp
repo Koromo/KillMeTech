@@ -310,6 +310,46 @@ namespace killme
         return std::make_shared<RootSignature>(rootSignature);
     }
 
+    namespace
+    {
+        D3D12_BLEND toD3DBlend(Blend b)
+        {
+            switch (b)
+            {
+            case Blend::one: return D3D12_BLEND_ONE;
+            case Blend::zero: return D3D12_BLEND_ZERO;
+            default:
+                assert(false && "Item not found.");
+                return D3D12_BLEND_ONE;
+            }
+        }
+
+        D3D12_BLEND_OP toD3DBlendOp(BlendOp op)
+        {
+            switch (op)
+            {
+            case BlendOp::add: return D3D12_BLEND_OP_ADD;
+            case BlendOp::subtract: return D3D12_BLEND_OP_SUBTRACT;
+            case BlendOp::min: return D3D12_BLEND_OP_MIN;
+            case BlendOp::max: return D3D12_BLEND_OP_MAX;
+            default:
+                assert(false && "Item not found.");
+                return D3D12_BLEND_OP_ADD;
+            }
+        }
+
+        D3D12_RENDER_TARGET_BLEND_DESC toD3DBlendState(const BlendState& blend)
+        {
+            return{
+                blend.enable, FALSE,
+                toD3DBlend(blend.src), toD3DBlend(blend.dest), toD3DBlendOp(blend.op),
+                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+                D3D12_LOGIC_OP_NOOP,
+                D3D12_COLOR_WRITE_ENABLE_ALL
+            };
+        }
+    }
+
     std::shared_ptr<PipelineState> RenderSystem::createPipelineState(const PipelineStateDescription& pipelineDesc)
     {
         // Define the rasterizer state
@@ -332,6 +372,9 @@ namespace killme
         ZeroMemory(&blendState, sizeof(blendState));
         blendState.AlphaToCoverageEnable = FALSE;
         blendState.IndependentBlendEnable = FALSE;
+        blendState.RenderTarget[0] = toD3DBlendState(pipelineDesc.blend);
+
+        /*
         const D3D12_RENDER_TARGET_BLEND_DESC defaultRTBlendDesc = {
             FALSE, FALSE,
             D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
@@ -339,9 +382,10 @@ namespace killme
             D3D12_LOGIC_OP_NOOP,
             D3D12_COLOR_WRITE_ENABLE_ALL
         };
-        for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+        */
+        for (UINT i = 1; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
         {
-            blendState.RenderTarget[i] = defaultRTBlendDesc;
+            blendState.RenderTarget[i] = toD3DBlendState(BlendState::DEFAULT);
         }
 
         // Define the depth stencil state
