@@ -16,6 +16,13 @@ namespace killme
 
 	/** Equivalent test for the floating point */
 	bool equalf(float a, float b);
+
+    /** Ceiling */
+    template <class T>
+    T ceiling(T n, T base)
+    {
+        return (n + base - 1) / base * base;
+    }
 }
 
 #endif

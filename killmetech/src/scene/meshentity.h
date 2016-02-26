@@ -9,6 +9,7 @@
 namespace killme
 {
     class Mesh;
+    class SubMesh;
     class Material;
     class MeshRenderer;
     class SceneNode;
@@ -25,6 +26,9 @@ namespace killme
     public:
         /** Constructs */
         MeshEntity(const Resource<Mesh>& mesh);
+
+        /** Search sub mesh */
+        std::shared_ptr<SubMesh> findSubMesh(const std::string& name);
 
         void collectRenderer(RenderQueue& queue);
     };

@@ -18,6 +18,8 @@ namespace killme
     class VertexBuffer;
     class IndexBuffer;
     class ConstantBuffer;
+    class Image;
+    class Texture;
     class RootSignatureDescription;
     class RootSignature;
     struct PipelineStateDescription;
@@ -74,6 +76,9 @@ namespace killme
 
         /** Creates the constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t size);
+
+        /** Create texture */
+        std::shared_ptr<Texture> createTexture(const std::shared_ptr<const Image>& img);
 
         /** Creates the gpu resource heap */
         std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, GpuResourceHeapFlag flag);

@@ -25,6 +25,39 @@ namespace killme
         pixel
     };
 
+    /** Resource type definitions */
+    enum class BoundResourceType
+    {
+        cbuffer,
+        texture,
+        sampler
+    };
+
+    namespace detail
+    {
+        D3D_SHADER_INPUT_TYPE toD3DSIType(BoundResourceType type);
+    }
+
+    /** The bound resource description */
+    class BoundResourceDescription
+    {
+    private:
+        D3D12_SHADER_INPUT_BIND_DESC desc_;
+
+    public:
+        /** Construct */
+        explicit BoundResourceDescription(const D3D12_SHADER_INPUT_BIND_DESC& desc);
+
+        /** Return resource type */
+        BoundResourceType getType() const;
+
+        /** Return name */
+        std::string getName() const;
+
+        /** Return register slot */
+        size_t getRegisterSlot() const;
+    };
+
     /** The variable description */
     struct VariableDescription
     {
@@ -34,26 +67,18 @@ namespace killme
     };
 
     /** The constant buffer description */
-    class ConstantBufferDescription
+    class ConstantBufferDescription : public BoundResourceDescription
     {
     private:
-        std::string name_;
-        size_t registerSlot_;
         size_t size_;
         std::unordered_map<std::string, VariableDescription> variables_;
 
     public:
         /** Constructs with a reflection of constant buffer */
-        ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, size_t registerSlot);
-
-        /** Retruns the buffer name */
-        std::string getName() const;
+        ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, const D3D12_SHADER_INPUT_BIND_DESC& boundDesc);
 
         /** Returns the size of buffer */
         size_t getSize() const;
-
-        /** Returns the register slot */
-        size_t getRegisterSlot() const;
 
         /** Returns the description of variable */
         Optional<VariableDescription> describeVariable(const std::string& name) const;
@@ -96,32 +121,67 @@ namespace killme
             return makeRange(std::move(params));
         }
 
-        /** Returns constant buffers */
+        /** Return bound resource description */
+        Optional<BoundResourceDescription> describeBoundResource(const std::string& name);
+
+        /** Return bound resource descriptions */
+        auto describeBoundResources(BoundResourceType type)
+            -> decltype(makeRange(std::vector<BoundResourceDescription>()))
+        {
+            const auto& d3dDescs = describeD3DBoundResources(detail::toD3DSIType(type));
+
+            std::vector<BoundResourceDescription> descs;
+            descs.reserve(d3dDescs.length());
+            for (const auto& d3dDesc : d3dDescs)
+            {
+                descs.emplace_back(d3dDesc);
+            }
+
+            return makeRange(std::move(descs));
+        }
+
+        /** Return constant buffer descriptions */
         auto describeConstnatBuffers()
             -> decltype(makeRange(std::vector<ConstantBufferDescription>()))
         {
+            const auto& d3dResourceDescs = describeD3DBoundResources(D3D_SIT_CBUFFER);
+
             std::vector<ConstantBufferDescription> cbuffers;
-            cbuffers.reserve(desc_.ConstantBuffers);
-
-            for (UINT i = 0; i < desc_.BoundResources; ++i)
+            cbuffers.reserve(d3dResourceDescs.length());
+            for (const auto& d3dResourceDesc : d3dResourceDescs)
             {
-                // Get the description of the i'th resource
-                D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
-                enforce<Direct3DException>(
-                    SUCCEEDED(reflection_->GetResourceBindingDesc(i, &resourceDesc)),
-                    "Failed to get the description of the resource.");
-
-                if (resourceDesc.Type == D3D_SIT_CBUFFER)
-                {
-                    // Get the reflection of the constant buffer
-                    const auto cbuffer = enforce<Direct3DException>(
-                        reflection_->GetConstantBufferByName(resourceDesc.Name),
-                        "Failed to get the reflection of the constant buffer.");
-                    cbuffers.emplace_back(cbuffer, resourceDesc.BindPoint);
-                }
+                // Get the reflection of the constant buffer
+                const auto cbuffer = enforce<Direct3DException>(
+                    reflection_->GetConstantBufferByName(d3dResourceDesc.Name),
+                    "Failed to get the reflection of the constant buffer.");
+                cbuffers.emplace_back(cbuffer, d3dResourceDesc);
             }
 
             return makeRange(std::move(cbuffers));
+        }
+
+    private:
+        auto describeD3DBoundResources(D3D_SHADER_INPUT_TYPE type)
+            -> decltype(makeRange(std::vector<D3D12_SHADER_INPUT_BIND_DESC>()))
+        {
+            std::vector<D3D12_SHADER_INPUT_BIND_DESC> descs;
+            descs.reserve(desc_.BoundResources);
+
+            for (UINT i = 0; i < desc_.BoundResources; ++i)
+            {
+                // Get i'th resource description
+                D3D12_SHADER_INPUT_BIND_DESC desc;
+                enforce<Direct3DException>(
+                    SUCCEEDED(reflection_->GetResourceBindingDesc(i, &desc)),
+                    "Failed to get the bound resource description.");
+
+                if (desc.Type == type)
+                {
+                    descs.emplace_back(desc);
+                }
+            }
+
+            return makeRange(std::move(descs));
         }
     };
 

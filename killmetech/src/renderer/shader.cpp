@@ -1,25 +1,73 @@
 #include "shader.h"
 #include <cstring>
+#include <cassert>
 
 namespace killme
 {
-    ConstantBufferDescription::ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, size_t registerSlot)
-        : name_()
-        , registerSlot_(registerSlot)
+    D3D_SHADER_INPUT_TYPE detail::toD3DSIType(BoundResourceType type)
+    {
+        switch (type)
+        {
+        case BoundResourceType::cbuffer: return D3D_SIT_CBUFFER;
+        case BoundResourceType::texture: return D3D_SIT_TEXTURE;
+        case BoundResourceType::sampler: return D3D_SIT_SAMPLER;
+        default:
+            assert(false && "Item not found.");
+            return D3D_SIT_CBUFFER; // For warnings
+        }
+    }
+
+    namespace
+    {
+        BoundResourceType toBoundResourceType(D3D_SHADER_INPUT_TYPE type)
+        {
+            switch (type)
+            {
+            case D3D_SIT_CBUFFER: return BoundResourceType::cbuffer;
+            case D3D_SIT_TEXTURE: return BoundResourceType::texture;
+            case D3D_SIT_SAMPLER: return BoundResourceType::sampler;
+            default:
+                assert(false && "Item not found.");
+                return BoundResourceType::cbuffer; // For warnings
+            }
+        }
+    }
+
+    BoundResourceDescription::BoundResourceDescription(const D3D12_SHADER_INPUT_BIND_DESC& desc)
+        : desc_(desc)
+    {
+    }
+
+    BoundResourceType BoundResourceDescription::getType() const
+    {
+        return toBoundResourceType(desc_.Type);
+    }
+
+    std::string BoundResourceDescription::getName() const
+    {
+        return desc_.Name;
+    }
+
+    size_t BoundResourceDescription::getRegisterSlot() const
+    {
+        return desc_.BindPoint;
+    }
+
+    ConstantBufferDescription::ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, const D3D12_SHADER_INPUT_BIND_DESC& boundDesc)
+        : BoundResourceDescription(boundDesc)
         , size_()
         , variables_()
     {
         // Get the description
-        D3D12_SHADER_BUFFER_DESC desc;
+        D3D12_SHADER_BUFFER_DESC bufferDesc;
         enforce<Direct3DException>(
-            SUCCEEDED(reflection->GetDesc(&desc)),
+            SUCCEEDED(reflection->GetDesc(&bufferDesc)),
             "Faild to get the description of the constant buffer.");
 
-        name_ = desc.Name;
-        size_ = desc.Size;
+        size_ = bufferDesc.Size;
 
         // Store descriptions of the variable
-        for (UINT i = 0; i < desc.Variables; ++i)
+        for (UINT i = 0; i < bufferDesc.Variables; ++i)
         {
             const auto d3dVarRef = reflection->GetVariableByIndex(i);
 
@@ -43,19 +91,9 @@ namespace killme
         }
     }
 
-    std::string ConstantBufferDescription::getName() const
-    {
-        return name_;
-    }
-
     size_t ConstantBufferDescription::getSize() const
     {
         return size_;
-    }
-
-    size_t ConstantBufferDescription::getRegisterSlot() const
-    {
-        return registerSlot_;
     }
 
     Optional<VariableDescription> ConstantBufferDescription::describeVariable(const std::string& name) const
@@ -94,5 +132,16 @@ namespace killme
     size_t BasicShader::getByteCodeSize() const
     {
         return byteCode_->GetBufferSize();
+    }
+
+    Optional<BoundResourceDescription> BasicShader::describeBoundResource(const std::string& name)
+    {
+        D3D12_SHADER_INPUT_BIND_DESC desc;
+        const auto hr = reflection_->GetResourceBindingDescByName(name.c_str(), &desc);
+        if (SUCCEEDED(hr))
+        {
+            return BoundResourceDescription(desc);
+        }
+        return nullopt;
     }
 }

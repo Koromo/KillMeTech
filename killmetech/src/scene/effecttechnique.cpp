@@ -12,6 +12,14 @@ namespace killme
         }
     }
 
+    void EffectTechnique::updateTexture(const std::string& param, const Resource<Texture>& tex)
+    {
+        for (const auto& pass : passes_)
+        {
+            pass.second->updateTexture(param, tex);
+        }
+    }
+
     void EffectTechnique::addPass(int index, const std::shared_ptr<EffectPass>& pass)
     {
         const auto point = std::lower_bound(std::cbegin(passes_), std::cend(passes_), index,

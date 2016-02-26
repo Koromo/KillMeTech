@@ -1,6 +1,8 @@
 #include "rendersystem.h"
 #include "vertexdata.h"
 #include "constantbuffer.h"
+#include "image.h"
+#include "texture.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
 #include "shader.h"
@@ -10,6 +12,7 @@
 #include "commandlist.h"
 #include "d3dsupport.h"
 #include "../resources/resource.h"
+#include "../core/math/math.h"
 #include "../core/exception.h"
 #include "../core/string.h"
 #include <string>
@@ -115,7 +118,7 @@ namespace killme
         frameIndex_ = swapChain_->GetCurrentBackBufferIndex();
 
         // Create render targets from back buffers
-        backBufferHeap_ = createGpuResourceHeap(NUM_BACK_BUFFERS, GpuResourceHeapType::renderTarget, GpuResourceHeapFlag::none);
+        backBufferHeap_ = createGpuResourceHeap(NUM_BACK_BUFFERS, GpuResourceHeapType::rtv, GpuResourceHeapFlag::none);
         for (UINT i = 0; i < NUM_BACK_BUFFERS; ++i)
         {
             ID3D12Resource* backBuffer;
@@ -127,7 +130,7 @@ namespace killme
         }
 
         // Create the depth stencil
-        depthStencilHeap_ = createGpuResourceHeap(1, GpuResourceHeapType::depthStencil, GpuResourceHeapFlag::none);
+        depthStencilHeap_ = createGpuResourceHeap(1, GpuResourceHeapType::dsv, GpuResourceHeapFlag::none);
 
         const auto defaultHeapProps = getD3DDefaultHeapProps();
         const auto depthStencilDesc = describeD3DTex2D(clientWidth, clientHeight, DEPTH_STENCIL_FORMAT, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -226,7 +229,7 @@ namespace killme
     {
         /// TODO: Now, Only use the upload heap. We can use the default heap to store the data.
         // Use the upload heap
-        const size_t bufferSize = size + (256 - size);
+        const auto bufferSize = ceiling(size, 256u);
         const auto uploadHeapProps = getD3DUploadHeapProps();
         const auto desc = describeD3DBuffer(bufferSize);
 
@@ -239,15 +242,48 @@ namespace killme
         return std::make_shared<ConstantBuffer>(buffer);
     }
 
+    std::shared_ptr<Texture> RenderSystem::createTexture(const std::shared_ptr<const Image>& img)
+    {
+        const auto w = img->getWidth();
+        const auto h = img->getHeight();
+
+        D3D12_HEAP_PROPERTIES heapProps; /// TODO;
+        heapProps.Type = D3D12_HEAP_TYPE_CUSTOM;
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+        heapProps.CreationNodeMask = 0;
+        heapProps.VisibleNodeMask = 0;
+        const auto desc = describeD3DTex2D(w, h, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_NONE);
+
+        ID3D12Resource* tex;
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&tex))),
+            "Failed to create the texture.");
+
+        D3D12_BOX box;
+        box.left = 0;
+        box.top = 0;
+        box.right = w;
+        box.bottom = h;
+        box.front = 0;
+        box.back = 1;
+        enforce<Direct3DException>(
+            SUCCEEDED(tex->WriteToSubresource(0, &box, img->getPixelBuffer(), sizeof(Pixel) * w, sizeof(Pixel) * w * h)),
+            "Failed to upload texture.");
+
+        return std::make_shared<Texture>(tex);
+    }
+
     namespace
     {
         D3D12_DESCRIPTOR_HEAP_TYPE toD3DHeapType(GpuResourceHeapType type)
         {
             switch (type)
             {
-            case GpuResourceHeapType::renderTarget: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            case GpuResourceHeapType::depthStencil: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-            case GpuResourceHeapType::constantBuffer: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            case GpuResourceHeapType::rtv: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            case GpuResourceHeapType::dsv: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            case GpuResourceHeapType::cbv_srv: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            case GpuResourceHeapType::sampler: return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
             default: assert(false && "Invalid heap type.");
             }
             return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // For warnings
@@ -423,9 +459,10 @@ namespace killme
         d3dDesc.SampleDesc.Count = 1;
 
         ID3D12PipelineState* pipelineState;
+        auto hr = device_->CreateGraphicsPipelineState(&d3dDesc, IID_PPV_ARGS(&pipelineState));
         enforce<Direct3DException>(
             SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dDesc, IID_PPV_ARGS(&pipelineState))),
-            "Failed to create the pipeline state.");
+            "Failed to create the pipeline state." + std::to_string(hr));
 
         return std::make_shared<PipelineState>(pipelineState, pipelineDesc);
     }

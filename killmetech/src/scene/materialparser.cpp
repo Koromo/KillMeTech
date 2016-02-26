@@ -71,9 +71,11 @@ namespace killme
         struct RootParser;
         struct Block_parameters;
         struct Elem_float4;
+        struct Elem_tex2d;
         //struct Block_shader;
         struct Elem_source;
-        struct Elem_map;
+        struct Elem_map_to_constant;
+        struct Elem_map_to_texture;
         struct Block_technique;
         struct Block_pass;
         //struct Elem_shaderRef;
@@ -95,18 +97,23 @@ namespace killme
         struct ShaderRefBuild
         {
             std::string path;
-            std::unordered_map<std::string, std::string> mappings; // param -> constant
+            std::unordered_map<std::string, std::string> constantMap; // param -> constant
+            std::unordered_map<std::string, std::pair<std::string, std::string>> textureMap; // param -> texture
 
             // Make EffectShaderRef
             template <class Shader>
-            std::shared_ptr<EffectShaderRef> make(RenderSystem& rs, ResourceManager& rm)
+            std::shared_ptr<EffectShaderRef> make(ResourceManager& rm)
             {
                 assert(!path.empty() && "Build shader ref error.");
 
-                const auto ref = std::make_shared<EffectShaderRef>(rs, rm.getAccessor<Shader>(path, true));
-                for (const auto pair : mappings)
+                const auto ref = std::make_shared<EffectShaderRef>(rm.getAccessor<Shader>(path, true));
+                for (const auto pair : constantMap)
                 {
-                    ref->mapParameter(pair.first, pair.second);
+                    ref->mapToConstant(pair.first, pair.second);
+                }
+                for (const auto pair : textureMap)
+                {
+                    ref->mapToTexture(pair.first, pair.second.first, pair.second.second);
                 }
 
                 return ref;
@@ -141,7 +148,7 @@ namespace killme
             }
 
             // Make EffectPass
-            std::shared_ptr<EffectPass> make(RenderSystem& rs)
+            std::shared_ptr<EffectPass> make(const std::shared_ptr<RenderSystem>& rs)
             {
                  return std::make_shared<EffectPass>(rs, creation);
             }
@@ -157,10 +164,10 @@ namespace killme
             ShaderRefBuild* currentShaderRef;
             std::shared_ptr<EffectTechnique> currentTech;
             PassBuild* currentPass;
-            RenderSystem& renderSystem;
+            std::shared_ptr<RenderSystem> renderSystem;
             ResourceManager& resourceManager;
 
-            BuildContext(RenderSystem& rs, ResourceManager& rm)
+            BuildContext(const std::shared_ptr<RenderSystem>& rs, ResourceManager& rm)
                 : renderSystem(rs)
                 , resourceManager(rm)
             {
@@ -236,12 +243,33 @@ namespace killme
             }
         };
 
+        // Parse "tex2d" element
+        struct Elem_tex2d : ParseNode
+        {
+            std::string paramName;
+
+            void parse(ParseContext& context)
+            {
+                // Store parameter name
+                paramName = *context.currentToken;
+                context.currentToken += 2;
+            }
+
+            void build(BuildContext& context)
+            {
+                // Add parameter into context
+                const auto check = context.params.emplace(paramName);
+                assert(check.second && "Conflict parameters.");
+            }
+        };
+
         // Parse "parameters" block
         struct Block_parameters : ParseNode
         {
             Block_parameters()
             {
                 mapChildParser<Elem_float4>("float4");
+                mapChildParser<Elem_tex2d>("tex2d");
             }
 
             void parse(ParseContext& context)
@@ -290,11 +318,11 @@ namespace killme
             }
         };
 
-        // Parse "map" element
-        struct Elem_map : ParseNode
+        // Parse "map_to_constant" element
+        struct Elem_map_to_constant : ParseNode
         {
             std::string materialParam; // key
-            std::string shaderParam;
+            std::string shaderConstant; // val
 
             void parse(ParseContext& context)
             {
@@ -304,7 +332,7 @@ namespace killme
                 // Store key and value (material parameter and shader constant) 
                 materialParam = *context.currentToken;
                 context.currentToken += 2;
-                shaderParam = *context.currentToken;
+                shaderConstant = *context.currentToken;
                 context.currentToken += 3;
             }
 
@@ -313,7 +341,38 @@ namespace killme
                 assert(context.params.find(materialParam) != std::cend(context.params) && "Not exist material parameter.");
 
                 // Add mapping into current builder
-                const auto check = context.currentShaderRef->mappings.emplace(materialParam, shaderParam);
+                const auto check = context.currentShaderRef->constantMap.emplace(materialParam, shaderConstant);
+                assert(check.second && "Conflict material parameter.");
+            }
+        };
+
+        // Parse "map_to_texture" element
+        struct Elem_map_to_texture : ParseNode
+        {
+            std::string materialParam; // key
+            std::string shaderTexture;
+            std::string shaderSampler;
+
+            void parse(ParseContext& context)
+            {
+                assert(*context.currentToken == "(" && "Material parse error.");
+                ++context.currentToken;
+
+                // Store key and value (material parameter and shader texture) 
+                materialParam = *context.currentToken;
+                context.currentToken += 2;
+                shaderTexture = *context.currentToken;
+                context.currentToken += 2;
+                shaderSampler = *context.currentToken;
+                context.currentToken += 3;
+            }
+
+            void build(BuildContext& context)
+            {
+                assert(context.params.find(materialParam) != std::cend(context.params) && "Not exist material parameter.");
+
+                // Add mapping into current builder
+                const auto check = context.currentShaderRef->textureMap.emplace(materialParam, std::make_pair(shaderTexture, shaderSampler));
                 assert(check.second && "Conflict material parameter.");
             }
         };
@@ -327,7 +386,8 @@ namespace killme
             Block_shader()
             {
                 mapChildParser<Elem_source>("source");
-                mapChildParser<Elem_map>("map");
+                mapChildParser<Elem_map_to_constant>("map_to_constant");
+                mapChildParser<Elem_map_to_texture>("map_to_texture");
             }
 
             void parse(ParseContext& context)
@@ -491,8 +551,9 @@ namespace killme
             void build(BuildContext& context)
             {
                 // Set shader reference into current builder
+                /// TODO: 
                 context.currentPass->shaderRef<Shader>() =
-                    context.shaderRefMap<Shader>()[useShader].make<Shader>(context.renderSystem, context.resourceManager);
+                    context.shaderRefMap<Shader>()[useShader].make<Shader>(context.resourceManager);
             }
         };
 
@@ -682,17 +743,16 @@ namespace killme
         }
     }
 
-    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path)
+    std::shared_ptr<Material> loadMaterial(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const std::string& path)
     {
-        // Open file
         std::ifstream file(path);
         enforce<FileException>(file.is_open(), "Failed to open file (" + path + ").");
 
-        // Erase commands from source code
         std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        eraseComments(source);
+        file.close();
 
         // Tokenized source code
+        eraseComments(source);
         const auto tokens = tokenized(source);
 
         // Parse

@@ -7,12 +7,28 @@ namespace killme
     GpuResourceRange::GpuResourceRange(D3D12_DESCRIPTOR_RANGE& range)
         : range_(range)
     {
-        range_.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         range_.RegisterSpace = 0;
     }
 
-    void GpuResourceRange::set(size_t baseRegister, size_t numResources, size_t offset)
+    namespace
     {
+        D3D12_DESCRIPTOR_RANGE_TYPE toD3DRangeType(GpuResourceRangeType type)
+        {
+            switch (type)
+            {
+            case GpuResourceRangeType::cbv: return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+            case GpuResourceRangeType::srv: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+            case GpuResourceRangeType::sampler: return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+            default:
+                assert(false && "Item not found.");
+                return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+            }
+        }
+    }
+
+    void GpuResourceRange::as(GpuResourceRangeType type, size_t baseRegister, size_t numResources, size_t offset)
+    {
+        range_.RangeType = toD3DRangeType(type);
         range_.NumDescriptors = numResources;
         range_.BaseShaderRegister = baseRegister;
         range_.OffsetInDescriptorsFromTableStart = offset;
@@ -47,7 +63,7 @@ namespace killme
         }
     }
 
-    void RootParameter::initialize(size_t numRanges, ShaderType visibility)
+    void RootParameter::asTable(size_t numRanges, ShaderType visibility)
     {
         d3dRanges_.resize(numRanges);
         param_.ShaderVisibility = toD3DShaderVisibility(visibility);

@@ -9,6 +9,13 @@ namespace killme
 {
     enum class ShaderType;
 
+    enum class GpuResourceRangeType
+    {
+        cbv,
+        srv,
+        sampler
+    };
+
     /** The range of gpu resources */
     class GpuResourceRange
     {
@@ -19,8 +26,8 @@ namespace killme
         /** Constructs with a refference of the Direct3D range */
         explicit GpuResourceRange(D3D12_DESCRIPTOR_RANGE& range);
 
-        /** Sets a range value */
-        void set(size_t baseRegister, size_t numResources, size_t offset = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
+        /** Set a range value */
+        void as(GpuResourceRangeType type, size_t baseRegister, size_t numResources, size_t offset = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
     };
 
     /** The root parameter */
@@ -39,7 +46,7 @@ namespace killme
         GpuResourceRange& operator[](size_t i);
 
         /** Initializes */
-        void initialize(size_t numRanges, ShaderType visibility);
+        void asTable(size_t numRanges, ShaderType visibility);
     };
 
     /** The root signature description */

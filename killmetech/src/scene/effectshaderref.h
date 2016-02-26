@@ -2,17 +2,16 @@
 #define _KILLME_EFFECTSHADERREF_H_
 
 #include "../renderer/shader.h"
+#include "../renderer/vertexshader.h"
+#include "../renderer/pixelshader.h"
 #include "../resources/resource.h"
 #include "../core/optional.h"
+#include "../core/utility.h"
 #include <unordered_map>
-#include <memory>
-#include <string>
 #include <utility>
 
 namespace killme
 {
-    class RenderSystem;
-    class ConstantBuffer;
     class VertexShader;
     class PixelShader;
 
@@ -20,40 +19,68 @@ namespace killme
     class EffectShaderRef
     {
     private:
+        ShaderType type_;
         Resource<VertexShader> vertexShader_;
         Resource<PixelShader> pixelShader_;
-        std::unordered_map<std::string, std::string> constantsMap_;
-        Optional<ConstantBufferDescription> constantsDesc_;
-        std::shared_ptr<ConstantBuffer> constantBuffer_;
+        Optional<ConstantBufferDescription> cbufferDesc_;
+        std::unordered_map<std::string, std::string> constantMap_;
+        std::unordered_map<std::string, std::string> textureMap_;
+        std::unordered_map<std::string, std::string> samplerMap_;
 
     public:
         /** Construct as the vertex shader reference */
-        EffectShaderRef(RenderSystem& renderSystem, const Resource<VertexShader>& vs);
+        explicit EffectShaderRef(const Resource<VertexShader>& vs);
 
         /** Construct as the pixel shader reference */
-        EffectShaderRef(RenderSystem& renderSystem, const Resource<PixelShader>& ps);
+        explicit EffectShaderRef(const Resource<PixelShader>& ps);
 
-        /** Update constant */
-        void updateConstant(const std::string& param, const void* data);
-
-        /** Map parameter */
-        void mapParameter(const std::string& param, const std::string& constant);
+        /** Return shader type */
+        ShaderType getType() const;
 
         /** Return constant buffer description */
-        auto describeConstantBuffer()
-            -> decltype(std::make_pair(constantsDesc_, constantBuffer_))
+        Optional<ConstantBufferDescription> describeConstantBuffer();
+
+        /** Return bound resource descriptions */
+        auto describeBoundResources(BoundResourceType type)
+            -> decltype(vertexShader_.access()->describeBoundResources(type))
         {
-            return std::make_pair(constantsDesc_, constantBuffer_);
+            if (type_ == ShaderType::vertex)
+            {
+                return vertexShader_.access()->describeBoundResources(type);
+            }
+            return pixelShader_.access()->describeBoundResources(type);
         }
+
+        /** Return constant mappings */
+        auto getConstantMap() const
+            -> decltype(makeRange(constantMap_))
+        {
+            return makeRange(constantMap_);
+        }
+
+        /** Return texture mappings */
+        auto getTextureMap() const
+            -> decltype(makeRange(textureMap_))
+        {
+            return makeRange(textureMap_);
+        }
+
+        /** Return sampler mappings */
+        auto getSamplerMap() const
+            -> decltype(makeRange(samplerMap_))
+        {
+            return makeRange(samplerMap_);
+        }
+
+        /** Map material parameter to shader constant */
+        void mapToConstant(const std::string& matParam, const std::string& shaderConstant);
+
+        /** Map material parameter to shader texture */
+        void mapToTexture(const std::string& matParam, const std::string& shaderTexture, const std::string& shaderSampler);
 
         /** Return reference shader */
         Resource<VertexShader> getReferenceVertexShader();
-
-        /** ditto */
         Resource<PixelShader> getReferencePixelShader();
-
-    private:
-        void initialize(RenderSystem& renderSystem);
     };
 }
 

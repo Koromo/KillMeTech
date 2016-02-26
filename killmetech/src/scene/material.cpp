@@ -4,6 +4,14 @@
 
 namespace killme
 {
+    void Material::setTexture(const std::string& name, const Resource<Texture>& tex)
+    {
+        for (const auto tech : techMap_)
+        {
+            tech.second->updateTexture(name, tex);
+        }
+    }
+
     void Material::addTechnique(const std::string& name, const std::shared_ptr<EffectTechnique>& tech)
     {
         const auto check = techMap_.emplace(name, tech);

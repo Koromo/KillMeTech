@@ -10,9 +10,10 @@ namespace killme
     /** GPU resource heap type definitions */
     enum class GpuResourceHeapType
     {
-        renderTarget,
-        depthStencil,
-        constantBuffer
+        rtv,
+        dsv,
+        cbv_srv,
+        sampler
     };
 
     /** GPU resource heap flag definitions */

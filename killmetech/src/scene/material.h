@@ -11,6 +11,7 @@ namespace killme
     class RenderSystem;
     class ResourceManager;
     class EffectTechnique;
+    class Texture;
 
     /** The material control the view of vertices */
     class Material : public IsResource
@@ -27,6 +28,9 @@ namespace killme
             setVariableImpl(name, &value);
         }
 
+        /** Set texture */
+        void setTexture(const std::string& name, const Resource<Texture>& tex);
+
         /** Add technique */
         void addTechnique(const std::string& name, const std::shared_ptr<EffectTechnique>& tech);
 
@@ -40,7 +44,7 @@ namespace killme
         void setVariableImpl(const std::string& name, const void* data);
     };
 
-    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path);
+    std::shared_ptr<Material> loadMaterial(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const std::string& path);
 }
 
 #endif

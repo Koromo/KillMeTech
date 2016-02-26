@@ -1,62 +1,83 @@
 #include "effectshaderref.h"
-#include "../renderer/rendersystem.h"
-#include "../renderer/constantbuffer.h"
-#include "../renderer/vertexshader.h"
-#include "../renderer/pixelshader.h"
+#include "../core/platform.h"
 #include <cassert>
 
 namespace killme
 {
-    EffectShaderRef::EffectShaderRef(RenderSystem& renderSystem, const Resource<VertexShader>& vs)
-        : vertexShader_(vs)
+    EffectShaderRef::EffectShaderRef(const Resource<VertexShader>& vs)
+        : type_(ShaderType::vertex)
+        , vertexShader_(vs)
         , pixelShader_()
-        , constantsMap_()
-        , constantsDesc_()
-        , constantBuffer_()
+        , cbufferDesc_()
+        , constantMap_()
+        , textureMap_()
+        , samplerMap_()
     {
         const auto cbuffers = vertexShader_.access()->describeConstnatBuffers();
         assert(cbuffers.length() <= 1 && "Invalid vertex shader");
         if (cbuffers.length() == 1)
         {
-            constantsDesc_ = *std::cbegin(cbuffers);
-            initialize(renderSystem);
+            cbufferDesc_ = *std::cbegin(cbuffers);
         }
     }
 
-    EffectShaderRef::EffectShaderRef(RenderSystem& renderSystem, const Resource<PixelShader>& ps)
-        : vertexShader_()
+    EffectShaderRef::EffectShaderRef(const Resource<PixelShader>& ps)
+        : type_(ShaderType::pixel)
+        , vertexShader_()
         , pixelShader_(ps)
-        , constantsMap_()
-        , constantsDesc_()
-        , constantBuffer_()
+        , cbufferDesc_()
+        , constantMap_()
+        , textureMap_()
     {
         const auto cbuffers = pixelShader_.access()->describeConstnatBuffers();
         assert(cbuffers.length() <= 1 && "Invalid pixel shader");
         if (cbuffers.length() == 1)
         {
-            constantsDesc_ = *std::cbegin(cbuffers);
-            initialize(renderSystem);
+            cbufferDesc_ = *std::cbegin(cbuffers);
         }
     }
 
-    void EffectShaderRef::updateConstant(const std::string& param, const void* data)
+    ShaderType EffectShaderRef::getType() const
     {
-        const auto it = constantsMap_.find(param);
-        if (it == std::cend(constantsMap_))
-        {
-            return;
-        }
-        if (const auto var = (constantsDesc_ ? constantsDesc_->describeVariable(it->second) : nullopt))
-        {
-            const auto size = var->size;
-            const auto offset = var->offset;
-            constantBuffer_->update(data, offset, size);
-        }
+        return type_;
     }
 
-    void EffectShaderRef::mapParameter(const std::string& param, const std::string& constant)
+    Optional<ConstantBufferDescription> EffectShaderRef::describeConstantBuffer()
     {
-        constantsMap_[param] = constant;
+        return cbufferDesc_;
+    }
+
+    void EffectShaderRef::mapToConstant(const std::string& matParam, const std::string& shaderConstant)
+    {
+        assert(cbufferDesc_ && cbufferDesc_->describeVariable(shaderConstant) && "Invalid constant mapping.");
+        constantMap_.emplace(matParam, shaderConstant);
+    }
+
+    void EffectShaderRef::mapToTexture(const std::string& matParam, const std::string& shaderTexture, const std::string& shaderSampler)
+    {
+#ifdef KILLME_DEBUG
+        if (type_ == ShaderType::vertex)
+        {
+            auto desc = vertexShader_.access()->describeBoundResource(shaderTexture);
+            assert(desc && "Invalid texture mapping.");
+            assert(desc->getType() == BoundResourceType::texture && "Invalid texture mapping.");
+            desc = vertexShader_.access()->describeBoundResource(shaderSampler);
+            assert(desc && "Invalid sampler mapping.");
+            assert(desc->getType() == BoundResourceType::sampler && "Invalid sampler mapping.");
+        }
+        else
+        {
+            auto desc = pixelShader_.access()->describeBoundResource(shaderTexture);
+            assert(desc && "Invalid texture mapping.");
+            assert(desc->getType() == BoundResourceType::texture && "Invalid texture mapping.");
+            desc = pixelShader_.access()->describeBoundResource(shaderSampler);
+            assert(desc && "Invalid sampler mapping.");
+            assert(desc->getType() == BoundResourceType::sampler && "Invalid sampler mapping.");
+        }
+#endif
+
+        textureMap_.emplace(matParam, shaderTexture);
+        samplerMap_.emplace(matParam, shaderSampler);
     }
 
     Resource<VertexShader> EffectShaderRef::getReferenceVertexShader()
@@ -67,18 +88,5 @@ namespace killme
     Resource<PixelShader> EffectShaderRef::getReferencePixelShader()
     {
         return pixelShader_;
-    }
-
-    void EffectShaderRef::initialize(RenderSystem& renderSystem)
-    {
-        constantBuffer_ = renderSystem.createConstantBuffer(constantsDesc_->getSize());
-        for (const auto var : constantsDesc_->describeVariables())
-        {
-            if (var.second.defaultValue)
-            {
-                const auto p = var.second.defaultValue.get();
-                constantBuffer_->update(p, var.second.offset, var.second.size);
-            }
-        }
     }
 }

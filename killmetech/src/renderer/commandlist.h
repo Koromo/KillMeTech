@@ -54,15 +54,14 @@ namespace killme
 
         /** Changes the currently bound resource heaps */
         template <class Range>
-        void setGpuResourceHeaps(const Range& heaps, size_t numHeaps)
+        void setGpuResourceHeaps(const Range& heaps)
         {
             std::vector<ID3D12DescriptorHeap*> d3dHeaps;
-            d3dHeaps.reserve(numHeaps);
             for (const auto& heap: heaps)
             {
                 d3dHeaps.emplace_back(heap->getD3DHeap());
             }
-            list_->SetDescriptorHeaps(numHeaps, d3dHeaps.data());
+            list_->SetDescriptorHeaps(d3dHeaps.size(), d3dHeaps.data());
         }
 
         /** Sets a resource table */

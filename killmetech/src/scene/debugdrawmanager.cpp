@@ -30,12 +30,12 @@ namespace killme
 
         // Create render resources
         viewProjBuffer_ = renderSystem_->createConstantBuffer(sizeof(Matrix44) * 2);
-        viewProjHeap_ = renderSystem_->createGpuResourceHeap(1, GpuResourceHeapType::constantBuffer, GpuResourceHeapFlag::shaderVisible);
+        viewProjHeap_ = renderSystem_->createGpuResourceHeap(1, GpuResourceHeapType::cbv_srv, GpuResourceHeapFlag::shaderVisible);
         renderSystem_->createGpuResourceView(viewProjHeap_, 0, viewProjBuffer_);
 
         RootSignatureDescription rootSigDesc(1);
-        rootSigDesc[0].initialize(1, ShaderType::vertex);
-        rootSigDesc[0][0].set(0, 1);
+        rootSigDesc[0].asTable(1, ShaderType::vertex);
+        rootSigDesc[0][0].as(GpuResourceRangeType::cbv, 0, 1);
 
         const auto rootSig = renderSystem_->createRootSignature(rootSigDesc);
 
@@ -135,7 +135,7 @@ namespace killme
         commandList_->setVertexBuffers(binder);
         commandList_->setRootSignature(rootSignature);
         const auto heaps = { viewProjHeap_ };
-        commandList_->setGpuResourceHeaps(heaps, 1);
+        commandList_->setGpuResourceHeaps(heaps);
         commandList_->setGpuResourceTable(0, viewProjHeap_);
         commandList_->draw(numVertices);
         commandList_->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);

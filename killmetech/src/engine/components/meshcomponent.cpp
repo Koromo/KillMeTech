@@ -7,8 +7,14 @@
 namespace killme
 {
     MeshComponent::MeshComponent(const std::string& path)
+        : entity_()
     {
         const auto meshNode = getSceneNode();
-        meshNode->attachEntity<MeshEntity>(Resources::load<Mesh>(path));
+        entity_ = meshNode->attachEntity<MeshEntity>(Resources::load<Mesh>(path));
+    }
+
+    std::shared_ptr<SubMesh> MeshComponent::findSubMesh(const std::string& name)
+    {
+        return entity_->findSubMesh(name);
     }
 }

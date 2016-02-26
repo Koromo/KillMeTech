@@ -31,7 +31,7 @@ namespace killme
         std::shared_ptr<VertexData> getVertexData() { return vertexData_; }
 
         /** Returns the material */
-        Resource<Material> getMaterial() const { return material_; }
+        std::shared_ptr<Material> getMaterial() const { return material_.access(); }
     };
 
     /** The mesh */

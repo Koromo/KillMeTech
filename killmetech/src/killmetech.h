@@ -65,6 +65,7 @@
 #include "renderer/d3dsupport.h"
 #include "renderer/depthstencil.h"
 #include "renderer/gpuresourceheap.h"
+#include "renderer/image.h"
 #include "renderer/inputlayout.h"
 #include "renderer/pipelinestate.h"
 #include "renderer/pixelshader.h"
@@ -73,6 +74,7 @@
 #include "renderer/rendertarget.h"
 #include "renderer/rootsignature.h"
 #include "renderer/shader.h"
+#include "renderer/texture.h"
 #include "renderer/vertexdata.h"
 #include "renderer/vertexshader.h"
 
@@ -86,6 +88,7 @@
 #include "core/optional.h"
 #include "core/platform.h"
 #include "core/string.h"
+#include "core/tree.h"
 #include "core/utility.h"
 #include "core/variant.h"
 #include "core/math/color.h"

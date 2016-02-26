@@ -60,6 +60,8 @@ namespace killme
 
         return ""; // For warnings
     }
+
+#undef KILLME_SWITCH_STR
 }
 
 #endif

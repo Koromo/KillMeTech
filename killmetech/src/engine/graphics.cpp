@@ -10,6 +10,7 @@
 #include "../renderer/shader.h"
 #include "../renderer/vertexshader.h"
 #include "../renderer/pixelshader.h"
+#include "../renderer/texture.h"
 #include "../core/string.h"
 
 namespace killme
@@ -44,13 +45,15 @@ namespace killme
 
         Resources::registerLoader("vhlsl", [](const std::string& path)      { return compileShader<VertexShader>(toCharSet(path)); });
         Resources::registerLoader("phlsl", [](const std::string& path)      { return compileShader<PixelShader>(toCharSet(path)); });
-        Resources::registerLoader("material", [&](const std::string& path)  { return loadMaterial(*renderSystem, Resources::getManager(), path); });
+        Resources::registerLoader("material", [&](const std::string& path)  { return loadMaterial(renderSystem, Resources::getManager(), path); });
+        Resources::registerLoader("bmp", [&](const std::string& path)      { return loadTextureFromBmp(*renderSystem, path); });
         Resources::registerLoader("fbx", [&](const std::string& path)       { return fbxImporter->import(*renderSystem, Resources::getManager(), path); });
     }
 
     void Graphics::shutdown()
     {
         Resources::unregisterLoader("fbx");
+        Resources::unregisterLoader("bmp");
         Resources::unregisterLoader("material");
         Resources::unregisterLoader("phlsl");
         Resources::unregisterLoader("vhlsl");

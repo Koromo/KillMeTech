@@ -222,6 +222,15 @@
     <ClCompile Include="src\engine\components\lightcomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\bmpcodec.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\image.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\texture.h">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -475,6 +484,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\components\lightcomponent.h">
       <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\image.h">
+      <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

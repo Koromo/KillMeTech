@@ -17,9 +17,14 @@
 namespace killme
 {
     MeshEntity::MeshEntity(const Resource<Mesh>& mesh)
-        : mesh_()
+        : mesh_(mesh)
         , renderer_(std::make_shared<MeshRenderer>(mesh))
     {
+    }
+
+    std::shared_ptr<SubMesh> MeshEntity::findSubMesh(const std::string& name)
+    {
+        return mesh_.access()->findSubMesh(name);
     }
 
     void MeshEntity::collectRenderer(RenderQueue& queue)
@@ -48,14 +53,14 @@ namespace killme
         {
             // Update constant buffers
             const auto material = subMesh.second->getMaterial();
-            material.access()->setVariable("_ViewMatrix", context.viewMatrix);
-            material.access()->setVariable("_ProjMatrix", context.projMatrix);
-            material.access()->setVariable("_WorldMatrix", worldMatrix);
-            material.access()->setVariable("_AmbientLight", context.ambientLight);
+            material->setVariable("_ViewMatrix", context.viewMatrix);
+            material->setVariable("_ProjMatrix", context.projMatrix);
+            material->setVariable("_WorldMatrix", worldMatrix);
+            material->setVariable("_AmbientLight", context.ambientLight);
 
             const auto vertexData = subMesh.second->getVertexData();
             const auto indexBuffer = vertexData->getIndexBuffer();
-            for (const auto& pass : material.access()->getUseTechnique()->getPasses()) // For each passes
+            for (const auto& pass : material->getUseTechnique()->getPasses()) // For each passes
             {
                 const auto pipelineState = pass.second->getPipelineState();
                 const auto rootSignature = pipelineState->describe().rootSignature;
@@ -78,7 +83,7 @@ namespace killme
                     context.commandList->setIndexBuffer(indexBuffer);
 
                     context.commandList->setRootSignature(rootSignature);
-                    context.commandList->setGpuResourceHeaps(heaps, heaps.length());
+                    context.commandList->setGpuResourceHeaps(heaps);
                     for (const auto& t : heapTables)
                     {
                         context.commandList->setGpuResourceTable(t.first, t.second);
