@@ -2,6 +2,8 @@
 #include "material.h"
 #include "../renderer/vertexshader.h"
 #include "../renderer/pixelshader.h"
+#include "../renderer/texture.h"
+#include "../resources/resourcemanager.h"
 #include <fstream>
 #include <iterator>
 #include <queue>
@@ -9,6 +11,7 @@
 #include <functional>
 #include <stdexcept>
 #include <type_traits>
+#include <array>
 #include <cctype>
 
 namespace killme
@@ -83,6 +86,8 @@ namespace killme
             TechniqueDescription* currentTech;
 
             std::unordered_set<std::string> identifiers;
+
+            ResourceManager* resourceManager;
         };
 
         // Parser map type
@@ -139,6 +144,40 @@ namespace killme
             const auto str = forward(context);
             forward(context, "\"");
             return str;
+        }
+
+        // Read array literal
+        template <class T, size_t L>
+        std::array<T, L> literal_array(ParseContext& context)
+        {
+            forward(context, "[");
+
+            std::array<T, L> arr;
+            for (size_t i = 0; i < L - 1; ++i)
+            {
+                try
+                {
+                    arr[i] = std::stof(forward(context));
+                }
+                catch (const std::invalid_argument&)
+                {
+                    syntaxError(context, *context.token);
+                }
+                forward(context, ",");
+            }
+
+            try
+            {
+                arr[L - 1] = std::stof(forward(context));
+            }
+            catch (const std::invalid_argument&)
+            {
+                syntaxError(context, *context.token);
+            }
+
+            forward(context, "]");
+
+            return arr;
         }
 
         // Parse current token
@@ -231,10 +270,31 @@ namespace killme
 
             addIdentifier(context, name);
 
-            forward(context, ";");
             forward(context);
 
-            context.material.addParameter(name, { typeTag<MP_float4>(), Variant(MP_float4::INIT) });
+            MP_float4 value;
+            if (*context.token == "=")
+            {
+                const auto arr = literal_array<float, 4>(context);
+                forward(context, ";");
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    value[i] = arr[i];
+                }
+            }
+            else if (*context.token == ";")
+            {
+                value = MP_float4::INIT;
+            }
+            else
+            {
+                syntaxError(context, *context.token);
+            }
+
+            forward(context);
+
+            context.material.addParameter(name, { typeTag<MP_float4>(), Variant(value) });
         }
 
         // Parse "tex2d" element
@@ -244,10 +304,29 @@ namespace killme
 
             addIdentifier(context, name);
 
-            forward(context, ";");
             forward(context);
 
-            context.material.addParameter(name, { typeTag<MP_tex2d>(), Variant(MP_tex2d::INIT) });
+            MP_tex2d value;
+            if (*context.token == "=")
+            {
+                const auto path = literal_string(context);
+                forward(context, ";");
+
+                value = MP_tex2d::INIT;
+                value.texture = context.resourceManager->getAccessor<Texture>(path, true);
+            }
+            else if (*context.token == ";")
+            {
+                value = MP_tex2d::INIT;
+            }
+            else
+            {
+                syntaxError(context, *context.token);
+            }
+
+            forward(context);
+
+            context.material.addParameter(name, { typeTag<MP_tex2d>(), Variant(value) });
         }
 
         // Parse "parameters" block
@@ -610,7 +689,7 @@ namespace killme
         // Tokenize line by delimiters
         std::vector<std::string> tokenizeLine(const std::string& line)
         {
-            static const std::string DERIMITERS = " \t\",=(){};";
+            static const std::string DERIMITERS = " \t\",=(){}[];";
 
             std::vector<std::string> tokens;
 
@@ -742,6 +821,7 @@ namespace killme
         context.currentShaderBound = nullptr;
         context.currentPass = nullptr;
         context.currentTech = nullptr;
+        context.resourceManager = &resourceManager;
 
         context.tokens.emplace_back("MATERIAL_BEGIN");
         context.numTokensInLine.push(1);

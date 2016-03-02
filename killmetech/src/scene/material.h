@@ -164,6 +164,18 @@ namespace killme
         /** Change current technique */
         void selectTechnique(const std::string& name);
 
+        /** Get parameter */
+        template <class T>
+        T getParameter(const std::string& name)
+        {
+            const auto it = params_.find(name);
+
+            enforce<InvalidArgmentException>(it != std::cend(params_), "Parameter \'" + name + "\' not exists.");
+            enforce<InvalidArgmentException>(it->second.type == typeTag<T>(), "Mismatch parameter type.");
+
+            return it->second.value;
+        }
+
         /** Set numeric parameter */
         template <class T>
         void setNumeric(const std::string& name, const T& value)
