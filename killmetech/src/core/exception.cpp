@@ -33,4 +33,14 @@ namespace killme
         : Exception(msg)
     {
     }
+
+    ItemNotFoundException::ItemNotFoundException(const std::string& msg)
+        : Exception(msg)
+    {
+    }
+
+    InvalidArgmentException::InvalidArgmentException(const std::string& msg)
+        : Exception(msg)
+    {
+    }
 }

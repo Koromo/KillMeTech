@@ -1,5 +1,4 @@
 #include "string.h"
-#include "platform.h"
 #include <vector>
 #include <algorithm>
 #include <cctype>

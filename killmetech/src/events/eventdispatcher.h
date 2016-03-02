@@ -25,14 +25,14 @@ namespace killme
         };
     }
 
-    /** The handle of event hook */
+    /** Handler of event hook */
     class EventConnection
     {
     private:
         std::shared_ptr<detail::Disconnector> disconnector_;
 
     public:
-        /** Constructs */
+        /** Construct */
         EventConnection() = default;
         explicit EventConnection(const std::shared_ptr<detail::Disconnector>& disconnector);
         EventConnection(const EventConnection&) = default;
@@ -42,11 +42,11 @@ namespace killme
         EventConnection& operator =(const EventConnection&) = default;
         EventConnection& operator =(EventConnection&&) = default;
 
-        /** Removes event hook from the dispather */
+        /** Remove event hook from the dispather */
         void disconnect();
     };
 
-    /** Dispatch event for listeners */
+    /** Dispatch events for listeners */
     class EventDispatcher : public std::enable_shared_from_this<EventDispatcher>
     {
     public:
@@ -57,16 +57,16 @@ namespace killme
         size_t idCounter_;
 
     public:
-        /** Constructs */
+        /** Construct */
         EventDispatcher();
 
-        /** Adds an event hook */
+        /** Add an event hook */
         EventConnection connect(const std::string& type, EventHook hook);
 
-        /** Removes an event hook */
+        /** Remove an event hook */
         void disconnect(const std::string& type, size_t id);
 
-        /** Dispatches the event */
+        /** Dispatche an event */
         /// NOTE: When event is emitting, calling the connect() or disconnect() is not permitted
         void emit(const Event& e);
     };

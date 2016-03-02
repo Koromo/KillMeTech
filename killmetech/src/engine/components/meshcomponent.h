@@ -18,7 +18,7 @@ namespace killme
         std::shared_ptr<MeshEntity> entity_;
 
     public:
-        /** Constructs */
+        /** Construct */
         explicit MeshComponent(const std::string& path);
 
         /** Return the sub mesh */

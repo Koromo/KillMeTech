@@ -17,13 +17,13 @@ namespace killme
         std::unordered_map<std::string, std::shared_ptr<Actor>> actors_;
 
     public:
-        /** Destructs */
+        /** Destruct */
         ~World();
 
-        /** Spawns an actor */
+        /** Spawn an actor */
         std::shared_ptr<Actor> spawnActor(const std::string& name);
 
-        /** Spawns an actor with designer */
+        /** Spawn an actor with designer */
         template <class Designer, class... Args>
         std::shared_ptr<Actor> spawnDesignedActor(const std::string& name, Args&&... args)
         {
@@ -40,7 +40,7 @@ namespace killme
             return actor;
         }
 
-        /** Kills an actor */
+        /** Kill an actor */
         void killActor(const std::string& name);
 
         /** Search an actor */

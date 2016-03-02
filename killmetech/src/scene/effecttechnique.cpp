@@ -1,29 +1,40 @@
 #include "effecttechnique.h"
 #include "effectpass.h"
-#include <algorithm>
+#include "materialcreation.h"
 
 namespace killme
 {
-    void EffectTechnique::updateConstant(const std::string& param, const void* data)
+    EffectTechnique::EffectTechnique(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
+        const MaterialDescription& matDesc, const TechniqueDescription& techDesc)
+        : passes_()
     {
-        for (const auto& pass : passes_)
+        for (const auto& pass : techDesc.passes)
         {
-            pass.second->updateConstant(param, data);
+            passes_.emplace_back(std::make_shared<EffectPass>(renderSystem, resourceManager, matDesc, pass.second));
         }
     }
 
-    void EffectTechnique::updateTexture(const std::string& param, const Resource<Texture>& tex)
+    void EffectTechnique::updateConstant(const std::string& matParam, const void* data, size_t size)
     {
         for (const auto& pass : passes_)
         {
-            pass.second->updateTexture(param, tex);
+            pass->updateConstant(matParam, data, size);
         }
     }
 
-    void EffectTechnique::addPass(int index, const std::shared_ptr<EffectPass>& pass)
+    void EffectTechnique::updateTexture(const std::string& matParam, const Resource<Texture>& tex)
     {
-        const auto point = std::lower_bound(std::cbegin(passes_), std::cend(passes_), index,
-            [](const std::pair<int, std::shared_ptr<EffectPass>>& a, int i) { return a.first < i; });
-        passes_.emplace(point, index, pass);
+        for (const auto& pass : passes_)
+        {
+            pass->updateTexture(matParam, tex);
+        }
+    }
+
+    void EffectTechnique::updateSampler(const std::string& matParam, const std::shared_ptr<Sampler>& sam)
+    {
+        for (const auto& pass : passes_)
+        {
+            pass->updateSampler(matParam, sam);
+        }
     }
 }

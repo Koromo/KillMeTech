@@ -8,11 +8,11 @@
 
 namespace killme
 {
-    /** The XAudio relational exception */
+    /** XAudio relational exception */
     class XAudioException : public Exception
     {
     public:
-        /** Constructs with a message */
+        /** Construct with a message */
         explicit XAudioException(const std::string& msg)
             : Exception(msg) {}
     };
@@ -33,7 +33,7 @@ namespace killme
         };
     }
 
-    /** The smart pointers for XAudio voice objects */
+    /** Smart pointers for XAudio voice objects */
     template <class T>
     using VoiceUniquePtr = std::unique_ptr<T, detail::VoiceDeleter<T>>;
 

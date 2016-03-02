@@ -44,7 +44,7 @@ namespace killme
         node_ = node;
     }
 
-    void MeshRenderer::recordCommands(const SceneContext& context)
+    void MeshRenderer::render(const SceneContext& context)
     {
         // Get world matrix
         const auto worldMatrix = transpose(node_.lock()->getWorldMatrix());
@@ -53,21 +53,21 @@ namespace killme
         {
             // Update constant buffers
             const auto material = subMesh.second->getMaterial();
-            material->setVariable("_ViewMatrix", context.viewMatrix);
-            material->setVariable("_ProjMatrix", context.projMatrix);
-            material->setVariable("_WorldMatrix", worldMatrix);
-            material->setVariable("_AmbientLight", context.ambientLight);
+            material->setNumeric("_ViewMatrix", to<MP_float4x4>(context.viewMatrix));
+            material->setNumeric("_ProjMatrix", to<MP_float4x4>(context.projMatrix));
+            material->setNumeric("_WorldMatrix", to<MP_float4x4>(worldMatrix));
+            material->setNumeric("_AmbientLight", to<MP_float4>(context.ambientLight));
 
             const auto vertexData = subMesh.second->getVertexData();
             const auto indexBuffer = vertexData->getIndexBuffer();
             for (const auto& pass : material->getUseTechnique()->getPasses()) // For each passes
             {
-                const auto pipelineState = pass.second->getPipelineState();
+                const auto pipelineState = pass->getPipelineState();
                 const auto rootSignature = pipelineState->describe().rootSignature;
                 const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
-                const auto& vertexBinder = vertexData->getBinder(inputLayout);
-                const auto heaps = pass.second->getGpuResourceHeaps();
-                const auto heapTables = pass.second->getGpuResourceHeapTables();
+                const auto& vertexViews = vertexData->getVertexViews(inputLayout);
+                const auto heaps = pass->getGpuResourceHeaps();
+                const auto heapTables = pass->getGpuResourceHeapTables();
 
                 const auto renderPass = [&]()
                 {
@@ -79,7 +79,7 @@ namespace killme
                     context.commandList->setViewport(context.viewport);
                     context.commandList->setScissorRect(context.scissorRect);
                     context.commandList->setPrimitiveTopology(PrimitiveTopology::triangeList);
-                    context.commandList->setVertexBuffers(vertexBinder);
+                    context.commandList->setVertexBuffers(vertexViews);
                     context.commandList->setIndexBuffer(indexBuffer);
 
                     context.commandList->setRootSignature(rootSignature);
@@ -97,14 +97,14 @@ namespace killme
                     context.renderSystem->executeCommands(context.commandList);
                 };
 
-                if (pass.second->forEachLight())
+                if (pass->forEachLight())
                 {
                     for (const auto& light : context.lights_)
                     {
                         const auto lightColor = light->getColor();
                         const auto lightDir = light->getFront();
-                        pass.second->updateConstant("_LightColor", &lightColor);
-                        pass.second->updateConstant("_LightDirection", &lightDir);
+                        pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
+                        pass->updateConstant("_LightDirection", &lightDir, sizeof(lightDir));
                         renderPass();
                     }
                 }

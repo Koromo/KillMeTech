@@ -1,6 +1,7 @@
 #include "fbxmeshimporter.h"
 #include "../scene/mesh.h"
 #include "../scene/material.h"
+#include "../scene/materialcreation.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/vertexdata.h"
 #include "../resources/resourcemanager.h"
@@ -9,7 +10,6 @@
 #include <vector>
 #include <utility>
 #include <cstdlib>
-#include <cassert>
 
 namespace killme
 {
@@ -36,15 +36,14 @@ namespace killme
         // Convert vertices mapped by control point to mapped by polygon vertex
         std::vector<float> toByPolygonVertexFromByControlPoint(const FbxMesh* mesh, const std::vector<float>& byCP, size_t numElemsInStride)
         {
-            const auto numPolygonVertices = mesh->GetPolygonVertexCount();
-            assert(numPolygonVertices > 0 && "Invalid .fbx mesh.");
+            const auto numPolygonVertices = enforce<FbxException>(mesh->GetPolygonVertexCount(), "Not supportted .fbx format.");
 
             std::vector<float> byPV(numPolygonVertices * numElemsInStride);
 
             const auto numPolygons = mesh->GetPolygonCount();
             for (int polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
             {
-                assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                 for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                 {
                     const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -83,15 +82,14 @@ namespace killme
         /// TODO:
         void storeIndices(const FbxMesh* mesh, MeshCache& out)
         {
-            const auto numPolygonVertices = mesh->GetPolygonVertexCount();
-            assert(numPolygonVertices > 0 && "Invalid .fbx mesh.");
+            const auto numPolygonVertices = enforce<FbxException>(mesh->GetPolygonVertexCount(), "Not supportted .fbx format.");
 
             out.indices.resize(numPolygonVertices);
 
             const auto numPolygons = mesh->GetPolygonCount();
             for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
             {
-                assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                 for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                 {
                     const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -106,7 +104,7 @@ namespace killme
             const auto NUM_ELEMS_IN_STRIDE = 2;
 
             const auto numUVElems = mesh->GetElementUVCount();
-            assert(numUVElems <= 1 && "Not supported multiple geometry elements about texcoords.");
+            enforce<FbxException>(numUVElems <= 1, "Not supportted .fbx format.");
 
             if (numUVElems == 0)
             {
@@ -154,8 +152,7 @@ namespace killme
                 }
 
                 default:
-                    assert(false && "The not suppoted reference mode.");
-                    break;
+                    throw FbxException("Not supportted .fbx format.");
                 }
 
                 out.uvs = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
@@ -174,7 +171,7 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                         for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
                             const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -193,7 +190,7 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                         for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
                             const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -207,8 +204,7 @@ namespace killme
                 }
 
                 default:
-                    assert(false && "The not suppoted reference mode.");
-                    break;
+                    throw FbxException("Not supportted .fbx format.");
                 }
 
                 out.uvs = std::move(byPV);
@@ -216,8 +212,7 @@ namespace killme
             }
 
             default:
-                assert(false && "The not suppoted mapping mode.");
-                break;
+                throw FbxException("Not supportted .fbx format.");
             }
         }
 
@@ -227,7 +222,7 @@ namespace killme
             const auto NUM_ELEMS_IN_STRIDE = 3;
 
             const auto numNormalElems = mesh->GetElementNormalCount();
-            assert(numNormalElems <= 1 && "Not supported multiple geometry elements about normals.");
+            enforce<FbxException>(numNormalElems <= 1, "Not supportted .fbx format.");
 
             if (numNormalElems == 0)
             {
@@ -277,8 +272,7 @@ namespace killme
                 }
 
                 default:
-                    assert(false && "The not suppoted reference mode.");
-                    break;
+                    throw FbxException("Not supportted .fbx format.");
                 }
 
                 out.normals = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
@@ -297,7 +291,7 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                         for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
                             const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -317,7 +311,7 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                         for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
                             const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -332,8 +326,7 @@ namespace killme
                 }
 
                 default:
-                    assert(false && "The not suppoted reference mode.");
-                    break;
+                    throw FbxException("Not supportted .fbx format.");
                 }
 
                 out.normals = std::move(byPV);
@@ -341,8 +334,7 @@ namespace killme
             }
 
             default:
-                assert(false && "The not suppoted mapping mode.");
-                break;
+                throw FbxException("Not supportted .fbx format.");
             }
         }
 
@@ -352,7 +344,7 @@ namespace killme
             const auto NUM_ELEMS_IN_STRIDE = 4;
 
             const auto numColorElems = mesh->GetElementVertexColorCount();
-            assert(numColorElems <= 1 && "Not supported multiple geometry elements about colors.");
+            enforce<FbxException>(numColorElems <= 1, "Not supportted .fbx format.");
 
             if (numColorElems == 0)
             {
@@ -404,8 +396,7 @@ namespace killme
                 }
 
                 default:
-                    assert(false && "The not suppoted reference mode.");
-                    break;
+                    throw FbxException("Not supportted .fbx format.");
                 }
 
                 out.colors = toByPolygonVertexFromByControlPoint(mesh, byCP, NUM_ELEMS_IN_STRIDE);
@@ -424,7 +415,7 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                         for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
                             const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -445,7 +436,7 @@ namespace killme
                     const auto numPolygons = mesh->GetPolygonCount();
                     for (auto polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
                     {
-                        assert(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE && "Not supportted to the no triangle polygon.");
+                        enforce<FbxException>(mesh->GetPolygonSize(polygonIndex) == POLYGON_SIZE, "Not supportted .fbx format.");
                         for (int vertexIndex = 0; vertexIndex < POLYGON_SIZE; ++vertexIndex)
                         {
                             const auto pvIndex = polygonIndex * POLYGON_SIZE + vertexIndex;
@@ -461,8 +452,7 @@ namespace killme
                 }
 
                 default:
-                    assert(false && "The not suppoted reference mode.");
-                    break;
+                    throw FbxException("Not supportted .fbx format.");
                 }
 
                 out.colors = std::move(byPV);
@@ -470,8 +460,7 @@ namespace killme
             }
 
             default:
-                assert(false && "The not suppoted mapping mode.");
-                break;
+                throw FbxException("Not supportted .fbx format.");
             }
         }
 
@@ -524,7 +513,7 @@ namespace killme
                         vertexData->addVertices(SemanticNames::color, 0, colorBuffer);
                     }
 
-                    const auto material = accessResource<Material>(resourceManager, "media/box.material");
+                    const auto material = resourceManager.getAccessor<Material>("media/box.material", true);
                     parsedMesh->createSubMesh(fbxMesh->GetName(), vertexData, material);
                 }
 

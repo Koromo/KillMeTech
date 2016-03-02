@@ -6,7 +6,7 @@
 
 namespace killme
 {
-    /** The depth stencil */
+    /** Depth stencil */
     /// TODO: Not supported stencil buffer
     class DepthStencil
     {
@@ -15,20 +15,20 @@ namespace killme
         DXGI_FORMAT format_;
 
     public:
-        /** The resource view */
+        /** Resource view */
         struct View
         {
             D3D12_CPU_DESCRIPTOR_HANDLE d3dView;
         };
 
-        /** Constructs with a Direct3D depth stencil */
+        /** Construct with a Direct3D depth stencil */
         explicit DepthStencil(ID3D12Resource* depthStencil)
             : depthStencil_(makeComUnique(depthStencil))
             , format_(depthStencil->GetDesc().Format)
         {
         }
 
-        /** Creates the Direct3D view into a desctipror heap */
+        /** Create the Direct3D view into a desctipror heap */
         View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
         {
             D3D12_DEPTH_STENCIL_VIEW_DESC viewDesc;

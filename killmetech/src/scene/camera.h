@@ -9,7 +9,7 @@
 
 namespace killme
 {
-    /** The camera */
+    /** Camera */
     class Camera
     {
     private:
@@ -22,7 +22,7 @@ namespace killme
         Quaternion orientation_;
 
     public:
-        /** Constructs */
+        /** Construct */
         Camera(const Viewport& vp)
             : fovX_(radian(60))
             , aspect_()
@@ -35,19 +35,19 @@ namespace killme
             aspect_ = viewport_.width / viewport_.height;
         }
 
-        /** Sets a viewport */
+        /** Set the viewport */
         void setViewport(const Viewport& vp) { viewport_ = vp; }
 
-        /** Returns the viewport */
+        /** Return the viewport */
         Viewport getViewport() const { return viewport_; }
 
-        /** Updates the projection */
+        /** Update the projection */
         void setFovX(float rad) { fovX_ = rad; }
         void setAspectRate(float aspect) { aspect_ = aspect; } /// NOTE: w/h
         void setNearZ(float z) { nearZ_ = z; }
         void setFarZ(float z) { farZ_ = z; }
 
-        /** Returns the projection matrix */
+        /** Return the projection matrix */
         Matrix44 getProjectionMatrix() const { return makeProjectionMatrix(fovX_, aspect_, nearZ_, farZ_); }
 
         /** Transform modifiers */

@@ -47,7 +47,7 @@ namespace killme
 
     inline std::shared_ptr<Texture> loadTextureFromBmp(RenderSystem& renderSystem, const std::string& path)
     {
-        return renderSystem.createTexture(decodeBmp(path));
+        return renderSystem.createTexture(decodeBmpImage(path));
     }
 
     /** Sampler */

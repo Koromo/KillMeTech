@@ -6,14 +6,14 @@
 
 namespace killme
 {
-    /** The pixel shader */
+    /** Pixel shader */
     class PixelShader : public BasicShader
     {
     public:
         /** Shader model */
         static const std::string model;
 
-        /** Constructs with a byte code */
+        /** Construct with a byte code */
         explicit PixelShader(ID3DBlob* byteCode);
     };
 }

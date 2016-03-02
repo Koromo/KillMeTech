@@ -7,7 +7,7 @@
 
 namespace killme
 {
-    /** The input layout */
+    /** Input layout */
     class InputLayout
     {
     private:
@@ -15,7 +15,7 @@ namespace killme
         D3D12_INPUT_LAYOUT_DESC layout_;
 
     public:
-        /** Constructs with Direct3D input element descriptions */
+        /** Construct with Direct3D input element descriptions */
         explicit InputLayout(std::vector<D3D12_INPUT_ELEMENT_DESC>&& elems)
             : elems_(std::move(elems))
             , layout_()
@@ -24,7 +24,7 @@ namespace killme
             layout_.NumElements = elems_.size();
         }
 
-        /** Returns the Direct3D Input layout */
+        /** Return the Direct3D Input layout */
         D3D12_INPUT_LAYOUT_DESC getD3DLayout() { return layout_; }
     };
 }

@@ -21,10 +21,10 @@ namespace killme
     /** KillMe Tech runtime engine */
     struct RunTime
     {
-        /** Initializes KillMe Tech */
+        /** Initialize KillMe Tech */
         static void startup(size_t width, size_t height, const tstring& title);
 
-        /** Finalizes KillMe Tech */
+        /** Finalize KillMe Tech */
         static void shutdown();
 
         /** Set FPS */
@@ -37,11 +37,11 @@ namespace killme
         /// NOTE: n <= 120
         static float getCurrentFrameRate(size_t n);
 
-        /** Starts game */
+        /** Start game */
         static void run(LevelDesigner& designer);
         static void run(LevelDesigner&& designer);
 
-        /** Requests to exit game */
+        /** Request to exit game */
         static void quit();
     };
 }

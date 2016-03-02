@@ -8,7 +8,7 @@
 
 namespace killme
 {
-    /** The Event */
+    /** Event */
     class Event
     {
     private:
@@ -16,20 +16,20 @@ namespace killme
         std::vector<Variant> params_;
 
     public:
-        /** Constructs with a event type */
+        /** Construct */
         explicit Event(const std::string& type, size_t numParams)
             : type_(type)
             , params_(numParams)
         {
         }
 
-        /** Returns event type */
+        /** Return the event type */
         std::string getType() const
         {
             return type_;
         }
 
-        /** Accesses to the i'th parameter */
+        /** Accesses to i'th parameter */
         const Variant& operator [](size_t i) const
         {
             return params_[i];

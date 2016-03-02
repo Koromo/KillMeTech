@@ -26,14 +26,14 @@ namespace killme
         Matrix44 projMatrix;
         Viewport viewport;
         Color ambientLight;
-        Range_t<std::add_lvalue_reference_t<std::unordered_set<std::shared_ptr<Light>>>> lights_;
+        Range<std::add_lvalue_reference_t<std::unordered_set<std::shared_ptr<Light>>>> lights_;
         ScissorRect scissorRect;
         std::shared_ptr<CommandList> commandList;
         std::shared_ptr<RenderSystem> renderSystem;
 
     };
 
-    /** The render scene */
+    /** Render scene */
     class Scene
     {
     private:
@@ -44,10 +44,10 @@ namespace killme
         std::unordered_set<std::shared_ptr<Light>> lights_;
 
     public:
-        /** Constructs */
+        /** Construct */
         explicit Scene(const std::shared_ptr<RenderSystem>& renderSystem);
 
-        /** Returns the current scene */
+        /** Return the current scene */
         std::shared_ptr<SceneNode> getRootNode();
 
         /** Set ambient light */
@@ -59,8 +59,8 @@ namespace killme
         /** Remove light */
         void removeLight(const std::shared_ptr<Light>& light);
 
-        /** Clears the back buffer and draws the current scene */
-        void renderScene(const Camera& camera);
+        /** Clear the back buffer and draw the current scene */
+        void renderScene(const Camera& camera, const FrameResource& frame);
     };
 }
 

@@ -1,25 +1,18 @@
 #ifndef _KILLME_OPTIONAL_H_
 #define _KILLME_OPTIONAL_H_
 
-#include "exception.h"
 #include <utility>
 #include <memory>
+#include <cassert>
 
 namespace killme
 {
-    /** The exception of Optional */
-    class OptionalException : public Exception
-    {
-    public:
-        OptionalException(const std::string& msg);
-    };
-
     namespace detail
     {
         class NullOpt;
     }
 
-    /** The Optional */
+    /** Optional */
     /// NOTE: The Optional allocate memory dynamically.
     ///       Not support reference type.
     template <class T>
@@ -29,16 +22,16 @@ namespace killme
         std::unique_ptr<T> value_;
 
     public:
-        /** Constructs */
+        /** Construct */
         Optional() noexcept = default;
 
-        /** Constructs with the null */
+        /** Construct as the null */
         Optional(const detail::NullOpt&) noexcept
             : Optional()
         {
         }
 
-        /** Constructs with a value */
+        /** Construct with a value */
         Optional(const T& value)
             : value_(std::make_unique<T>(value))
         {
@@ -97,39 +90,39 @@ namespace killme
         }
 
         /** Move assignment operator */
-        Optional& operator =(Optional&& rhs)
+        Optional& operator =(Optional&& rhs) noexcept
         {
             value_ = std::move(rhs.value_);
             return *this;
         }
 
-        /** Returns true if Optional has a value. Otherwise, false. */
+        /** Return true if Optional has a value */
         operator bool() const noexcept
         {
             return !!value_;
         }
 
-        /** Accesses to the value */
-        const T* operator ->() const
+        /** Access into the value */
+        const T* operator ->() const noexcept
         {
-            enforce<OptionalException>(!!value_, "Optional is null.");
+            assert(*this && "Invalid access into null optional.");
             return value_.get();
         }
 
         /** ditto */
-        T* operator ->()
+        T* operator ->() noexcept
         {
             return const_cast<T*>(static_cast<const Optional&>(*this).operator->());
         }
 
-        /** Returns refference of the value */
-        const T& operator *() const
+        /** ditto */
+        const T& operator *() const noexcept
         {
             return *(this->operator->());
         }
 
         /** ditto */
-        T& operator *()
+        T& operator *() noexcept
         {
             return *(this->operator->());
         }
@@ -146,7 +139,7 @@ namespace killme
         };
     }
 
-    /** The invalid value */
+    /** Null optional */
     extern const detail::NullOpt nullopt;
 }
 

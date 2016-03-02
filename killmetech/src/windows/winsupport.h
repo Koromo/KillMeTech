@@ -7,11 +7,11 @@
 
 namespace killme
 {
-    /** The exception of windows platform */
+    /** Exception of windows platform */
     class WindowsException : public Exception
     {
     public:
-        /** Constructs with a message */
+        /** Construct with a message */
         explicit WindowsException(const std::string& msg) : Exception(msg) {}
     };
 

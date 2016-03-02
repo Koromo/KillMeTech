@@ -16,7 +16,7 @@ namespace killme
     class RenderQueue;
     struct SceneContext;
 
-    /** The meshed model entity */
+    /** Meshed model entity */
     class MeshEntity : public SceneEntity
     {
     private:
@@ -24,7 +24,7 @@ namespace killme
         std::shared_ptr<MeshRenderer> renderer_;
 
     public:
-        /** Constructs */
+        /** Construct */
         MeshEntity(const Resource<Mesh>& mesh);
 
         /** Search sub mesh */
@@ -33,6 +33,7 @@ namespace killme
         void collectRenderer(RenderQueue& queue);
     };
 
+    /** Mesh renderer */
     class MeshRenderer : public Renderer
     {
     private:
@@ -40,9 +41,14 @@ namespace killme
         Resource<Mesh> mesh_;
 
     public:
+        /** Construct */
         MeshRenderer(const Resource<Mesh>& mesh);
+
+        /** Set the owner node */
         void setOwnerNode(const std::weak_ptr<SceneNode>& node);
-        void recordCommands(const SceneContext& context);
+
+        /** Execute render */
+        void render(const SceneContext& context);
     };
 }
 

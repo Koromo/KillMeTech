@@ -24,13 +24,13 @@ namespace killme
         std::queue<Event> eventQueue_;
 
     public:
-        /** Constructs */
+        /** Construct */
         InputStatus();
 
-        /** Whether any input events is queued or not */
+        /** Whether any input events are queued or not */
         bool eventQueued() const;
 
-        /** Pop the input event queue */
+        /** Pop an input event from queue */
         Event popQueuedEvent();
 
         /** You need call on windows message resieved */

@@ -9,7 +9,7 @@ namespace killme
 {
     class InputLayout;
 
-    /** The vertex shader */
+    /** Vertex shader */
     class VertexShader : public BasicShader
     {
     private:
@@ -19,10 +19,10 @@ namespace killme
         /** Shader model */
         static const std::string model;
 
-        /** Constructs with a byte code */
+        /** Construct with a byte code */
         explicit VertexShader(ID3DBlob* byteCode);
 
-        /** Returns the input layout of the shader */
+        /** Return the input layout of the shader */
         std::shared_ptr<InputLayout> getInputLayout() const;
     };
 }

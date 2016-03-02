@@ -6,7 +6,7 @@
 
 namespace killme
 {
-    /** The console interface */
+    /** Console interface */
     class Console
     {
     private:
@@ -14,16 +14,16 @@ namespace killme
         HANDLE outHandle_;
 
     public:
-        /** Allocates the console */
+        /** Allocate console */
         void allocate();
 
-        /** Frees the console */
+        /** Free console */
         void free();
 
-        /** Reads an input until the space character */
+        /** Read an input until a space character */
         tstring read();
 
-        /** Outputs a string */
+        /** Output a string */
         void write(const tchar* str);
         void writef(const tchar* fmt, ...);
         void writeln(const tchar* str);

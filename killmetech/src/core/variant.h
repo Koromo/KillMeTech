@@ -1,45 +1,31 @@
 #ifndef _KILLME_VARIANT_H_
 #define _KILLME_VARIANT_H_
 
-#include "exception.h"
+#include "utility.h"
 #include <memory>
 #include <utility>
 #include <string>
 #include <type_traits>
+#include <cassert>
 
 namespace killme
 {
-    /** The exception of Variant */
-    class VariantException : public Exception
-    {
-    public:
-        VariantException(const std::string& msg)
-            : Exception(msg) {}
-    };
-
-    /** The Variant type */
-    /// TODO: Not support refference
+    /** Variant type */
+    /// TODO: Not support hold reference value
     class Variant
     {
     private:
         template <class T>
         using FixedType = std::remove_const_t<std::remove_reference_t<T>>;
 
-        // Type id
-        using TypeId = void(*)();
-
-        template <class T>
-        struct TypeId_t
-        {
-            static void id() {}
-        };
-
         // Holder
         struct Holder
         {
             virtual ~Holder() noexcept = default;
             virtual Holder* copy() const = 0;
-            virtual TypeId typeId() const noexcept = 0;
+            virtual TypeTag type() const noexcept = 0;
+            virtual size_t sizeOf() const noexcept = 0;
+            virtual const void* ptr() const noexcept = 0;
         };
 
         template <class T>
@@ -51,16 +37,18 @@ namespace killme
             TypedHolder(U&& val) : value(std::forward<U>(val)) {}
 
             Holder* copy() const { return new TypedHolder<T>(value); }
-            TypeId typeId() const noexcept { return TypeId_t<T>::id; }
+            TypeTag type() const noexcept { return typeTag<T>(); }
+            size_t sizeOf() const noexcept { return sizeof(T); }
+            const void* ptr() const noexcept { return &value; }
         };
 
         std::shared_ptr<Holder> holder_;
 
     public:
-        /** Constructs */
+        /** Construct */
         Variant() noexcept = default;
 
-        /** Constructs with a value  */
+        /** Construct with a value  */
         template <class T, class U = FixedType<T>>
         explicit Variant(T&& value)
             : holder_(std::make_shared<TypedHolder<U>>(std::forward<T>(value)))
@@ -68,14 +56,14 @@ namespace killme
         }
 
         /** Copy constructor */
-        Variant(const Variant& lhs)
+        Variant(const Variant& lhs) noexcept
             : holder_()
         {
             *this = lhs;
         }
 
         /** Move constructor */
-        Variant(Variant&& rhs)
+        Variant(Variant&& rhs) noexcept
             : holder_(std::move(rhs.holder_))
         {
         }
@@ -100,7 +88,7 @@ namespace killme
         }
 
         /** Move assignment operator */
-        Variant& operator =(Variant&& rhs)
+        Variant& operator =(Variant&& rhs) noexcept
         {
             holder_ = std::move(rhs.holder_);
             return *this;
@@ -108,16 +96,16 @@ namespace killme
 
         /** Cast operator */
         template <class T, class U = FixedType<T>>
-        operator T() const
+        operator T() const noexcept
         {
-            enforce<VariantException>(hasValue(), "Variant has not value.");
-            enforce<VariantException>(killme::is<U>(*this), "Not match variant type.");
+            assert(hasValue() && "Variant has not value.");
+            assert(killme::is<U>(*this) && "Variant type not match.");
             return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value;
         }
 
         /** Equivalent test */
         template <class T, class U = FixedType<T>>
-        bool operator ==(const T& a) const
+        bool operator ==(const T& a) const noexcept
         {
             if (!hasValue() || !killme::is<U>(*this))
             {
@@ -126,49 +114,69 @@ namespace killme
             return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value == a;
         }
 
-        /** For killme::is() */
+        // For killme::is()
         template <class T>
         bool is() const noexcept
         {
-            return hasValue() && TypeId_t<T>::id == holder_->typeId();
+            return hasValue() && typeTag<T>() == holder_->type();
         }
 
-        /** Returns true if Variant has value */
+        /** Return true if Variant has a value */
         bool hasValue() const noexcept
         {
             return !!holder_;
+        }
+
+        /** Return size of the hold value */
+        size_t sizeOf() const noexcept
+        {
+            if (!hasValue())
+            {
+                return 0;
+            }
+            return holder_->sizeOf();
+        }
+
+        /** Return pointer of the hold value */
+        const void* ptr() const noexcept
+        {
+            if (!hasValue())
+            {
+                return nullptr;
+            }
+            return holder_->ptr();
         }
     };
 
     /** Cast to "T" */
     template <class T>
-    inline T to(const Variant& var)
+    T to(const Variant& var) noexcept
     {
-        return var;
+        return static_cast<T>(var);
     }
 
-    /** Returns true if the type of the value holded by Variant is same to the "T" */
+    /** Return true if the type of a variant value is same to the "T" */
     template <class T>
     bool is(const Variant& v) noexcept
     {
         return v.template is<T>();
     }
 
-    /** Operator overloads */
+    /** Equivalent tests */
     template <class T>
-    bool operator==(const T& a, const Variant& v)
+    bool operator==(const T& a, const Variant& v) noexcept
     {
         return v == a;
     }
 
     template <class T>
-    bool operator!=(const Variant& v, const T& a)
+    bool operator!=(const Variant& v, const T& a) noexcept
     {
         return !(v == a);
     }
 
     template <class T>
-    bool operator!=(const T& a, const Variant& v)
+    bool operator!=(const T& a, const Variant& v) noexcept
     {
         return !(v == a);
     }

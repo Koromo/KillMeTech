@@ -12,7 +12,7 @@
 
 namespace killme
 {
-    /** The transform */
+    /** Transform */
     template <class T>
     class Transform : public std::enable_shared_from_this<T>
     {
@@ -24,7 +24,7 @@ namespace killme
         std::unordered_set<std::shared_ptr<T>> children_;
 
     public:
-        /** Constructs */
+        /** Construct */
         Transform()
             : position_()
             , orientation_()
@@ -37,7 +37,7 @@ namespace killme
         /** For drived classes */
         virtual ~Transform() = default;
 
-        /** Returns the parent */
+        /** Return the parent */
         std::shared_ptr<const T> lockParent() const
         {
             return parent_.lock();
@@ -48,7 +48,7 @@ namespace killme
             return parent_.lock();
         }
 
-        /** Adds the child node */
+        /** Add the child node */
         virtual void addChild(const std::shared_ptr<T>& child)
         {
             assert(child->parent_.expired() && "Child transform is already linked to an other node.");
@@ -56,7 +56,7 @@ namespace killme
             children_.emplace(child);
         }
 
-        /** Removes the child node */
+        /** Remove the child node */
         void removeChild(const std::shared_ptr<T>& child)
         {
             const auto n = children_.erase(child);
@@ -66,13 +66,13 @@ namespace killme
             }
         }
 
-        /** Returns count of child */
+        /** Return count of child */
         size_t getNumChildren() const
         {
             return children_.size();
         }
 
-        /** Returns the children */
+        /** Return the children */
         /// NOTE: Returned range is destroyed if modify children after get range 
         auto getChildren()
             -> decltype(makeRange(children_))
@@ -80,79 +80,79 @@ namespace killme
             return makeRange(children_);
         }
 
-        /** Returns the local relative position */
+        /** Return the local relative position */
         Vector3 getPosition() const
         {
             return position_;
         }
 
-        /** Returns the world relative position */
+        /** Return the world relative position */
         Vector3 getWorldPosition() const
         {
             return getWorldTransform().position;
         }
 
-        /** Sets local relative position */
+        /** Set local relative position */
         virtual void setPosition(const Vector3& pos)
         {
             position_ = pos;
         }
 
-        /** Sets world relative position */
+        /** Set world relative position */
         void setWorldPosition(const Vector3& wpos)
         {
             setPosition(fromWorldPosition(wpos));
         }
 
-        /** Returns the local relative orientation */
+        /** Return the local relative orientation */
         Quaternion getOrientation() const
         {
             return orientation_;
         }
 
-        /** Returns the world relative orientation */
+        /** Return the world relative orientation */
         Quaternion getWorldOrientation() const
         {
             return getWorldTransform().orientation;
         }
 
-        /** Sets local relative orientation */
+        /** Set local relative orientation */
         virtual void setOrientation(const Quaternion& q)
         {
             orientation_ = q;
         }
 
-        /** Sets world relative orientation */
+        /** Set world relative orientation */
         void setWorldOrientation(const Quaternion& wq)
         {
             setOrientation(fromWorldOrientation(wq));
         }
 
-        /** Returns the local relative scale */
+        /** Return the local relative scale */
         Vector3 getScale() const
         {
             return scale_;
         }
 
-        /** Returns the world relative scale */
+        /** Return the world relative scale */
         Vector3 getWorldScale() const
         {
             return getWorldTransform().scale;
         }
 
-        /** Sets local relative scale */
+        /** Set local relative scale */
         void setScale(const Vector3& k)
         {
             scale_ = k;
         }
 
-        /** Sets world relative scale */
+        /** Set world relative scale */
         void setWorldScale(const Vector3& wk)
         {
             setScale(fromWorldScale(wk));
         }
 
-        /** Convertes world position to local */
+        /** Convert the world position to local */
         Vector3 fromWorldPosition(const Vector3& wpos)
         {
             if (parent_.expired())
@@ -165,7 +165,7 @@ namespace killme
             return inverse(world.orientation) * invScale(wpos - world.position, world.scale);
         }
 
-        /** Convertes local position to world */
+        /** Convert the local position to world */
         Vector3 toWorldPosition(const Vector3& pos)
         {
             if (parent_.expired())
@@ -178,7 +178,7 @@ namespace killme
             return world.position + world.orientation * killme::scale(pos, world.scale);
         }
 
-        /** Convertes world orientation to local */
+        /** Convert the world orientation to local */
         Quaternion fromWorldOrientation(const Quaternion& wq)
         {
             if (parent_.expired())
@@ -191,7 +191,7 @@ namespace killme
             return wq * inverse(world.orientation);
         }
 
-        /** Convertes local orientation to world */
+        /** Convert the local orientation to world */
         Quaternion toWorldOrientation(const Quaternion& q)
         {
             if (parent_.expired())
@@ -204,7 +204,7 @@ namespace killme
             return q * world.orientation;
         }
 
-        /** Convertes world scale to local */
+        /** Convert the world scale to local */
         Vector3 fromWorldScale(const Vector3& wk)
         {
             if (parent_.expired())
@@ -217,7 +217,7 @@ namespace killme
             return invScale(wk, world.scale);
         }
 
-        /** Convertes local scale to world */
+        /** Convert the local scale to world */
         Vector3 toWorldScale(const Vector3& k)
         {
             if (parent_.expired())
@@ -230,13 +230,13 @@ namespace killme
             return killme::scale(k, world.scale);
         }
 
-        /** Returns the local matrix */
+        /** Return the local matrix */
         Matrix44 getMatrix() const
         {
             return makeTransformMatrix(scale_, orientation_, position_);
         }
 
-        /** Returns the world matrix */
+        /** Return the world matrix */
         Matrix44 getWorldMatrix() const
         {
             const auto world = getWorldTransform();

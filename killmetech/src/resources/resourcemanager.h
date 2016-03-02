@@ -11,7 +11,7 @@
 
 namespace killme
 {
-    /** The resource manager */
+    /** Resource manager */
     class ResourceManager
     {
     public:
@@ -22,13 +22,13 @@ namespace killme
         std::unordered_map<std::string, std::shared_ptr<IsResource>> resourceMap_;
 
     public:
-        /** Sets the resource loader */
+        /** Set the resource loader */
         void registerLoader(const std::string& ext, Loader loader);
 
-        /** Removes the resource loader */
+        /** Remove the resource loader */
         void unregisterLoader(const std::string& ext);
 
-        /** Returns resource accessor */
+        /** Access a resource */
         template <class T>
         Resource<T> getAccessor(const std::string& path, bool immediateLoading)
         {
@@ -45,29 +45,17 @@ namespace killme
             }
 
             const auto resource = std::dynamic_pointer_cast<T>(it->second);
-            assert(resource && "Mismatch the resource type.");
+            assert(resource && "Mismatch resource type.");
 
             return Resource<T>(*this, lowers, resource);
         }
 
-        /** Loads a resource */
+        /** Load a resource */
         std::shared_ptr<IsResource> load(const std::string& path);
 
-        /** Unloads a resource */
+        /** Unload a resource */
         void unload(const std::string& path);
     };
-
-    template <class T>
-    Resource<T> accessResource(ResourceManager& manager, const std::string& path, bool immediateLoading = true)
-    {
-        return manager.template getAccessor<T>(path, immediateLoading);
-    }
-
-    template <class T, class Loader>
-    Resource<T> accessResource(Loader loader, const std::shared_ptr<T>& resource = nullptr)
-    {
-        return Resource<T>(loader, resource);
-    }
 }
 
 #endif

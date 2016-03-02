@@ -9,7 +9,7 @@ namespace killme
 {
     class SourceVoice;
 
-    /** The audio listener parameters */
+    /** Audio listener parameters */
     struct ListenerParams
     {
         Vector3 position;
@@ -17,7 +17,7 @@ namespace killme
         Vector3 velocity;
     };
 
-    /** The audio emitter parameters */
+    /** Audio emitter parameters */
     struct EmitterParams
     {
         Vector3 position;

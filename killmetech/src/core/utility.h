@@ -37,11 +37,6 @@ namespace killme
             {
                 return end_;
             }
-
-            size_t length() const
-            {
-                return end_ - begin_;
-            }
         };
 
         template <class C>
@@ -71,45 +66,28 @@ namespace killme
 
             RangeWithMove& operator =(const RangeWithMove&) = delete;
 
-            auto begin()
+            auto begin() const
                 -> decltype(std::begin(c_))
             {
                 return std::begin(c_);
             }
 
-            auto end()
+            auto end() const
                 -> decltype(std::end(c_))
             {
                 return std::end(c_);
             }
-
-            auto begin() const
-                -> decltype(std::cbegin(c_))
-            {
-                return std::cbegin(c_);
-            }
-
-            auto end() const
-                -> decltype(std::cend(c_))
-            {
-                return std::cend(c_);
-            }
-
-            size_t length() const
-            {
-                return std::cend(c_) - std::cbegin(c_);
-            }
         };
     }
 
-    /** Create the range from an iterator range */
+    /** Create a range from an iterator range */
     template <class It>
     detail::RangeFromIterator<It> makeRange(It begin, It end)
     {
         return detail::RangeFromIterator<It>(begin, end);
     }
 
-    /** Create the range from a container */
+    /** Create a range from a container */
     template <class C>
     auto makeRange(const C& c)
         -> decltype(makeRange(std::cbegin(c), std::cend(c)))
@@ -125,18 +103,43 @@ namespace killme
         return makeRange(std::begin(c), std::end(c));
     }
 
-    /** Create the range with move a right value container */
+    /** Create a range with move a right value container */
     template <class C>
     detail::RangeWithMove<C> makeRange(C&& c)
     {
         return detail::RangeWithMove<C>(std::move(c));
     }
 
-    /** The alias of decltype(makeRange(C)) */
+    /** Alias of decltype(makeRange(C)) */
     template <class C>
-    using Range_t = decltype(makeRange(std::forward<C>(std::declval<C>())));
+    using Range = decltype(makeRange(std::forward<C>(std::declval<C>())));
 
-    /** The type converter */
+    namespace detail
+    {
+        template <class T>
+        struct TypeTagGen
+        {
+            static void id() {}
+        };
+    }
+
+    /** Type tag */
+    using TypeTag = void(*)();
+
+    /*
+    /// NOTE: From C++14
+    template <class T>
+    TypeTag typeTag = detail::TypeTagGen<T>::id;
+    */
+
+    /** Return type tag */
+    template <class T>
+    TypeTag typeTag() noexcept
+    {
+        return detail::TypeTagGen<T>::id;
+    }
+
+    /** Type converter */
     template <class T, class U>
     T to(const U& u);
 }

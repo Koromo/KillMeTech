@@ -15,8 +15,7 @@ namespace killme
     class CollisionShape;
     class RigidBody;
 
-    /** The physics world */
-    /// TODO: DEBUG
+    /** Physics world */
     class PhysicsWorld
     {
     private:
@@ -31,19 +30,19 @@ namespace killme
         std::unique_ptr<btIDebugDraw> debugDrawer_;
 
     public:
-        /** Constructs */
+        /** Construct */
         PhysicsWorld();
 
-        /** Destructs */
+        /** Destruct */
         ~PhysicsWorld();
 
-        /** Starts debug draw */
+        /** Start debug draw by using DebugDrawManager in scene module */
         void debugDrawWorld(bool debug);
 
-        /** Adds the rigid body into the world */
+        /** Add a rigid body into the world */
         void addRigidBody(const std::shared_ptr<RigidBody>& body);
 
-        /** Adds the rigid body from the world */
+        /** Remove a rigid body from the world */
         void removeRigidBody(const std::shared_ptr<RigidBody>& body);
 
         /** Advance world time */

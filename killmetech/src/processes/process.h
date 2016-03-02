@@ -27,11 +27,11 @@ namespace killme
         std::shared_ptr<detail::Killer> killer_;
 
     public:
-        /** Constructs */
+        /** Construct */
         Process() = default;
         Process(const std::weak_ptr<ProcessScheduler>& scheduler, size_t id, size_t priority);
 
-        /** Kills the process */
+        /** Kill process */
         void kill();
     };
 }

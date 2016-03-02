@@ -7,7 +7,7 @@
 
 namespace killme
 {
-    /** The key code definitions */
+    /** Key code definitions */
     enum class KeyCode
     {
         Esc,
@@ -18,41 +18,41 @@ namespace killme
     /** Count of the key code */
     constexpr size_t NUM_KEY_CODES = static_cast<size_t>(KeyCode::none);
 
-    /** Returns the stringed KeyCode */
-#define KILLME_SWITCH_STR(key) case KeyCode::key: return #key;
+    /** Return the stringed KeyCode */
+#define SWITCH_CASE(key) case KeyCode::key: return #key;
 
     template <>
     inline std::string to<std::string, KeyCode>(const KeyCode& code)
     {
         switch (code)
         {
-            KILLME_SWITCH_STR(Esc);
-            KILLME_SWITCH_STR(A);
-            KILLME_SWITCH_STR(B);
-            KILLME_SWITCH_STR(C);
-            KILLME_SWITCH_STR(D);
-            KILLME_SWITCH_STR(E);
-            KILLME_SWITCH_STR(F);
-            KILLME_SWITCH_STR(G);
-            KILLME_SWITCH_STR(H);
-            KILLME_SWITCH_STR(I);
-            KILLME_SWITCH_STR(J);
-            KILLME_SWITCH_STR(K);
-            KILLME_SWITCH_STR(L);
-            KILLME_SWITCH_STR(M);
-            KILLME_SWITCH_STR(N);
-            KILLME_SWITCH_STR(O);
-            KILLME_SWITCH_STR(P);
-            KILLME_SWITCH_STR(Q);
-            KILLME_SWITCH_STR(R);
-            KILLME_SWITCH_STR(S);
-            KILLME_SWITCH_STR(T);
-            KILLME_SWITCH_STR(U);
-            KILLME_SWITCH_STR(V);
-            KILLME_SWITCH_STR(W);
-            KILLME_SWITCH_STR(X);
-            KILLME_SWITCH_STR(Y);
-            KILLME_SWITCH_STR(Z);
+            SWITCH_CASE(Esc);
+            SWITCH_CASE(A);
+            SWITCH_CASE(B);
+            SWITCH_CASE(C);
+            SWITCH_CASE(D);
+            SWITCH_CASE(E);
+            SWITCH_CASE(F);
+            SWITCH_CASE(G);
+            SWITCH_CASE(H);
+            SWITCH_CASE(I);
+            SWITCH_CASE(J);
+            SWITCH_CASE(K);
+            SWITCH_CASE(L);
+            SWITCH_CASE(M);
+            SWITCH_CASE(N);
+            SWITCH_CASE(O);
+            SWITCH_CASE(P);
+            SWITCH_CASE(Q);
+            SWITCH_CASE(R);
+            SWITCH_CASE(S);
+            SWITCH_CASE(T);
+            SWITCH_CASE(U);
+            SWITCH_CASE(V);
+            SWITCH_CASE(W);
+            SWITCH_CASE(X);
+            SWITCH_CASE(Y);
+            SWITCH_CASE(Z);
 
         default:
             assert(false && "Item not found.");
@@ -61,7 +61,7 @@ namespace killme
         return ""; // For warnings
     }
 
-#undef KILLME_SWITCH_STR
+#undef SWITCH_CASE
 }
 
 #endif

@@ -10,17 +10,17 @@ namespace killme
 {
     class Vector3;
 
-    /** The 4*4 matrix */
+    /** 4*4 matrix */
     class Matrix44
     {
     private:
 		std::array<std::array<float, 4>, 4> m_;
 
     public:
-        /** Constructs the identical matrix */
+        /** Construct as the identical matrix */
         Matrix44();
 
-        /** Constructs with initial values */
+        /** Construct with initial values */
         Matrix44(
 			float n00, float n01, float n02, float n03,
             float n10, float n11, float n12, float n13,
@@ -28,14 +28,14 @@ namespace killme
             float n30, float n31, float n32, float n33
 			);
 
-        /** Constructs with a initializer list */
+        /** Construct with the  initializer list */
         Matrix44(std::initializer_list<float> il);
 
-        /** Constructs */
+        /** Construct */
         Matrix44(const Matrix44&) = default;
         Matrix44(Matrix44&&) = default;
 
-        /** Assignment operator with a initializer list */
+        /** Assignment operator with the initializer list */
         Matrix44& operator =(std::initializer_list<float> il);
 
         /** Assignment operator */
@@ -70,13 +70,13 @@ namespace killme
     Matrix44& operator *=(Matrix44& m, float k);
     Matrix44& operator /=(Matrix44& m, float k);
 
-    /** Returns the transposed matrix */
+    /** Return the transposed matrix */
     Matrix44 transpose(const Matrix44& m);
 
-    /** Returns the determinant */
+    /** Return the determinant */
     float determinant(const Matrix44& m);
 
-    /** Returns the inversed matrix */
+    /** Return the inversed matrix */
     Matrix44 inverse(const Matrix44& m);
     Matrix44 inverse(const Matrix44& m, float det);
 

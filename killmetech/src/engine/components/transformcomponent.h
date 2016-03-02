@@ -20,7 +20,7 @@ namespace killme
         Process process_;
 
     public:
-        /** Constructs */
+        /** Construct */
         TransformComponent();
 
 #ifdef KILLME_DEBUG
@@ -31,7 +31,7 @@ namespace killme
         void onDettached();
 
     protected:
-        /** Returns scene node */
+        /** Return scene node */
         std::shared_ptr<SceneNode> getSceneNode();
 
     private:

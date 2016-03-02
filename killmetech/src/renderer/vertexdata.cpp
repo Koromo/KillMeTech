@@ -1,5 +1,4 @@
 #include "vertexdata.h"
-#include <cassert>
 
 namespace killme
 {
@@ -51,39 +50,6 @@ namespace killme
         indexBuffer_ = indices;
     }
 
-    VertexBinder VertexData::getBinder(const std::shared_ptr<InputLayout>& layout)
-    {
-        // Collect vertex buffer views by the input layout
-        const auto d3dLayout = layout->getD3DLayout();
-
-        VertexBinder binder;
-        binder.viewsArray.resize(d3dLayout.NumElements);
-        binder.numViews = d3dLayout.NumElements;
-
-        for (size_t i = 0; i < d3dLayout.NumElements; ++i)
-        {
-            // Find the right buffer view by semantic
-            const auto semanticName = d3dLayout.pInputElementDescs[i].SemanticName;
-            const auto semanticIndex = d3dLayout.pInputElementDescs[i].SemanticIndex;
-
-            bool found = false;
-            for (const auto& vertices : vertexBuffers_)
-            {
-                if (vertices.name == semanticName && vertices.index == semanticIndex)
-                {
-                    binder.viewsArray[i] = vertices.buffer->getD3DView();
-                    found = true;
-                    break;
-                }
-            }
-
-            assert(found && "The vertex data is not usable for the input layout of argments.");
-        }
-
-        binder.views = binder.viewsArray.data();
-        return binder;
-
-    }
     std::shared_ptr<IndexBuffer> VertexData::getIndexBuffer()
     {
         return indexBuffer_;

@@ -3,9 +3,6 @@
 #include "camera.h"
 #include "renderqueue.h"
 #include "../renderer/rendersystem.h"
-#include "../renderer/commandlist.h"
-#include "../core/math/matrix44.h"
-#include "../core/math/color.h"
 #include <Windows.h>
 
 namespace killme
@@ -40,19 +37,8 @@ namespace killme
         lights_.erase(light);
     }
 
-    void Scene::renderScene(const Camera& camera)
+    void Scene::renderScene(const Camera& camera, const FrameResource& frame)
     {
-        // Clear the render target and the depth stencil
-        const auto frame = renderSystem_->getCurrentFrameResource();
-
-        renderSystem_->beginCommands(commandList_, nullptr);
-        commandList_->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-        commandList_->clearRenderTarget(frame.backBufferView, { 0.1f, 0.1f, 0.1f, 1 });
-        commandList_->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
-        commandList_->clearDepthStencil(frame.depthStencilView, 1);
-        commandList_->endCommands();
-        renderSystem_->executeCommands(commandList_);
-
         // Collect render objects
         RenderQueue queue;
         rootNode_->collectRenderer(queue);
@@ -84,8 +70,7 @@ namespace killme
         // Render
         while (!queue.empty())
         {
-            queue.pop()->recordCommands(context);
-            renderSystem_->executeCommands(context.commandList);
+            queue.pop()->render(context);
         }
     }
 }

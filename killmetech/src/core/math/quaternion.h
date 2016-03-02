@@ -5,20 +5,20 @@ namespace killme
 {
     class Vector3;
 
-    /** The Quaternion */
+    /** Quaternion */
     class Quaternion
     {
     public:
-        /** The elements */
+        /** Elements */
         float w, x, y, z;
 
-        /** Constructs the identical quaternion */
+        /** Construct as the identical quaternion */
         Quaternion();
 
-        /** Constructs with initial values */
+        /** Construct with initial values */
         Quaternion(float nw, float nx, float ny, float nz);
 
-        /** Constructs */
+        /** Construct */
         Quaternion(const Quaternion&) = default;
         Quaternion(Quaternion&&) = default;
 
@@ -51,28 +51,28 @@ namespace killme
     Quaternion& operator *=(Quaternion& a, const Quaternion& b);
     Quaternion& operator *=(Quaternion& q, float k);
 
-    /** Returns the norm */
+    /** Return the norm */
     float norm(const Quaternion& q);
 
-    /** Returns the normalized quaternion */
+    /** Return the normalized quaternion */
     Quaternion normalize(const Quaternion& q);
 
-    /** Returns the conjugated quaternion */
+    /** Return the conjugated quaternion */
     Quaternion conjugate(const Quaternion& q);
 
-    /** Returns the inversed quaternion */
+    /** Return the inversed quaternion */
     Quaternion inverse(const Quaternion& q);
 
-    /** Returns the dot product value */
+    /** Return the dot product value */
     float dotProduct(const Quaternion& a, const Quaternion& b);
 
     /** Create the quaternion from a rotation axis and an angle[rad] */
     Quaternion makeQuaternion(const Vector3& axis, float angle);
 
-    /** Returns the rotation axis */
+    /** Return the rotation axis */
     Vector3 axis(const Quaternion& q);
 
-    /** Returns the rotation angle[rad] */
+    /** Return the rotation angle[rad] */
     float angle(const Quaternion& q);
 }
 

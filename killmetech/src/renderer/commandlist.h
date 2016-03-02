@@ -17,14 +17,14 @@ namespace killme
     struct ScissorRect;
     enum class ResourceState;
 
-    /** The command list */
+    /** Command list */
     class CommandList
     {
     private:
         ComUniquePtr<ID3D12GraphicsCommandList> list_;
 
     public:
-        /** Constructs with a Direct3D command list */
+        /** Construct with a Direct3D command list */
         explicit CommandList(ID3D12GraphicsCommandList* list);
 
         /** Command of clear a render target */
@@ -40,10 +40,15 @@ namespace killme
         void setPrimitiveTopology(PrimitiveTopology pt);
 
         /** Command of set vertex buffers */
-        template <class Binder>
-        void setVertexBuffers(const Binder& binder)
+        template <class Views>
+        void setVertexBuffers(const Views& views)
         {
-            list_->IASetVertexBuffers(0, binder.numViews, binder.views);
+            std::vector<D3D12_VERTEX_BUFFER_VIEW> d3dViews;
+            for (const auto& view : views)
+            {
+                d3dViews.emplace_back(view);
+            }
+            list_->IASetVertexBuffers(0, d3dViews.size(), d3dViews.data());
         }
 
         /** Command of set an index buffer */
@@ -53,8 +58,8 @@ namespace killme
         void setRootSignature(const std::shared_ptr<RootSignature>& signature);
 
         /** Changes the currently bound resource heaps */
-        template <class Range>
-        void setGpuResourceHeaps(const Range& heaps)
+        template <class Heaps>
+        void setGpuResourceHeaps(const Heaps& heaps)
         {
             std::vector<ID3D12DescriptorHeap*> d3dHeaps;
             for (const auto& heap: heaps)

@@ -5,28 +5,37 @@
 #include "../core/utility.h"
 #include <memory>
 #include <vector>
-#include <utility>
+#include <string>
 
 namespace killme
 {
+    class MaterialDescription;
+    struct TechniqueDescription;
+    class RenderSystem;
+    class ResourceManager;
     class EffectPass;
     class Texture;
+    class Sampler;
 
     /** Effect technique */
     class EffectTechnique
     {
     private:
-        std::vector<std::pair<int, std::shared_ptr<EffectPass>>> passes_;
+        std::vector<std::shared_ptr<EffectPass>> passes_;
 
     public:
+        /** Construct */
+        EffectTechnique(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
+            const MaterialDescription& matDesc, const TechniqueDescription& techDesc);
+
         /** Update constant */
-        void updateConstant(const std::string& param, const void* data);
+        void updateConstant(const std::string& matParam, const void* data, size_t size);
 
         /** Update texture */
-        void updateTexture(const std::string& param, const Resource<Texture>& tex);
+        void updateTexture(const std::string& matParam, const Resource<Texture>& tex);
 
-        /** Add pass with ordered by index*/
-        void addPass(int index, const std::shared_ptr<EffectPass>& pass);
+        /** Update sampler */
+        void updateSampler(const std::string& matParam, const std::shared_ptr<Sampler>& sam);
 
         /** Return passes */
         auto getPasses()

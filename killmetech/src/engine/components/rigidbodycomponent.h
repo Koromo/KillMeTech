@@ -20,7 +20,7 @@ namespace killme
         Process process_;
 
     public:
-        /** Constructs */
+        /** Construct */
         RigidBodyComponent(const std::shared_ptr<CollisionShape>& shape, float mass);
 
         void onAttached();

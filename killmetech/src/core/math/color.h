@@ -3,20 +3,20 @@
 
 namespace killme
 {
-    /** The RGBA color */
+    /** RGBA color */
     class Color
     {
     public:
-        /** The elements */
+        /** Elements */
         float r, g, b, a;
 
-        /** Constructs the Color::BLACK */
+        /** Construct as the Color::BLACK */
         Color();
 
-        /** Constructs with initial values */
+        /** Construct with initial values */
         Color(float r_, float g_, float b_, float a_);
 
-        /** Constructs */
+        /** Construct */
         Color(const Color&) = default;
         Color(Color&&) = default;
 

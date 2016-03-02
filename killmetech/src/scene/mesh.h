@@ -13,7 +13,7 @@ namespace killme
     class VertexData;
     class Material;
 
-    /** The sub mesh */
+    /** Sub mesh */
     class SubMesh
     {
     private:
@@ -21,20 +21,20 @@ namespace killme
         Resource<Material> material_;
 
     public:
-        /** Constructs with a vertices and a material */
+        /** Construct with a vertices and a material */
         SubMesh(const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
             : vertexData_(vertexData)
             , material_(material)
         {}
 
-        /** Returns the vertices */
+        /** Return the vertices */
         std::shared_ptr<VertexData> getVertexData() { return vertexData_; }
 
-        /** Returns the material */
+        /** Return the material */
         std::shared_ptr<Material> getMaterial() const { return material_.access(); }
     };
 
-    /** The mesh */
+    /** Mesh */
     class Mesh : public IsResource
     {
     private:
@@ -42,7 +42,7 @@ namespace killme
         std::vector<Pair> subMeshes_;
 
     public:
-        /** Creates the sub mesh */
+        /** Create the sub mesh */
         std::shared_ptr<SubMesh> createSubMesh(const std::string& name, const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
         {
             const auto sm = std::make_shared<SubMesh>(vertexData, material);
@@ -50,7 +50,7 @@ namespace killme
             return sm;
         }
 
-        /** Returns the sub mesh */
+        /** Return the sub mesh */
         std::shared_ptr<SubMesh> findSubMesh(const std::string& name)
         {
             const auto begin = std::cbegin(subMeshes_);
@@ -63,7 +63,7 @@ namespace killme
             return it->second;
         }
 
-        /** Returns the range of sub meshes */
+        /** Return the range of sub meshes */
         auto getSubMeshes()
             -> decltype(makeRange(subMeshes_))
         {

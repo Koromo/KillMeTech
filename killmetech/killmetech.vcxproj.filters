@@ -141,9 +141,6 @@
     <ClCompile Include="src\processes\processscheduler.cpp">
       <Filter>src\processes</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\materialparser.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\import\fbxmeshimporter.cpp">
       <Filter>src\import</Filter>
     </ClCompile>
@@ -213,9 +210,6 @@
     <ClCompile Include="src\scene\effectpass.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\effectshaderref.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\renderstate.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
@@ -230,6 +224,9 @@
     </ClCompile>
     <ClCompile Include="src\renderer\texture.h">
       <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\materialcreation.cpp">
+      <Filter>src\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -470,9 +467,6 @@
     <ClInclude Include="src\core\tree.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\effectshaderref.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\scene\effectpass.h">
       <Filter>src\scene</Filter>
     </ClInclude>
@@ -487,6 +481,9 @@
     </ClInclude>
     <ClInclude Include="src\renderer\image.h">
       <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\materialcreation.h">
+      <Filter>src\scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

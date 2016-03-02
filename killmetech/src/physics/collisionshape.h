@@ -8,14 +8,14 @@ namespace killme
 {
     class Vector3;
 
-    /** The shape type definition */
+    /** Shape type definition */
     enum class ShapeType
     {
         static_,
         dynamic,
     };
 
-    /** The collision shape */
+    /** Collision shape */
     class CollisionShape
     {
     private:
@@ -23,13 +23,13 @@ namespace killme
         std::unique_ptr<btCollisionShape> shape_;
 
     public:
-        /** Constructs with a bullet shape */
+        /** Construct with a bullet shape */
         explicit CollisionShape(btCollisionShape* btShape, ShapeType type);
 
-        /** Returns the shape type */
+        /** Return the shape type */
         ShapeType getType() const;
 
-        /** Returns Bullet shape */
+        /** Return the Bullet shape */
         btCollisionShape* getBtShape();
     };
 

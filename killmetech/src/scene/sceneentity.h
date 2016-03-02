@@ -8,20 +8,20 @@ namespace killme
     class SceneNode;
     class RenderQueue;
 
-    /** The scene entity */
+    /** Scene entity */
     class SceneEntity
     {
     private:
         std::weak_ptr<SceneNode> owner_;
 
     public:
-        /** Fro drived classes */
+        /** For drived classes */
         virtual ~SceneEntity() = default;
 
-        /** Sets the owner */
+        /** Set the owner */
         void setOwner(const std::weak_ptr<SceneNode>& owner) { owner_ = owner; }
 
-        /** Returns the owner */
+        /** Return the owner */
         std::weak_ptr<SceneNode> getOwner() { return owner_; }
 
         /** Accept render queue */

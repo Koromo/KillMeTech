@@ -20,6 +20,7 @@ namespace killme
 
 #ifdef KILLME_DEBUG
 
+    /** Debug drawer */
     class DebugDrawManager
     {
     private:
@@ -34,10 +35,19 @@ namespace killme
         ScissorRect scissorRect_;
 
     public:
+        /** Initialize */
         void startup(const std::shared_ptr<RenderSystem>& renderSystem);
+
+        /** Finalize */
         void shutdown();
+
+        /** Add line */
         void line(const Vector3& from, const Vector3& to, const Color& color);
+
+        /** Clear all debugs */
         void clear();
+
+        /** Draw */
         void debugDraw(const Camera& camera, const FrameResource& frame);
     };
 
@@ -46,11 +56,11 @@ namespace killme
     class DebugDrawManager
     {
     public:
-        void startup(const std::shared_ptr<RenderSystem>&);
-        void shutdown();
-        void line(const Vector3&, const Vector3&, const Color&);
-        void clear();
-        void debugDraw(const Camera&, const FrameResource&);
+        void startup(const std::shared_ptr<RenderSystem>&) {}
+        void shutdown() {}
+        void line(const Vector3&, const Vector3&, const Color&) {}
+        void clear() {}
+        void debugDraw(const Camera&, const FrameResource&) {}
     };
 
 #endif

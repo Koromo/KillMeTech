@@ -11,17 +11,17 @@ namespace killme
     class SceneNode;
     class RenderQueue;
 
-    /** The transform node */
+    /** Transform node */
     class SceneNode : public Transform<SceneNode>
     {
     private:
         std::shared_ptr<SceneEntity> entity_;
 
     public:
-        /** Destructs */
+        /** Destruct */
         ~SceneNode();
 
-        /** Creates the entity */
+        /** Create the entity */
         template <class T, class... Args>
         std::shared_ptr<T> attachEntity(Args&&... args)
         {

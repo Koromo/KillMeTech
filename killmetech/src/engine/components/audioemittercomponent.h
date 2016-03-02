@@ -20,22 +20,22 @@ namespace killme
         Process process_;
 
     public:
-        /** Constructs */
+        /** Construct */
         explicit AudioEmitterComponent(const std::string& path);
 
         /** If audio is pausing, restart. Else if audio is not queued, play at once. Otherwise, nothing to do. */
         void play();
 
-        /** Starts audio loop (numLoops < AUDIO_LOOP_INFINITE)*/
+        /** Start audio loop (numLoops < AUDIO_LOOP_INFINITE)*/
         void start(size_t numLoops);
 
-        /** Stops the audio */
+        /** Stop the audio */
         void stop();
 
-        /** Pauses the audio */
+        /** Pause the audio */
         void pause();
 
-        /** Returns true if the audio is playing now */
+        /** Return true if the audio is playing now */
         bool isPlaying() const;
 
         void onAttached();

@@ -23,7 +23,7 @@ namespace killme
         none,
     };
 
-    /** The GPU resource heap */
+    /** GPU resource heap */
     /// NOTE: Resource heap is same to the Descriptor heap of Direct3D
     class GpuResourceHeap
     {
@@ -32,7 +32,7 @@ namespace killme
         D3D12_DESCRIPTOR_HEAP_TYPE type_;
 
     public:
-        /** Constructs with a Direct3D descriptor heap */
+        /** Construct with a Direct3D descriptor heap */
         explicit GpuResourceHeap(ID3D12DescriptorHeap* heap)
             : heap_(makeComUnique(heap))
             , type_(heap->GetDesc().Type)

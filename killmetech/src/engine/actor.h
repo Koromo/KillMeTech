@@ -28,10 +28,10 @@ namespace killme
         std::shared_ptr<ActorDesigner> designer_;
 
     public:
-        /** Constructs */
+        /** Construct */
         explicit Actor(const std::string& name);
 
-        /** Sets owner world */
+        /** Set owner world */
         void setOwnerWorld(const std::weak_ptr<World>& ownerWorld);
 
         /** Called on spawned */
@@ -40,13 +40,13 @@ namespace killme
         /** Called on killed */
         void onKilled();
 
-        /** Kills this actor */
+        /** Kill this actor */
         void kill();
 
-        /** Sets designer */
+        /** Set designer */
         void setDesigner(const std::shared_ptr<ActorDesigner>& designer);
 
-        /** Places into the game world */
+        /** Placement into the game world */
         template <class T, class... Args>
         std::shared_ptr<T> placement(Args&&... args)
         {
@@ -59,7 +59,7 @@ namespace killme
             return trans;
         }
 
-        /** Returns root transform */
+        /** Return root transform */
         template <class T = TransformComponent>
         std::shared_ptr<T> getRootTransform()
         {
@@ -71,7 +71,7 @@ namespace killme
             return trans;
         }
 
-        /** Attaches the component */
+        /** Attach the component */
         template <class T, class... Args>
         std::shared_ptr<T> attachComponent(const std::string& name, Args&&... args)
         {
@@ -88,7 +88,7 @@ namespace killme
             return c;
         }
 
-        /** Dettaches component */
+        /** Dettache component */
         void dettachComponent(const std::string& name);
 
         /** Search component */

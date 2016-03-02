@@ -18,7 +18,7 @@ namespace killme
         Process process_;
 
     public:
-        /** Constructs */
+        /** Construct */
         CameraComponent();
 
         /** Set viewport */

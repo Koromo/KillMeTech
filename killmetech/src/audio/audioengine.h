@@ -20,7 +20,7 @@ namespace killme
     struct ListenerParams;
     struct EmitterParams;
 
-    /** The Audio core class */
+    /** Audio core class */
     class AudioEngine
     {
     private:
@@ -34,20 +34,22 @@ namespace killme
         std::vector<float> levelMatrix_;
 
     public:
-        /** Initializes audio engine */
+        /** Initialize audio engine */
         AudioEngine();
 
-        /** Finalizes audio engine */
+        /** Finalize audio engine */
         ~AudioEngine();
 
-        /** Creates a source voice */
+        /** Create a source voice */
         std::shared_ptr<SourceVoice> createSourceVoice(const Resource<AudioClip>& clip);
 
-        /** Sets the 3D listener parameters */
+        /** Set the 3D listener parameters */
         void set3DListener(const ListenerParams& params);
 
-        /** Calculates 3D audio parameters and apply it */
+        /** Calculate the 3D audio parameters and apply it */
         void apply3DEmission(const EmitterParams& params);
+        
+        /** Apply 3D audio parameters as the silent */
         void apply3DSilent(const std::shared_ptr<SourceVoice>& voice);
     };
 }

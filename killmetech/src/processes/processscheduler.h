@@ -10,7 +10,7 @@ namespace killme
 {
     class Process;
 
-    /** The processes scheduler */
+    /** Processes scheduler */
     class ProcessScheduler : public std::enable_shared_from_this<ProcessScheduler>
     {
     public:
@@ -27,16 +27,16 @@ namespace killme
         size_t idCounter_;
 
     public:
-        /** Initializes */
+        /** Initialize */
         ProcessScheduler();
 
-        /** Creates a process */
+        /** Create a process */
         Process startProcess(ProcessFun fun, size_t priority);
 
-        /** Kills the process */
+        /** Kill a process */
         void killProcess(size_t id, size_t priority);
 
-        /** Updates processes that has priority (begin, end] */
+        /** Update processes (begin, end] */
         /// NOTE: When update processes, calling the startProcess() or killProcess() is not permitted
         void update(size_t begin, size_t end);
     };

@@ -83,7 +83,6 @@ namespace killme
 
     const Vector3 operator *(const Quaternion& q, const Vector3& v)
 	{
-        // See Ogre3D source
         const auto p = normalize(q);
         const Vector3 pv = {p.x, p.y, p.z};
         const auto uv = crossProduct(pv, v);

@@ -31,7 +31,7 @@ namespace killme
         template <class T>
         static Resource<T> load(const std::string& path)
         {
-            return accessResource<T>(*detail::resourceManager, path);
+            return detail::resourceManager->getAccessor<T>(path, true);
         }
     };
 }

@@ -22,8 +22,6 @@ namespace killme
 {
     DebugDrawManager debugDrawManager;
 
-#ifdef KILLME_DEBUG
-
     void DebugDrawManager::startup(const std::shared_ptr<RenderSystem>& renderSystem)
     {
         renderSystem_ = renderSystem;
@@ -39,14 +37,12 @@ namespace killme
 
         const auto rootSig = renderSystem_->createRootSignature(rootSigDesc);
 
-        const auto vs = accessResource<VertexShader>([]()
-        {
-            return compileShader<VertexShader>(toCharSet("media/debugdraw_vs.vhlsl"));
-        });
-        const auto ps = accessResource<PixelShader>([]()
-        {
-            return compileShader<PixelShader>(toCharSet("media/debugdraw_ps.phlsl"));
-        });
+        const auto vs = Resource<VertexShader>(
+            [] { return compileHlslShader<VertexShader>(toCharSet("media/debugdraw_vs.vhlsl")); },
+            nullptr);
+        const auto ps = Resource<PixelShader>(
+            [] { return compileHlslShader<PixelShader>(toCharSet("media/debugdraw_ps.phlsl")); },
+            nullptr);
 
         PipelineStateDescription pipelineDesc;
         pipelineDesc.rootSignature = rootSig;
@@ -122,7 +118,7 @@ namespace killme
 
         const auto rootSignature = pipeline_->describe().rootSignature;
         const auto inputLayout = pipeline_->describe().vertexShader.access()->getInputLayout();
-        const auto& binder = vertexData.getBinder(inputLayout);
+        const auto& views = vertexData.getVertexViews(inputLayout);
 
         // Begin drawing to all debugs
         renderSystem_->beginCommands(commandList_, pipeline_);
@@ -132,7 +128,7 @@ namespace killme
         commandList_->setViewport(viewport);
         commandList_->setScissorRect(scissorRect_);
         commandList_->setPrimitiveTopology(PrimitiveTopology::lineList);
-        commandList_->setVertexBuffers(binder);
+        commandList_->setVertexBuffers(views);
         commandList_->setRootSignature(rootSignature);
         const auto heaps = { viewProjHeap_ };
         commandList_->setGpuResourceHeaps(heaps);
@@ -145,14 +141,4 @@ namespace killme
 
         clear();
     }
-
-#else
-
-    void DebugDrawManager::startup(const std::shared_ptr<RenderSystem>&) {}
-    void DebugDrawManager::shutdown() {}
-    void DebugDrawManager::line(const Vector3&, const Vector3&, const Color&) {}
-    void DebugDrawManager::clear() {}
-    void DebugDrawManager::debugDraw(const Camera&, const FrameResource&) {}
-
-#endif
 }

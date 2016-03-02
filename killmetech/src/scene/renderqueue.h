@@ -15,18 +15,18 @@ namespace killme
         /** For drived classes */
         virtual ~Renderer() = default;
 
-        /** Executes rendering */
-        virtual void recordCommands(const SceneContext& context) = 0;
+        /** Execute rendering */
+        virtual void render(const SceneContext& context) = 0;
     };
 
-    /** The render queue */
+    /** Render queue */
     class RenderQueue
     {
     private:
         std::queue<std::shared_ptr<Renderer>> queue_;
 
     public:
-        /** Construsts */
+        /** Construst */
         RenderQueue()
             : queue_()
         {
@@ -38,13 +38,13 @@ namespace killme
             return queue_.empty();
         }
 
-        /** Pushs */
+        /** Push */
         void push(const std::shared_ptr<Renderer>& r)
         {
             queue_.push(r);
         }
 
-        /** Pops */
+        /** Pop */
         std::shared_ptr<Renderer> pop()
         {
             const auto r = queue_.front();

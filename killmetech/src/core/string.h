@@ -1,12 +1,17 @@
 #ifndef _KILLME_STRING_H_
 #define _KILLME_STRING_H_
 
-#include <tchar.h>
+#include "platform.h"
 #include <string>
 #include <cstdarg>
 
 /** Convert to the used character set */
-#define KILLME_T(s) _TEXT(s)
+#ifdef KILLME_UNICODE
+#define KILLME_TEXT(s) (L ## s)
+#elif
+#define KILLME_TEXT(s) (s)
+#endif
+#define KILLME_T(s) KILLME_TEXT(s)
 
 namespace killme
 {
@@ -38,11 +43,15 @@ namespace killme
     int vsprintf(char* buffer, const char* fmt, va_list args);
     int vsprintf(wchar_t* buffer, const wchar_t* fmt, va_list args);
 
-    /** The character type definitions that are fixed to the character set */
-    using tchar = TCHAR;
+    /** Character type definitions that are fixed to the character set */
+#ifdef KILLME_UNICODE
+    using tchar = wchar_t;
+#elif
+    using tchar = char;
+#endif
     using tstring = std::basic_string<tchar, std::char_traits<tchar>, std::allocator<tchar>>;
 
-    // Convert to the used character set
+    /** Convert to the used character set */
     tstring toCharSet(const std::string& s);
     tstring toCharSet(const std::wstring& s);
 }

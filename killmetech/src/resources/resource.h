@@ -68,7 +68,7 @@ namespace killme
             void load() const
             {
                 resource = std::dynamic_pointer_cast<T>(detail::callLoad(mng, path));
-                assert(resource.lock() && "Mismatch the resource type.");
+                assert(resource.lock() && "Mismatch resource type.");
             }
 
             void unload() const
@@ -119,16 +119,16 @@ namespace killme
         std::unique_ptr<Holder> holder_;
 
     public:
-        /** Constructs */
+        /** Construct */
         Resource() = default;
 
-        /** Constructs as the managed resource */
+        /** Construct as the managed resource */
         Resource(ResourceManager& msg, const std::string& path, const std::weak_ptr<T>& resource)
             : holder_(std::make_unique<ManagedHolder>(msg, path, resource))
         {
         }
 
-        /** Constructs as the nonmanaged resource */
+        /** Construct as the nonmanaged resource */
         Resource(typename NonmanagedHolder::Loader loader, const std::shared_ptr<T>& resource)
             : holder_(std::make_unique<NonmanagedHolder>(loader, resource))
         {
@@ -158,22 +158,28 @@ namespace killme
         /** Move assignment operator */
         Resource& operator=(Resource&& rhs) = default;
 
-        /** Accesses the resource. If resource is not loaded, load resource immediately. */
+        /** Accesse resource. If resource is not loaded, load resource immediately. */
         std::shared_ptr<T> access() const
         {
             return holder_->access();
         }
 
-        /** Loads the resource */
+        /** Load resource */
         void load() const
         {
             holder_->load();
         }
 
-        /** Unloads the resource */
+        /** Unload resource */
         void unload() const
         {
             return holder_->unload();
+        }
+
+        /** Return whether bound a resource or not */
+        bool bound() const
+        {
+            return !!holder_;
         }
     };
 }

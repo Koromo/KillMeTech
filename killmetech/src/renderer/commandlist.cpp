@@ -141,8 +141,7 @@ namespace killme
 
     void CommandList::endCommands()
     {
-        auto hr = list_->Close();
-        enforce<Direct3DException>(SUCCEEDED(hr), "Failed to close the command list.");
+        enforce<Direct3DException>(SUCCEEDED(list_->Close()), "Failed to close the command list.");
     }
 
     void CommandList::draw(size_t numVertices)

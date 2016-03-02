@@ -6,17 +6,17 @@
 #include <utility>
 #include <functional>
 
-/** For KILLME_SCOPE_GUARD */
+// For KILLME_SCOPE_GUARD
 #ifdef __COUNTER__
 #define KILLME_ID __COUNTER__
 #elif
 #define KILLME_ID __LINE__
 #endif
 
-/** For KILLME_SCOPE_GUARD */
-#define KILLME_CAT(a, b) a##b
+// For KILLME_SCOPE_GUARD
+#define KILLME_CAT(a, b) (a ## b)
 
-/** The scope guard statement */
+/** Scope guard statement */
 #define KILLME_SCOPE_EXIT_NAME(id) KILLME_CAT(killme_scope_exit, id)
 #define KILLME_SCOPE_EXIT \
     const killme::detail::ScopeExit KILLME_SCOPE_EXIT_NAME(KILLME_ID) = killme::detail::ScopeExit::relay = [&]
@@ -46,16 +46,15 @@ namespace killme
         return value;
     }
 
-    /** The basic exception of the KillMe Tech API */
+    /** Basic exception of the KillMe Tech API */
     class Exception : public std::exception
     {
     private:
         std::string msg_;
 
     public:
-        /** Constructs */
+        /** Construct */
         explicit Exception(const std::string& msg);
-
         Exception(const Exception&) = default;
         Exception(Exception&&) = default;
 
@@ -63,20 +62,36 @@ namespace killme
         Exception& operator =(const Exception&) = default;
         Exception& operator =(Exception&&) = default;
 
-        /** Returns the message */
+        /** Return the message */
         std::string getMessage() const;
 
-        /** Returns the message that is same to the Exception::getMessage() */
+        /** Return the message that is same to the Exception::getMessage() */
         const char* what() const;
     };
 
-	/** The file relational exception */
+	/** File relational exception */
 	class FileException : public Exception
 	{
 	public:
-		/** Constructs with a message */
+		/** Construct */
         explicit FileException(const std::string& msg);
 	};
+
+    /** Item not found exception */
+    class ItemNotFoundException : public Exception
+    {
+    public:
+        /** Construct */
+        explicit ItemNotFoundException(const std::string& msg);
+    };
+
+    /** Invalid argment exception */
+    class InvalidArgmentException : public Exception
+    {
+    public:
+        /** Construct */
+        explicit InvalidArgmentException(const std::string& msg);
+    };
 }
 
 #endif

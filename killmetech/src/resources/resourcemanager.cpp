@@ -18,11 +18,7 @@ namespace killme
         std::string getExtension(const std::string& path)
         {
             const auto found = path.rfind('.');
-            if (found == std::string::npos)
-            {
-                assert(false && "Filename extension not exists.");
-                return "";
-            }
+            assert(found != std::string::npos && "File extension not exists.");
             return path.substr(found + 1);
         }
     }

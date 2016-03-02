@@ -60,9 +60,7 @@ namespace killme
     {
         // Get the description
         D3D12_SHADER_BUFFER_DESC bufferDesc;
-        enforce<Direct3DException>(
-            SUCCEEDED(reflection->GetDesc(&bufferDesc)),
-            "Faild to get the description of the constant buffer.");
+        reflection->GetDesc(&bufferDesc);
 
         size_ = bufferDesc.Size;
 
@@ -72,9 +70,7 @@ namespace killme
             const auto d3dVarRef = reflection->GetVariableByIndex(i);
 
             D3D12_SHADER_VARIABLE_DESC d3dVarDesc;
-            enforce<Direct3DException>(
-                SUCCEEDED(d3dVarRef->GetDesc(&d3dVarDesc)),
-                "Faild to get a description of the constant variable.");
+            d3dVarRef->GetDesc(&d3dVarDesc);
 
             VariableDescription varDesc;
             varDesc.size = d3dVarDesc.Size;
@@ -84,7 +80,7 @@ namespace killme
             {
                 const auto p = new unsigned char[d3dVarDesc.Size];
                 std::memcpy(p, d3dVarDesc.DefaultValue, d3dVarDesc.Size);
-                varDesc.defaultValue = std::shared_ptr<const unsigned char>(p, std::default_delete<const unsigned char[]>());
+                varDesc.init = std::shared_ptr<const unsigned char>(p, std::default_delete<const unsigned char[]>());
             }
 
             variables_.emplace(d3dVarDesc.Name, varDesc);
@@ -106,22 +102,22 @@ namespace killme
         return it->second;
     }
 
-    BasicShader::BasicShader(ID3DBlob* byteCode)
-        : byteCode_(makeComUnique(byteCode))
+    BasicShader::BasicShader(ShaderType type, ID3DBlob* byteCode)
+        : type_(type)
+        , byteCode_(makeComUnique(byteCode))
         , reflection_()
         , desc_()
     {
-        // Get the reflection of the shader
         ID3D12ShaderReflection* reflection;
-        enforce<Direct3DException>(
-            SUCCEEDED(D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection))),
-            "Failed to get the reflection of the shader.");
+        D3DReflect(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize(), IID_PPV_ARGS(&reflection));
         reflection_ = makeComUnique(reflection);
 
-        // Get the description of the shader
-        enforce<Direct3DException>(
-            SUCCEEDED(reflection->GetDesc(&desc_)),
-            "Failed to get the description of the shader.");
+        reflection->GetDesc(&desc_);
+    }
+
+    ShaderType BasicShader::getType() const
+    {
+        return type_;
     }
 
     const void* BasicShader::getByteCode() const
@@ -141,6 +137,18 @@ namespace killme
         if (SUCCEEDED(hr))
         {
             return BoundResourceDescription(desc);
+        }
+        return nullopt;
+    }
+
+    Optional<ConstantBufferDescription> BasicShader::describeConstantBuffer(const std::string& name)
+    {
+        const auto cb = reflection_->GetConstantBufferByName(name.c_str());
+        if (cb)
+        {
+            D3D12_SHADER_INPUT_BIND_DESC desc;
+            reflection_->GetResourceBindingDescByName(name.c_str(), &desc);
+            return ConstantBufferDescription(cb, desc);
         }
         return nullopt;
     }

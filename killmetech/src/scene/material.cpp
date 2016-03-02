@@ -1,25 +1,141 @@
 #include "material.h"
-#include "effecttechnique.h"
+#include "materialcreation.h"
+#include "../renderer/texture.h"
 #include <cassert>
 
 namespace killme
 {
-    void Material::setTexture(const std::string& name, const Resource<Texture>& tex)
+    const MP_float3 MP_float3::INIT = { 0, 0, 0 };
+    const MP_float4 MP_float4::INIT = { 0, 0, 0, 0 };
+    const MP_float4x4 MP_float4x4::INIT = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0
+    };
+    const MP_tex2d MP_tex2d::INIT = { Resource<Texture>(), std::make_shared<Sampler>() };
+
+    const float& MP_float3::operator [](size_t i) const
     {
-        for (const auto tech : techMap_)
+        switch (i)
         {
-            tech.second->updateTexture(name, tex);
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default:
+            assert(false && "Index out of range.");
+            return x; // For warning
         }
     }
 
-    void Material::addTechnique(const std::string& name, const std::shared_ptr<EffectTechnique>& tech)
+    float& MP_float3::operator [](size_t i)
     {
-        const auto check = techMap_.emplace(name, tech);
-        assert(check.second && "Conflict techniques");
+        return const_cast<float&>(static_cast<const MP_float3&>(*this)[i]);
+    }
 
-        if (useTech_.empty())
+    const float& MP_float4::operator [](size_t i) const
+    {
+        switch (i)
         {
-            useTech_ = name;
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        case 3: return w;
+        default:
+            assert(false && "Index out of range.");
+            return x; // For warning
+        }
+    }
+
+    float& MP_float4::operator [](size_t i)
+    {
+        return const_cast<float&>(static_cast<const MP_float4&>(*this)[i]);
+    }
+
+    MP_float4x4::MP_float4x4(std::initializer_list<float> il)
+        : m_()
+    {
+        *this = il;
+    }
+
+    MP_float4x4& MP_float4x4::operator =(std::initializer_list<float> il)
+    {
+        assert(il.size() == 16 && "Invalid initializer list.");
+
+        auto it = std::begin(il);
+        for (int r = 0; r < 4; ++r)
+        {
+            for (int c = 0; c < 4; ++c)
+            {
+                m_[r][c] = *it;
+                ++it;
+            }
+        }
+        return *this;
+    }
+
+    const float& MP_float4x4::operator ()(size_t r, size_t c) const
+    {
+        assert(r < 4 && c < 4 && "Index out of range.");
+        return m_[r][c];
+    }
+
+    float& MP_float4x4::operator ()(size_t r, size_t c)
+    {
+        return const_cast<float&>(static_cast<const MP_float4x4&>(*this)(r, c));
+    }
+
+    bool isNumeric(TypeTag type)
+    {
+        return !isTexture(type);
+    }
+
+    bool isTexture(TypeTag type)
+    {
+        return type == typeTag<MP_tex2d>();
+    }
+
+    Material::Material(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc)
+        : params_()
+        , useTech_()
+        , techMap_()
+    {
+        for (const auto& tech : desc.getTechniques())
+        {
+            techMap_.emplace(tech.first, std::make_shared<EffectTechnique>(renderSystem, resourceManager, desc, tech.second));
+            if (useTech_.empty())
+            {
+                useTech_ = tech.first;
+            }
+        }
+
+        for (const auto& paramDesc : desc.getParameters())
+        {
+            Param param;
+            param.type = paramDesc.second.type;
+            param.value = paramDesc.second.value;
+            const auto name = paramDesc.first;
+            params_.emplace(name, param);
+
+            if (isNumeric(param.type))
+            {
+                for (const auto& tech : techMap_)
+                {
+                    tech.second->updateConstant(name, param.value.ptr(), param.value.sizeOf());
+                }
+            }
+            else
+            {
+                const MP_tex2d tex = param.value;
+                for (const auto& tech : techMap_)
+                {
+                    if (tex.texture.bound())
+                    {
+                        tech.second->updateTexture(name, tex.texture);
+                    }
+                    tech.second->updateSampler(name, tex.sampler);
+                }
+            }
         }
     }
 
@@ -30,14 +146,49 @@ namespace killme
 
     void Material::selectTechnique(const std::string& name)
     {
+        enforce<ItemNotFoundException>(techMap_.find(name) != std::cend(techMap_), "Technique \'" + name + "\' not found.");
         useTech_ = name;
     }
 
-    void Material::setVariableImpl(const std::string& name, const void* data)
+    void Material::setTexture(const std::string& name, const Resource<Texture>& tex)
     {
-        for (const auto tech : techMap_)
+        assert(tex.bound() && "No texture.");
+
+        const auto it = params_.find(name);
+        if (it != std::cend(params_))
         {
-            tech.second->updateConstant(name, data);
+            enforce<InvalidArgmentException>(it->second.type == typeTag<MP_tex2d>(), "Mismatch texture parameter type.");
+            MP_tex2d tex2d = it->second.value;
+            tex2d.texture = tex;
+            params_[name].value = tex2d;
+            for (const auto& tech : techMap_)
+            {
+                tech.second->updateTexture(name, tex);
+            }
+        }
+    }
+
+    void Material::setTexture(const std::string& name, const MP_tex2d& tex)
+    {
+        setTexture(name, tex.texture);
+        setSampler(name, tex.sampler);
+    }
+
+    void Material::setSampler(const std::string& name, const std::shared_ptr<Sampler>& sam)
+    {
+        assert(sam && "No sampler.");
+
+        const auto it = params_.find(name);
+        if (it != std::cend(params_))
+        {
+            enforce<InvalidArgmentException>(it->second.type == typeTag<MP_tex2d>(), "Mismatch texture parameter type.");
+            MP_tex2d tex2d = it->second.value;
+            tex2d.sampler = sam;
+            params_[name].value = tex2d;
+            for (const auto& tech : techMap_)
+            {
+                tech.second->updateSampler(name, sam);
+            }
         }
     }
 }

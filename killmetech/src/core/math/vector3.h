@@ -5,20 +5,20 @@ namespace killme
 {
     class Quaternion;
 
-    /** The 3D vector */
+    /** 3D vector */
     class Vector3
     {
     public:
-        /** The elements */
+        /** The element */
         float x, y, z;
 
-        /** Constructs the zero vector */
+        /** Construct as the zero vector */
         Vector3();
 
-        /** Constructs with initial values */
+        /** Construct with initial values */
         Vector3(float nx, float ny, float nz);
 
-        /** Constructs */
+        /** Construct */
         Vector3(const Vector3&) = default;
         Vector3(Vector3&&) = default;
 
@@ -56,20 +56,20 @@ namespace killme
     Vector3& operator *=(Vector3& v, float k);
     Vector3& operator /=(Vector3& v, float k);
 
-    /** Scale the vector */
+    /** Scaling */
     Vector3 scale(const Vector3& v, const Vector3& k);
     Vector3 invScale(const Vector3& v, const Vector3& k);
 
-    /** Returns the norm */
+    /** Return the norm */
     float norm(const Vector3& v);
 
-    /** Returns the normalized vector */
+    /** Return the normalized vector */
     Vector3 normalize(const Vector3& v);
 
-    /** Returns the dot product value */
+    /** Return the dot product value */
     float dotProduct(const Vector3& a, const Vector3& b);
 
-    /** Returns the cross product value */
+    /** Return the cross product value */
     Vector3 crossProduct(const Vector3& a, const Vector3& b);
 }
 

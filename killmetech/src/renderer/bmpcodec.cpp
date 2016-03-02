@@ -1,8 +1,8 @@
 #include "image.h"
 #include "../core/math/math.h"
 #include "../core/exception.h"
+#include <string>
 #include <cstdio>
-#include <cassert>
 
 namespace killme
 {
@@ -54,17 +54,17 @@ namespace killme
         }
     }
 
-    std::shared_ptr<Image> decodeBmp(const std::string& path)
+    std::shared_ptr<Image> decodeBmpImage(const std::string& path)
     {
-        auto file = enforce<FileException>(std::fopen(path.c_str(), "rb"), "Failed to open file (" + path + ").");
+        auto file = enforce<ImageLoadException>(std::fopen(path.c_str(), "rb"), "Failed to open file (" + path + ").");
         KILLME_SCOPE_EXIT{ fclose(file); };
 
         // Read file header and info header
         BmpFileHeader fileHeader;
         BmpInfoHeader infoHeader;
-        assert(std::fread(&fileHeader, sizeof(fileHeader), 1, file) == 1 && "Read .bmp file error.");
-        assert(std::fread(&infoHeader, sizeof(infoHeader), 1, file) == 1 && "Read .bmp file error.");
-        assert(checkFormat(fileHeader, infoHeader) && "Not supportted .bmp format.");
+        enforce<ImageLoadException>(std::fread(&fileHeader, sizeof(fileHeader), 1, file) == 1, "Invalid .bmp file format.");
+        enforce<ImageLoadException>(std::fread(&infoHeader, sizeof(infoHeader), 1, file) == 1, "Invalid .bmp file format.");
+        enforce<ImageLoadException>(checkFormat(fileHeader, infoHeader), "Not supportted .bmp file format.");
 
         // Read color map
         auto image = std::make_shared<Image>(infoHeader.width, infoHeader.height);
@@ -73,15 +73,10 @@ namespace killme
 
         for (int32_t y = infoHeader.height - 1; y >= 0; --y)
         {
-            assert(std::fread(buffer.data(), stride, 1, file) == 1 && "Read .bmp file error.");
+            enforce<ImageLoadException>(std::fread(buffer.data(), stride, 1, file) == 1, "Invalid .bmp file format.");
             auto it = std::cbegin(buffer);
             for (int32_t x = 0; x < infoHeader.width; ++x)
             {
-                size_t s = std::cend(buffer) - it;
-                if (s < 10)
-                {
-                    auto a = s;
-                }
                 image->at(x, y).b = *it; ++it;
                 image->at(x, y).g = *it; ++it;
                 image->at(x, y).r = *it; ++it;

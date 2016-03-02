@@ -32,16 +32,16 @@ namespace killme
         /** Remove a light */
         static void removeLight(const std::shared_ptr<Light>& light);
 
-        /** Returns render system */
+        /** Return render system */
         static std::shared_ptr<RenderSystem> getRenderSystem();
 
-        /** Returns viewport based on client size of render window */
+        /** Return viewport based on client size of render window */
         static Viewport getClientViewport();
 
-        /** Returns main camera */
+        /** Return main camera */
         static std::shared_ptr<Camera> getMainCamera();
 
-        /** Sets main camera */
+        /** Set main camera */
         static void setMainCamera(const std::shared_ptr<Camera>& camera);
 
         /** Add child node into root node of scene */

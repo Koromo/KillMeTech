@@ -12,7 +12,7 @@ namespace killme
 
     extern const int AUDIO_LOOP_INFINITE;
 
-    /** Transmit the audio data to the audio device */
+    /** Transmit an audio data to the audio device */
     class SourceVoice
     {
     private:
@@ -34,34 +34,34 @@ namespace killme
         bool isPlaying_;
 
     public:
-        /** Constructs with an audio clip */
+        /** Construct with an audio clip */
         SourceVoice(const std::weak_ptr<IXAudio2>& xAudio, const Resource<AudioClip>& clip);
 
-        /** Destructs */
+        /** Destruct */
         ~SourceVoice();
 
-        /** Submits the audio buffer into buffer queue */
+        /** Submit the audio buffer into buffer queue */
         void submit(size_t numLoops);
 
-        /** Returns count of queued buffers */
+        /** Return count of queued buffers */
         size_t getNumQueued();
 
-        /** Start voice */
+        /** Start buffers */
         void start();
 
-        /** Stops audio */
+        /** Stop buffers */
         void stop();
 
-        /** Flushs audio */
+        /** Flush buffers */
         void flush();
 
-        /** Returns true if audio is playing now */
+        /** Return true if audio is playing now */
         bool isPlaying() const;
 
-        /** Applies the frequency ratio */
+        /** Apply the frequency ratio */
         void applyFrequencyRatio(float ratio);
 
-        /** Applies the output matrix */
+        /** Apply the output matrix */
         void applyOutputMatrix(size_t numSrcChannels, size_t numDestChannels, const float* levelMatrix);
     };
 }

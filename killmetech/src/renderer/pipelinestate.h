@@ -13,7 +13,7 @@ namespace killme
     class VertexShader;
     class PixelShader;
 
-    /** For the PipelineState creation */
+    /** For PipelineState creation */
     struct PipelineStateDescription
     {
         std::shared_ptr<RootSignature> rootSignature;
@@ -22,7 +22,7 @@ namespace killme
         BlendState blend;
     };
 
-    /** The pipeline state */
+    /** Pipeline state */
     class PipelineState
     {
     private:
@@ -30,15 +30,15 @@ namespace killme
         PipelineStateDescription desc_;
 
     public:
-        /** Constructs with a Direct3D pipeline state and the description */
+        /** Construct with a Direct3D pipeline state and the description */
         PipelineState(ID3D12PipelineState* state, const PipelineStateDescription& desc)
             : state_(makeComUnique(state))
             , desc_(desc) {}
 
-        /** Returns the Direct3D pipeline state */
+        /** Return the Direct3D pipeline state */
         ID3D12PipelineState* getD3DPipelineState() { return state_.get(); }
 
-        /** Returns the description */
+        /** Return the description */
         PipelineStateDescription describe() const { return desc_; }
     };
 }

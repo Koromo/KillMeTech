@@ -35,4 +35,9 @@ namespace killme
     {
         return map_.data();
     }
+
+    ImageLoadException::ImageLoadException(const std::string& msg)
+        : FileException(msg)
+    {
+    }
 }

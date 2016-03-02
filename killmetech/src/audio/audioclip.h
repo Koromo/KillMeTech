@@ -3,12 +3,14 @@
 
 #include "../resources/resource.h"
 #include "../core/string.h"
+#include "../core/exception.h"
 #include <Windows.h>
+#include <string>
 #include <memory>
 
 namespace killme
 {
-    /** The Audio clip */
+    /** Audio clip */
     class AudioClip : public IsResource
     {
     private:
@@ -17,21 +19,29 @@ namespace killme
         WAVEFORMATEX format_;
 
     public:
-        /** Constructs with an audio data */
+        /** Construct */
         AudioClip(const unsigned char* data, size_t size, const WAVEFORMATEX& format);
 
-        /** Returns the audio data */
+        /** Return the audio data */
         const unsigned char* getData() const;
 
-        /** Returns the size[byte] of the audio data */
+        /** Return the size[byte] of the audio data */
         size_t getSize() const;
 
-        /** Returns the audio format */
+        /** Return the audio format */
         WAVEFORMATEX getFormat() const;
     };
 
-    /** Load an audio from file */
-    std::shared_ptr<AudioClip> loadAudioClip(const tstring& path);
+    /** Loading audio exception */
+    class AudioLoadException : public FileException
+    {
+    public:
+        /** Construct */
+        explicit AudioLoadException(const std::string& msg);
+    };
+
+    /** Load an audio from .wav file */
+    std::shared_ptr<AudioClip> loadWavAudio(const tstring& path);
 }
 
 #endif

@@ -4,20 +4,25 @@
 #include "../scene/scene.h"
 #include "../scene/scenenode.h"
 #include "../scene/material.h"
+#include "../scene/materialcreation.h"
 #include "../scene/mesh.h"
 #include "../renderer/rendersystem.h"
+#include "../renderer/commandlist.h"
+#include "../renderer/rendertarget.h"
 #include "../renderer/renderstate.h"
 #include "../renderer/shader.h"
 #include "../renderer/vertexshader.h"
 #include "../renderer/pixelshader.h"
 #include "../renderer/texture.h"
 #include "../core/string.h"
+#include "../core/math/color.h"
 
 namespace killme
 {
     namespace
     {
         std::shared_ptr<RenderSystem> renderSystem;
+        std::shared_ptr<CommandList> commandList;
         std::unique_ptr<FbxMeshImporter> fbxImporter;
         std::unique_ptr<Scene> scene;
         std::shared_ptr<Camera> mainCamera;
@@ -40,11 +45,12 @@ namespace killme
         clientViewport.maxDepth = 1;
 
         renderSystem = std::make_shared<RenderSystem>(window);
+        commandList = renderSystem->createCommandList();
         scene = std::make_unique<Scene>(renderSystem);
         fbxImporter = std::make_unique<FbxMeshImporter>();
 
-        Resources::registerLoader("vhlsl", [](const std::string& path)      { return compileShader<VertexShader>(toCharSet(path)); });
-        Resources::registerLoader("phlsl", [](const std::string& path)      { return compileShader<PixelShader>(toCharSet(path)); });
+        Resources::registerLoader("vhlsl", [](const std::string& path)      { return compileHlslShader<VertexShader>(toCharSet(path)); });
+        Resources::registerLoader("phlsl", [](const std::string& path)      { return compileHlslShader<PixelShader>(toCharSet(path)); });
         Resources::registerLoader("material", [&](const std::string& path)  { return loadMaterial(renderSystem, Resources::getManager(), path); });
         Resources::registerLoader("bmp", [&](const std::string& path)      { return loadTextureFromBmp(*renderSystem, path); });
         Resources::registerLoader("fbx", [&](const std::string& path)       { return fbxImporter->import(*renderSystem, Resources::getManager(), path); });
@@ -61,6 +67,7 @@ namespace killme
         mainCamera.reset();
         fbxImporter.reset();
         scene.reset();
+        commandList.reset();
         renderSystem.reset();
     }
 
@@ -106,9 +113,19 @@ namespace killme
 
     void Graphics::renderScene()
     {
+        // Clear the render target and the depth stencil
+        const auto frame = renderSystem->getCurrentFrameResource();
+        renderSystem->beginCommands(commandList, nullptr);
+        commandList->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+        commandList->clearRenderTarget(frame.backBufferView, { 0, 0, 0, 1 });
+        commandList->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+        commandList->clearDepthStencil(frame.depthStencilView, 1);
+        commandList->endCommands();
+        renderSystem->executeCommands(commandList);
+
         if (mainCamera)
         {
-            scene->renderScene(*mainCamera);
+            scene->renderScene(*mainCamera, frame);
         }
     }
 

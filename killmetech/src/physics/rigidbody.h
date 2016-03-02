@@ -11,7 +11,7 @@ namespace killme
     class Quaternion;
     class CollisionShape;
 
-    /** The rigid body */
+    /** Rigid body */
     class RigidBody
     {
     private:
@@ -20,18 +20,17 @@ namespace killme
         std::shared_ptr<CollisionShape> shape_;
 
     public:
-        /** Constructs with a body and mass */
+        /** Construct with a body and mass */
         RigidBody(const std::shared_ptr<CollisionShape> shape, float mass);
 
         /** Transform modifiers */
         Vector3 getPosition() const;
         void setPosition(const Vector3& pos);
 
-        /** ditto */
         Quaternion getOrientation() const;
         void setOrientation(const Quaternion& q);
 
-        /** Returns the bullet body */
+        /** Return the bullet body */
         btRigidBody* getBtBody();
     };
 }

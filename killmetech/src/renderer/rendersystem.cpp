@@ -459,10 +459,9 @@ namespace killme
         d3dDesc.SampleDesc.Count = 1;
 
         ID3D12PipelineState* pipelineState;
-        auto hr = device_->CreateGraphicsPipelineState(&d3dDesc, IID_PPV_ARGS(&pipelineState));
         enforce<Direct3DException>(
             SUCCEEDED(device_->CreateGraphicsPipelineState(&d3dDesc, IID_PPV_ARGS(&pipelineState))),
-            "Failed to create the pipeline state." + std::to_string(hr));
+            "Failed to create the pipeline state.");
 
         return std::make_shared<PipelineState>(pipelineState, pipelineDesc);
     }

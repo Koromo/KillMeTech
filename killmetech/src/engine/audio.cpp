@@ -27,7 +27,7 @@ namespace killme
 
         engine = new AudioEngine();
 
-        Resources::registerLoader("wav", [](const std::string& path) { return loadAudioClip(toCharSet(path)); });
+        Resources::registerLoader("wav", [](const std::string& path) { return loadWavAudio(toCharSet(path)); });
         noListener = true;
     }
     

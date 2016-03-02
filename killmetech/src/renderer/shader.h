@@ -25,7 +25,7 @@ namespace killme
         pixel
     };
 
-    /** Resource type definitions */
+    /** Bound resource type definitions */
     enum class BoundResourceType
     {
         cbuffer,
@@ -38,7 +38,7 @@ namespace killme
         D3D_SHADER_INPUT_TYPE toD3DSIType(BoundResourceType type);
     }
 
-    /** The bound resource description */
+    /** Bound resource description */
     class BoundResourceDescription
     {
     private:
@@ -48,25 +48,25 @@ namespace killme
         /** Construct */
         explicit BoundResourceDescription(const D3D12_SHADER_INPUT_BIND_DESC& desc);
 
-        /** Return resource type */
+        /** Return the resource type */
         BoundResourceType getType() const;
 
-        /** Return name */
+        /** Return the name */
         std::string getName() const;
 
         /** Return register slot */
         size_t getRegisterSlot() const;
     };
 
-    /** The variable description */
+    /** Variable description */
     struct VariableDescription
     {
         size_t size;
         size_t offset;
-        std::shared_ptr<const unsigned char> defaultValue;
+        std::shared_ptr<const unsigned char> init;
     };
 
-    /** The constant buffer description */
+    /** Constant buffer description */
     class ConstantBufferDescription : public BoundResourceDescription
     {
     private:
@@ -74,16 +74,16 @@ namespace killme
         std::unordered_map<std::string, VariableDescription> variables_;
 
     public:
-        /** Constructs with a reflection of constant buffer */
+        /** Construct with a reflection of constant buffer */
         ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, const D3D12_SHADER_INPUT_BIND_DESC& boundDesc);
 
-        /** Returns the size of buffer */
+        /** Return the size of buffer */
         size_t getSize() const;
 
-        /** Returns the description of variable */
+        /** Return the description of variable */
         Optional<VariableDescription> describeVariable(const std::string& name) const;
 
-        /** Returns descriptions of variable */
+        /** Return the descriptions of variable */
         auto describeVariables() const
             -> decltype(makeRange(variables_))
         {
@@ -91,38 +91,43 @@ namespace killme
         }
     };
 
-    /** The basic implementation for each shaders */
+    /** Basic implementation for each shaders */
     class BasicShader : public IsResource
     {
     private:
+        ShaderType type_;
         ComUniquePtr<ID3DBlob> byteCode_;
         ComUniquePtr<ID3D12ShaderReflection> reflection_;
         D3D12_SHADER_DESC desc_;
 
     public:
-        /** Constructs with a byte code */
-        explicit BasicShader(ID3DBlob* byteCode);
+        /** Construct with a byte code */
+        BasicShader(ShaderType type, ID3DBlob* byteCode);
 
-        /** Returns the byte code */
+        /** Return shader type */
+        ShaderType getType() const;
+
+        /** Return the byte code */
         const void* getByteCode() const;
         size_t getByteCodeSize() const;
 
-        /** Returns the Direct3D input signature */
+        /** Return the Direct3D input signature */
         auto getD3DInputSignature()
             -> decltype(makeRange(std::vector<D3D12_SIGNATURE_PARAMETER_DESC>()))
         {
             std::vector<D3D12_SIGNATURE_PARAMETER_DESC> params(desc_.InputParameters);
             for (size_t i = 0; i < desc_.InputParameters; ++i)
             {
-                enforce<Direct3DException>(
-                    SUCCEEDED(reflection_->GetInputParameterDesc(i, &(params[i]))),
-                    "Failed to get the description of input parameter of shader.");
+                reflection_->GetInputParameterDesc(i, &(params[i]));
             }
             return makeRange(std::move(params));
         }
 
         /** Return bound resource description */
         Optional<BoundResourceDescription> describeBoundResource(const std::string& name);
+
+        /** Return constant buffer description */
+        Optional<ConstantBufferDescription> describeConstantBuffer(const std::string& name);
 
         /** Return bound resource descriptions */
         auto describeBoundResources(BoundResourceType type)
@@ -131,7 +136,7 @@ namespace killme
             const auto& d3dDescs = describeD3DBoundResources(detail::toD3DSIType(type));
 
             std::vector<BoundResourceDescription> descs;
-            descs.reserve(d3dDescs.length());
+            descs.reserve(std::cend(d3dDescs) - std::cbegin(d3dDescs));
             for (const auto& d3dDesc : d3dDescs)
             {
                 descs.emplace_back(d3dDesc);
@@ -147,13 +152,11 @@ namespace killme
             const auto& d3dResourceDescs = describeD3DBoundResources(D3D_SIT_CBUFFER);
 
             std::vector<ConstantBufferDescription> cbuffers;
-            cbuffers.reserve(d3dResourceDescs.length());
+            cbuffers.reserve(std::cend(d3dResourceDescs) - std::cbegin(d3dResourceDescs));
+
             for (const auto& d3dResourceDesc : d3dResourceDescs)
             {
-                // Get the reflection of the constant buffer
-                const auto cbuffer = enforce<Direct3DException>(
-                    reflection_->GetConstantBufferByName(d3dResourceDesc.Name),
-                    "Failed to get the reflection of the constant buffer.");
+                const auto cbuffer = reflection_->GetConstantBufferByName(d3dResourceDesc.Name);
                 cbuffers.emplace_back(cbuffer, d3dResourceDesc);
             }
 
@@ -169,11 +172,8 @@ namespace killme
 
             for (UINT i = 0; i < desc_.BoundResources; ++i)
             {
-                // Get i'th resource description
                 D3D12_SHADER_INPUT_BIND_DESC desc;
-                enforce<Direct3DException>(
-                    SUCCEEDED(reflection_->GetResourceBindingDesc(i, &desc)),
-                    "Failed to get the bound resource description.");
+                reflection_->GetResourceBindingDesc(i, &desc);
 
                 if (desc.Type == type)
                 {
@@ -187,7 +187,7 @@ namespace killme
 
     /** Compile a shader from file */
     template <class Shader>
-    std::shared_ptr<Shader> compileShader(const tstring& path)
+    std::shared_ptr<Shader> compileHlslShader(const tstring& path)
     {
         ID3DBlob* code;
         ID3DBlob* err = NULL;

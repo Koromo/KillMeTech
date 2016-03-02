@@ -35,7 +35,7 @@ namespace killme
         DepthStencil::View depthStencilView;
     };
 
-    /** The render system */
+    /** Render system */
     class RenderSystem
     {
     private:
@@ -59,40 +59,40 @@ namespace killme
         UINT64 fenceValue_;
 
     public:
-        /** Initializes */
+        /** Initialize */
         explicit RenderSystem(HWND window);
 
-        /** Returns the target window */
+        /** Return the target window */
         HWND getTargetWindow();
 
-        /** Returns the current frame resource */
+        /** Return the current frame resources */
         FrameResource getCurrentFrameResource();
 
-		/** Creates the vertex buffer */
+		/** Create the vertex buffer */
         std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
 
-        /** Creates the index buffer */
+        /** Create the index buffer */
         std::shared_ptr<IndexBuffer> createIndexBuffer(const unsigned short* data, size_t size);
 
-        /** Creates the constant buffer */
+        /** Create the constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t size);
 
         /** Create texture */
         std::shared_ptr<Texture> createTexture(const std::shared_ptr<const Image>& img);
 
-        /** Creates the gpu resource heap */
+        /** Create the gpu resource heap */
         std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, GpuResourceHeapFlag flag);
 
-		/** Creates the root signature */
+		/** Create the root signature */
         std::shared_ptr<RootSignature> createRootSignature(RootSignatureDescription& desc);
 
-		/** Creates the pileline state */
+		/** Create the pileline state */
         std::shared_ptr<PipelineState> createPipelineState(const PipelineStateDescription& pipelineDesc);
 
-        /** Creates the command list */
+        /** Create the command list */
         std::shared_ptr<CommandList> createCommandList();
 
-        /** Stores a resource into a resource heap */
+        /** Store a resource into a resource heap */
         template <class GpuResource>
         typename GpuResource::View createGpuResourceView(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<GpuResource>& resource)
         {
@@ -106,13 +106,13 @@ namespace killme
             return resource->createD3DView(device_.get(), location);
         }
 
-		/** Resets a command list */
+		/** Reset a command list */
         void beginCommands(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipeline);
 
-        /** Executes a command list */
+        /** Execute a command list */
         void executeCommands(const std::shared_ptr<CommandList>& list);
 
-        /** Presents the back buffer into the screen */
+        /** Present the back buffer into the screen */
         void presentBackBuffer();
     };
 }
