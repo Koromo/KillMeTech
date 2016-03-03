@@ -1,15 +1,14 @@
 #include "audioemittercomponent.h"
 #include "../audio.h"
-#include "../resources.h"
 #include "../processes.h"
 #include "../runtime.h"
 #include "../../audio/sourcevoice.h"
-#include "../../audio/audioclip.h"
 
 namespace killme
 {
-    AudioEmitterComponent::AudioEmitterComponent(const std::string& path)
-        : voice_(Audio::createSourceVoice(Resources::load<AudioClip>(path)))
+    AudioEmitterComponent::AudioEmitterComponent(AudioType type, const Resource<AudioClip>& clip)
+        : type_(type)
+        , voice_(Audio::createSourceVoice(clip))
         , params_()
         , process_()
     {
@@ -56,7 +55,11 @@ namespace killme
     void AudioEmitterComponent::onAttached()
     {
         TransformComponent::onAttached();
-        process_ = Processes::start([&] { tickAudioWorld(); }, PROCESS_PRIORITY_AUDIO_EMITTER);
+
+        if (type_ == AudioType::world)
+        {
+            process_ = Processes::start([&] { tickAudioWorld(); }, PROCESS_PRIORITY_AUDIO_EMITTER);
+        }
     }
 
     void AudioEmitterComponent::onDettached()

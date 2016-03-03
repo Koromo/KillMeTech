@@ -26,7 +26,10 @@ namespace killme
 
     void EventConnection::disconnect()
     {
-        disconnector_->disconnect();
+        if (disconnector_)
+        {
+            disconnector_.reset();
+        }
     }
 
     EventDispatcher::EventDispatcher()

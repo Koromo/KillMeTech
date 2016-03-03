@@ -3,7 +3,6 @@
 
 #include "transformcomponent.h"
 #include "../resources.h"
-#include <string>
 #include <memory>
 
 namespace killme

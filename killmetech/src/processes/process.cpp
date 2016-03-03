@@ -30,6 +30,9 @@ namespace killme
 
     void Process::kill()
     {
-        killer_->kill();
+        if (killer_)
+        {
+            killer_.reset();
+        }
     }
 }
