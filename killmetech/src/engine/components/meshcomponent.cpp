@@ -1,16 +1,15 @@
 #include "meshcomponent.h"
-#include "../resources.h"
 #include "../../scene/scenenode.h"
 #include "../../scene/meshentity.h"
 #include "../../scene/mesh.h"
 
 namespace killme
 {
-    MeshComponent::MeshComponent(const std::string& path)
+    MeshComponent::MeshComponent(const Resource<Mesh>& mesh)
         : entity_()
     {
         const auto meshNode = getSceneNode();
-        entity_ = meshNode->attachEntity<MeshEntity>(Resources::load<Mesh>(path));
+        entity_ = meshNode->attachEntity<MeshEntity>(mesh);
     }
 
     std::shared_ptr<SubMesh> MeshComponent::findSubMesh(const std::string& name)

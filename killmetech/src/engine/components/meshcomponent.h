@@ -2,6 +2,7 @@
 #define _KILLME_MESHCOMPONENT_H_
 
 #include "transformcomponent.h"
+#include "../resources.h"
 #include <string>
 #include <memory>
 
@@ -19,7 +20,7 @@ namespace killme
 
     public:
         /** Construct */
-        explicit MeshComponent(const std::string& path);
+        explicit MeshComponent(const Resource<Mesh>& mesh);
 
         /** Return the sub mesh */
         std::shared_ptr<SubMesh> findSubMesh(const std::string& name);

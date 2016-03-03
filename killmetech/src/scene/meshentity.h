@@ -16,7 +16,7 @@ namespace killme
     class RenderQueue;
     struct SceneContext;
 
-    /** Meshed model entity */
+    /** Meshed entity */
     class MeshEntity : public SceneEntity
     {
     private:

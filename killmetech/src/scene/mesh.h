@@ -36,10 +36,9 @@ namespace killme
 
     /** Mesh */
     /**
-     *  NOTE: Typically, the material is one-to-one correspondence with the mesh.
-     *        However on KillMeTech, the material is one-to-one correspondence with the vertices.
-     *        The mesh means 3D model whitch is a set of sub meshes (vertices), and materials mainly.
-     *        There are not same to the vertices.
+     *  NOTE: Typically, the mesh means the 3D model. However in the KillMeTech, the mesh is a simple set
+     *        of sub meshes that are pair of vertices and material. This means the abstract of the 
+     *        mesh is a generic rendering object including the 3D model.
      */
     class Mesh : public IsResource
     {
