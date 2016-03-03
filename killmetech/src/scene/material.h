@@ -141,6 +141,7 @@ namespace killme
     bool isTexture(TypeTag type);
 
     /** Define the view of vertices */
+    /// NOTE: See a note about the mesh in mesh.h
     class Material : public IsResource
     {
     private:

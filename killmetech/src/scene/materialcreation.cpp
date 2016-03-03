@@ -1,7 +1,5 @@
 #include "materialcreation.h"
 #include "material.h"
-#include "../renderer/vertexshader.h"
-#include "../renderer/pixelshader.h"
 #include "../renderer/texture.h"
 #include "../resources/resourcemanager.h"
 #include <fstream>
@@ -235,22 +233,32 @@ namespace killme
         }
 
         // Check shader bound
-        template <class Shader>
-        void checkShaderBound(const ParseContext& context, const std::string& name)
+        void checkShaderBound(const ParseContext& context, ShaderType type, const std::string& name)
         {
-            if (std::is_same<Shader, VertexShader>::value)
+            if (!context.material.hasShaderBound(type, name))
             {
-                if (!context.material.hasVShaderBound(name))
+                if (type == ShaderType::vertex)
                 {
                     error(context, "Vertex shader bound \'" + name + "\' is not exists.");
                 }
-            }
-            else
-            {
-                if (!context.material.hasPShaderBound(name))
+                else if (type == ShaderType::pixel)
                 {
                     error(context, "Pixel shader bound \'" + name + "\' is not exists.");
                 }
+                else if (type == ShaderType::geometry)
+                {
+                    error(context, "Geometry shader bound \'" + name + "\' is not exists.");
+                }
+            }
+        }
+
+        // Check whether pass is invalid or not
+        void checkPass(const ParseContext& context, const PassDescription& pass)
+        {
+            if (pass.shaderRef.find(ShaderType::vertex) == std::cend(pass.shaderRef) ||
+                pass.shaderRef.find(ShaderType::pixel) == std::cend(pass.shaderRef))
+            {
+                error(context, "\'vertex_shader_ref\' or \'pixel_shader_ref\' is not found in pass.");
             }
         }
 
@@ -396,8 +404,8 @@ namespace killme
             context.currentShaderBound->samplerMapping[samplerName] = paramName;
         }
 
-        // Parse "vertex_shader" or "pixel_shader" block
-        template <class Shader>
+        // Parse "vertex_shader", "pixel_shader" or "geometry_shader" block
+        template <ShaderType Type>
         void block_shader(ParseContext& context)
         {
             static ParserMap map({
@@ -424,15 +432,7 @@ namespace killme
             forward(context);
 
             context.currentShaderBound = nullptr;
-
-            if (std::is_same<Shader, VertexShader>::value)
-            {
-                context.material.addVShaderBound(name, std::move(shaderBound));
-            }
-            else
-            {
-                context.material.addPShaderBound(name, std::move(shaderBound));
-            }
+            context.material.addShaderBound(Type, name, std::move(shaderBound));
         }
 
         // Parse "blend_enable" element
@@ -540,34 +540,28 @@ namespace killme
             context.currentPass->forEachLight = b;
         }
 
-        // Parse "vertex_shader_ref" or "pixel_shader_ref" element
-        template <class Shader>
+        // Parse "vertex_shader_ref", "pixel_shader_ref" or "geometry_shader_ref", element
+        template <ShaderType Type>
         void elem_shader_ref(ParseContext& context)
         {
             forward(context, "=");
             const auto name = forward(context);
 
-            checkShaderBound<Shader>(context, name);
+            checkShaderBound(context, Type, name);
 
             forward(context, ";");
             forward(context);
 
-            if (std::is_same<Shader, VertexShader>::value)
-            {
-                context.currentPass->vsRef = name;
-            }
-            else
-            {
-                context.currentPass->psRef = name;
-            }
+            context.currentPass->shaderRef[Type] = name;
         }
 
         // Parse "pass" block
         void block_pass(ParseContext& context)
         {
             static ParserMap map({
-                { "vertex_shader_ref", elem_shader_ref<VertexShader> },
-                { "pixel_shader_ref", elem_shader_ref<PixelShader> },
+                { "vertex_shader_ref", elem_shader_ref<ShaderType::vertex> },
+                { "pixel_shader_ref", elem_shader_ref<ShaderType::pixel> },
+                { "geometry_shader_ref", elem_shader_ref<ShaderType::geometry> },
                 { "for_each_light", elem_for_each_light },
                 { "blend_op", elem_blend_op },
                 { "blend_enable", elem_blend_enable },
@@ -599,6 +593,8 @@ namespace killme
             {
                 parseCurrentToken(context, map);
             }
+
+            checkPass(context, pass);
 
             forward(context);
 
@@ -650,11 +646,15 @@ namespace killme
             addIdentifier(context, "tex2d");
             addIdentifier(context, "vertex_shader");
             addIdentifier(context, "pixel_shader");
+            addIdentifier(context, "geometry_shader");
             addIdentifier(context, "source");
             addIdentifier(context, "map_to_constant");
             addIdentifier(context, "map_to_texture");
             addIdentifier(context, "technique");
             addIdentifier(context, "pass");
+            addIdentifier(context, "vertex_shader_ref");
+            addIdentifier(context, "pixel_shader_ref");
+            addIdentifier(context, "geometry_shader_ref");
             addIdentifier(context, "for_each_light");
             addIdentifier(context, "blend_enable");
             addIdentifier(context, "blend_op");
@@ -760,14 +760,9 @@ namespace killme
         paramMap_.emplace(name, std::move(desc));
     }
 
-    void MaterialDescription::addVShaderBound(const std::string& name, ShaderBoundDescription&& desc)
+    void MaterialDescription::addShaderBound(ShaderType type, const std::string& name, ShaderBoundDescription&& desc)
     {
-        vsBoundMap_.emplace(name, std::move(desc));
-    }
-
-    void MaterialDescription::addPShaderBound(const std::string& name, ShaderBoundDescription&& desc)
-    {
-        psBoundMap_.emplace(name, std::move(desc));
+        shaderBoundMap_[type].emplace(name, std::move(desc));
     }
 
     void MaterialDescription::addTechnique(const std::string& name, TechniqueDescription&& desc)
@@ -785,24 +780,15 @@ namespace killme
         return nullopt;
     }
 
-    bool MaterialDescription::hasVShaderBound(const std::string& name) const
+    bool MaterialDescription::hasShaderBound(ShaderType type, const std::string& name) const
     {
-        return vsBoundMap_.find(name) != std::cend(vsBoundMap_);
+        return const_cast<MaterialDescription&>(*this).shaderBoundMap_[type].find(name)
+            != std::cend(const_cast<MaterialDescription&>(*this).shaderBoundMap_[type]);
     }
 
-    bool MaterialDescription::hasPShaderBound(const std::string& name) const
+    const ShaderBoundDescription& MaterialDescription::getShaderBound(ShaderType type, const std::string& name) const
     {
-        return psBoundMap_.find(name) != std::cend(psBoundMap_);
-    }
-
-    const ShaderBoundDescription& MaterialDescription::getVShaderBound(const std::string& name) const
-    {
-        return const_cast<MaterialDescription&>(*this).vsBoundMap_[name];
-    }
-
-    const ShaderBoundDescription& MaterialDescription::getPShaderBound(const std::string& name) const
-    {
-        return const_cast<MaterialDescription&>(*this).psBoundMap_[name];
+        return const_cast<MaterialDescription&>(*this).shaderBoundMap_[type][name];
     }
 
     MaterialLoadException::MaterialLoadException(const std::string& msg)
@@ -838,8 +824,9 @@ namespace killme
         // Parse
         static ParserMap map({
             { "parameters", block_parameters },
-            { "vertex_shader", block_shader<VertexShader> },
-            { "pixel_shader", block_shader<PixelShader> },
+            { "vertex_shader", block_shader<ShaderType::vertex> },
+            { "pixel_shader", block_shader<ShaderType::pixel> },
+            { "geometry_shader", block_shader<ShaderType::geometry> },
             { "technique", block_technique }
         });
 

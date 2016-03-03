@@ -18,11 +18,14 @@
 
 namespace killme
 {
+    class InputLayout;
+
     /** Shader type definitions */
     enum class ShaderType
     {
         vertex,
-        pixel
+        pixel,
+        geometry
     };
 
     /** Bound resource type definitions */
@@ -100,16 +103,19 @@ namespace killme
         ComUniquePtr<ID3D12ShaderReflection> reflection_;
         D3D12_SHADER_DESC desc_;
 
-    public:
+    protected:
         /** Construct with a byte code */
         BasicShader(ShaderType type, ID3DBlob* byteCode);
 
+        /** For drived classes */
+        virtual ~BasicShader() = default;
+
+    public:
         /** Return shader type */
         ShaderType getType() const;
 
         /** Return the byte code */
-        const void* getByteCode() const;
-        size_t getByteCodeSize() const;
+        D3D12_SHADER_BYTECODE getD3DByteCode() const;
 
         /** Return the Direct3D input signature */
         auto getD3DInputSignature()
@@ -185,6 +191,54 @@ namespace killme
         }
     };
 
+    /** Vertex shader */
+    class VertexShader : public BasicShader
+    {
+    private:
+        std::shared_ptr<InputLayout> inputLayout_;
+
+    public:
+        /** Shader model */
+        static const std::string MODEL;
+
+        /** Entry point */
+        static const std::string ENTRY;
+
+        /** Construct with a byte code */
+        explicit VertexShader(ID3DBlob* byteCode);
+
+        /** Return the input layout of the shader */
+        std::shared_ptr<InputLayout> getInputLayout() const;
+    };
+
+    /** Pixel shader */
+    class PixelShader : public BasicShader
+    {
+    public:
+        /** Shader model */
+        static const std::string MODEL;
+
+        /** Entry point */
+        static const std::string ENTRY;
+
+        /** Construct with a byte code */
+        explicit PixelShader(ID3DBlob* byteCode);
+    };
+
+    /** Geometry shader */
+    class GeometryShader : public BasicShader
+    {
+    public:
+        /** Shader model */
+        static const std::string MODEL;
+
+        /** Entry point */
+        static const std::string ENTRY;
+
+        /** Construct with a byte code */
+        explicit GeometryShader(ID3DBlob* byteCode);
+    };
+
     /** Compile a shader from file */
     template <class Shader>
     std::shared_ptr<Shader> compileHlslShader(const tstring& path)
@@ -192,7 +246,7 @@ namespace killme
         ID3DBlob* code;
         ID3DBlob* err = NULL;
 
-        const auto hr = D3DCompileFromFile(path.c_str(), nullptr, nullptr, "main", Shader::model.c_str(), 0, 0, &code, &err);
+        const auto hr = D3DCompileFromFile(path.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, Shader::ENTRY.c_str(), Shader::MODEL.c_str(), 0, 0, &code, &err);
         if (FAILED(hr))
         {
             if (err)

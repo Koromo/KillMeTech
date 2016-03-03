@@ -1,6 +1,7 @@
 #ifndef _KILLME_MATERIALCREATION_H_
 #define _KILLME_MATERIALCREATION_H_
 
+#include "../renderer/shaders.h"
 #include "../renderer/renderstate.h"
 #include "../core/utility.h"
 #include "../core/variant.h"
@@ -41,8 +42,7 @@ namespace killme
     {
         bool forEachLight;
         BlendState blendState;
-        std::string vsRef;
-        std::string psRef;
+        std::unordered_map<ShaderType, std::string> shaderRef;
     };
 
     /** Technique description */
@@ -56,22 +56,18 @@ namespace killme
     {
     private:
         std::unordered_map<std::string, MaterialParameterDescription> paramMap_;
-        std::unordered_map<std::string, ShaderBoundDescription> vsBoundMap_;
-        std::unordered_map<std::string, ShaderBoundDescription> psBoundMap_;
+        std::unordered_map<ShaderType, std::unordered_map<std::string, ShaderBoundDescription>> shaderBoundMap_;
         std::vector<std::pair<std::string, TechniqueDescription>> techs_;
 
     public:
         void addParameter(const std::string& name, MaterialParameterDescription&& desc);
-        void addVShaderBound(const std::string& name, ShaderBoundDescription&& desc);
-        void addPShaderBound(const std::string& name, ShaderBoundDescription&& desc);
+        void addShaderBound(ShaderType type, const std::string& name, ShaderBoundDescription&& desc);
         void addTechnique(const std::string& name, TechniqueDescription&& desc);
 
         Optional<TypeTag> getParameterType(const std::string& name) const;
-        bool hasVShaderBound(const std::string& name) const;
-        bool hasPShaderBound(const std::string& name) const;
+        bool hasShaderBound(ShaderType type, const std::string& name) const;
 
-        const ShaderBoundDescription& getVShaderBound(const std::string& name) const;
-        const ShaderBoundDescription& getPShaderBound(const std::string& name) const;
+        const ShaderBoundDescription& getShaderBound(ShaderType type, const std::string& name) const;
 
         auto getParameters() const
             -> decltype(makeRange(paramMap_))

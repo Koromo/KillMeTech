@@ -1,8 +1,6 @@
 #include "effectpass.h"
 #include "materialcreation.h"
-#include "../renderer/shader.h"
-#include "../renderer/vertexshader.h"
-#include "../renderer/pixelshader.h"
+#include "../renderer/shaders.h"
 #include "../renderer/texture.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/gpuresourceheap.h"
@@ -43,9 +41,10 @@ namespace killme
             auto offsetInHeap_cbv_srv = 0;
             auto offsetInHeap_sampler = 0;
 
-            for (const auto& shader : shaders)
+            for (const auto& pair : shaders)
             {
                 // For cbv_srv
+                const auto shader = pair.first;
                 RootParamInfo rootParam_cbv_srv;
                 rootParam_cbv_srv.shader = shader;
 
@@ -134,14 +133,38 @@ namespace killme
         , samplerUpdateInfoMap_()
         , forEachLight_(passDesc.forEachLight)
     {
-        const auto& vsBound = matDesc.getVShaderBound(passDesc.vsRef);
-        const auto& psBound = matDesc.getPShaderBound(passDesc.psRef);
-        const auto vertexShader = resourceManager.getAccessor<VertexShader>(vsBound.path, true);
-        const auto pixelShader = resourceManager.getAccessor<PixelShader>(psBound.path, true);
+        // Create pipeline state
+        PipelineStateDescription pipelineDesc;
+        pipelineDesc.blend = passDesc.blendState;
+
+        // Create shaders
+        std::unordered_map<std::shared_ptr<BasicShader>, ShaderBoundDescription> eachShaders;
+        for (const auto& ref : passDesc.shaderRef)
+        {
+            const auto& bound = matDesc.getShaderBound(ref.first, ref.second);
+            std::shared_ptr<BasicShader> shaderBase;
+            if (ref.first == ShaderType::vertex)
+            {
+                const auto shader = resourceManager.getAccessor<VertexShader>(bound.path, true);
+                pipelineDesc.vertexShader = shader;
+                eachShaders.emplace(shader.access(), bound);
+            }
+            else if (ref.first == ShaderType::pixel)
+            {
+                const auto shader = resourceManager.getAccessor<PixelShader>(bound.path, true);
+                pipelineDesc.pixelShader = shader;
+                eachShaders.emplace(shader.access(), bound);
+            }
+            else if (ref.first == ShaderType::geometry)
+            {
+                const auto shader = resourceManager.getAccessor<GeometryShader>(bound.path, true);
+                pipelineDesc.geometryShader = shader;
+                eachShaders.emplace(shader.access(), bound);
+            }
+        }
 
         // Create root signature
-        std::vector<std::shared_ptr<BasicShader>> shaders = { vertexShader.access(), pixelShader.access() };
-        const auto rootParamInfos = getRootParamInfos(renderSystem, shaders);
+        const auto rootParamInfos = getRootParamInfos(renderSystem, eachShaders);
 
         const auto numRootParams = rootParamInfos.size();
         RootSignatureDescription rootSigDesc(numRootParams);
@@ -162,7 +185,7 @@ namespace killme
                     // Initialize constant buffer
                     const auto& cbufferDesc = rootParamInfo.shader->describeConstantBuffer(rangeInfo.resourceName);
                     const auto cbuffer = renderSystem_->createConstantBuffer(cbufferDesc->getSize());
-                    const auto& boundDesc = rootParamInfo.shader == vertexShader.access() ? vsBound : psBound;
+                    const auto& boundDesc = eachShaders[rootParamInfo.shader];
 
                     for (const auto& var : cbufferDesc->describeVariables())
                     {
@@ -187,7 +210,7 @@ namespace killme
                 }
                 else if (rangeInfo.type == GpuResourceRangeType::srv) // Texture
                 {
-                    const auto& boundDesc = rootParamInfo.shader == vertexShader.access() ? vsBound : psBound;
+                    const auto& boundDesc = eachShaders[rootParamInfo.shader];
                     const auto it = boundDesc.textureMapping.find(rangeInfo.resourceName);
                     if (it != std::cend(boundDesc.textureMapping))
                     {
@@ -202,7 +225,7 @@ namespace killme
                 }
                 else if (rangeInfo.type == GpuResourceRangeType::sampler) // Sampler
                 {
-                    const auto& boundDesc = rootParamInfo.shader == vertexShader.access() ? vsBound : psBound;
+                    const auto& boundDesc = eachShaders[rootParamInfo.shader];
                     const auto it = boundDesc.samplerMapping.find(rangeInfo.resourceName);
                     if (it != std::cend(boundDesc.samplerMapping))
                     {
@@ -222,11 +245,7 @@ namespace killme
             resourceHeapTables_.emplace(rootParamIndex, rootParamInfo.heap);
         }
 
-        PipelineStateDescription pipelineDesc;
         pipelineDesc.rootSignature = renderSystem_->createRootSignature(rootSigDesc);
-        pipelineDesc.vertexShader = vertexShader;
-        pipelineDesc.pixelShader = pixelShader;
-        pipelineDesc.blend = passDesc.blendState;
         pipeline_ = renderSystem_->createPipelineState(pipelineDesc);
     }
 

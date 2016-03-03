@@ -1,5 +1,5 @@
 #include "rootsignature.h"
-#include "shader.h"
+#include "shaders.h"
 #include <cassert>
 
 namespace killme
@@ -56,6 +56,7 @@ namespace killme
             {
             case ShaderType::vertex: return D3D12_SHADER_VISIBILITY_VERTEX;
             case ShaderType::pixel: return D3D12_SHADER_VISIBILITY_PIXEL;
+            case ShaderType::geometry: return D3D12_SHADER_VISIBILITY_GEOMETRY;
             default:
                 assert(false && "An invalid ShaderType.");
                 return D3D12_SHADER_VISIBILITY_ALL; // For warnings

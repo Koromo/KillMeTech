@@ -8,10 +8,10 @@
 #include "scenenode.h"
 #include "light.h"
 #include "../renderer/rendersystem.h"
+#include "../renderer/shaders.h"
 #include "../renderer/rendertarget.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/pipelinestate.h"
-#include "../renderer/vertexshader.h"
 #include "../renderer/vertexdata.h"
 
 namespace killme

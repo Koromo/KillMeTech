@@ -69,9 +69,6 @@
     <ClCompile Include="src\renderer\rootsignature.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\vertexshader.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\vertexdata.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
@@ -93,13 +90,7 @@
     <ClCompile Include="src\core\exception.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\pixelshader.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\renderer\d3dsupport.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\shader.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\core\optional.cpp">
@@ -228,6 +219,9 @@
     <ClCompile Include="src\scene\materialcreation.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\shaders.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -264,15 +258,6 @@
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\rootsignature.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\vertexshader.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\shader.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\pixelshader.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\vertexdata.h">
@@ -464,9 +449,6 @@
     <ClInclude Include="src\engine\components\transformcomponent.h">
       <Filter>src\engine\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\tree.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\scene\effectpass.h">
       <Filter>src\scene</Filter>
     </ClInclude>
@@ -484,6 +466,9 @@
     </ClInclude>
     <ClInclude Include="src\scene\materialcreation.h">
       <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\shaders.h">
+      <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

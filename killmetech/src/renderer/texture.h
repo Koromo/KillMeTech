@@ -1,8 +1,6 @@
 #ifndef _KILLME_TEXTURE_H_
 #define _KILLME_TEXTURE_H_
 
-#include "rendersystem.h"
-#include "image.h"
 #include "../resources/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -44,11 +42,6 @@ namespace killme
             return{ location };
         }
     };
-
-    inline std::shared_ptr<Texture> loadTextureFromBmp(RenderSystem& renderSystem, const std::string& path)
-    {
-        return renderSystem.createTexture(decodeBmpImage(path));
-    }
 
     /** Sampler */
     class Sampler

@@ -1,7 +1,7 @@
 #ifndef _KILLME_EFFECTPASS_H_
 #define _KILLME_EFFECTPASS_H_
 
-#include "../renderer/shader.h"
+#include "../renderer/shaders.h"
 #include "../resources/resource.h"
 #include "../core/utility.h"
 #include <memory>

@@ -5,9 +5,7 @@
 #include "texture.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
-#include "shader.h"
-#include "vertexshader.h"
-#include "pixelshader.h"
+#include "shaders.h"
 #include "inputlayout.h"
 #include "commandlist.h"
 #include "d3dsupport.h"
@@ -388,6 +386,9 @@ namespace killme
 
     std::shared_ptr<PipelineState> RenderSystem::createPipelineState(const PipelineStateDescription& pipelineDesc)
     {
+        assert((pipelineDesc.vertexShader.bound() && pipelineDesc.pixelShader.bound()) &&
+            "Vertex shader and pixel shader absolutely necessity for create pipeline state.");
+
         // Define the rasterizer state
         D3D12_RASTERIZER_DESC rasterizerState;
         ZeroMemory(&rasterizerState, sizeof(rasterizerState));
@@ -446,8 +447,9 @@ namespace killme
         ZeroMemory(&d3dDesc, sizeof(d3dDesc));
         d3dDesc.InputLayout = pipelineDesc.vertexShader.access()->getInputLayout()->getD3DLayout();
         d3dDesc.pRootSignature = pipelineDesc.rootSignature->getD3DRootSignature();
-        d3dDesc.VS = { pipelineDesc.vertexShader.access()->getByteCode(), pipelineDesc.vertexShader.access()->getByteCodeSize() };
-        d3dDesc.PS = { pipelineDesc.pixelShader.access()->getByteCode(), pipelineDesc.pixelShader.access()->getByteCodeSize() };
+        d3dDesc.VS = pipelineDesc.vertexShader.access()->getD3DByteCode();
+        d3dDesc.PS = pipelineDesc.pixelShader.access()->getD3DByteCode();
+        d3dDesc.GS = pipelineDesc.geometryShader.bound() ? pipelineDesc.geometryShader.access()->getD3DByteCode() : d3dDesc.GS;
         d3dDesc.RasterizerState = rasterizerState;
         d3dDesc.BlendState = blendState;
         d3dDesc.DepthStencilState = depthStencilState;

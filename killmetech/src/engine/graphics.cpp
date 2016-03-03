@@ -10,10 +10,9 @@
 #include "../renderer/commandlist.h"
 #include "../renderer/rendertarget.h"
 #include "../renderer/renderstate.h"
-#include "../renderer/shader.h"
-#include "../renderer/vertexshader.h"
-#include "../renderer/pixelshader.h"
+#include "../renderer/shaders.h"
 #include "../renderer/texture.h"
+#include "../renderer/image.h"
 #include "../core/string.h"
 #include "../core/math/color.h"
 
@@ -49,11 +48,12 @@ namespace killme
         scene = std::make_unique<Scene>(renderSystem);
         fbxImporter = std::make_unique<FbxMeshImporter>();
 
-        Resources::registerLoader("vhlsl", [](const std::string& path)      { return compileHlslShader<VertexShader>(toCharSet(path)); });
-        Resources::registerLoader("phlsl", [](const std::string& path)      { return compileHlslShader<PixelShader>(toCharSet(path)); });
-        Resources::registerLoader("material", [&](const std::string& path)  { return loadMaterial(renderSystem, Resources::getManager(), path); });
-        Resources::registerLoader("bmp", [&](const std::string& path)      { return loadTextureFromBmp(*renderSystem, path); });
-        Resources::registerLoader("fbx", [&](const std::string& path)       { return fbxImporter->import(*renderSystem, Resources::getManager(), path); });
+        Resources::registerLoader("vhlsl",      [](const std::string& path)     { return compileHlslShader<VertexShader>(toCharSet(path)); });
+        Resources::registerLoader("phlsl",      [](const std::string& path)     { return compileHlslShader<PixelShader>(toCharSet(path)); });
+        Resources::registerLoader("ghlsl",      [](const std::string& path)     { return compileHlslShader<GeometryShader>(toCharSet(path)); });
+        Resources::registerLoader("material",   [&](const std::string& path)    { return loadMaterial(renderSystem, Resources::getManager(), path); });
+        Resources::registerLoader("bmp",        [&](const std::string& path)    { return renderSystem->createTexture(decodeBmpImage(path)); });
+        Resources::registerLoader("fbx",        [&](const std::string& path)    { return fbxImporter->import(*renderSystem, Resources::getManager(), path); });
     }
 
     void Graphics::shutdown()
@@ -61,6 +61,7 @@ namespace killme
         Resources::unregisterLoader("fbx");
         Resources::unregisterLoader("bmp");
         Resources::unregisterLoader("material");
+        Resources::unregisterLoader("ghlsl");
         Resources::unregisterLoader("phlsl");
         Resources::unregisterLoader("vhlsl");
 

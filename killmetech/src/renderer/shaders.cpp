@@ -1,4 +1,5 @@
-#include "shader.h"
+#include "shaders.h"
+#include "inputlayout.h"
 #include <cstring>
 #include <cassert>
 
@@ -120,14 +121,9 @@ namespace killme
         return type_;
     }
 
-    const void* BasicShader::getByteCode() const
+    D3D12_SHADER_BYTECODE BasicShader::getD3DByteCode() const
     {
-        return byteCode_->GetBufferPointer();
-    }
-
-    size_t BasicShader::getByteCodeSize() const
-    {
-        return byteCode_->GetBufferSize();
+        return{ byteCode_->GetBufferPointer(), byteCode_->GetBufferSize() };
     }
 
     Optional<BoundResourceDescription> BasicShader::describeBoundResource(const std::string& name)
@@ -151,5 +147,65 @@ namespace killme
             return ConstantBufferDescription(cb, desc);
         }
         return nullopt;
+    }
+
+    const std::string VertexShader::MODEL = "vs_5_0";
+    const std::string PixelShader::MODEL = "ps_5_0";
+    const std::string GeometryShader::MODEL = "gs_5_0";
+
+    const std::string VertexShader::ENTRY = "vs_main";
+    const std::string PixelShader::ENTRY = "ps_main";
+    const std::string GeometryShader::ENTRY = "gs_main";
+
+    namespace
+    {
+        // Return the corresponded vertex format
+        DXGI_FORMAT getVertexFormat(const std::string& semanticName)
+        {
+            if (semanticName == "POSITION") { return DXGI_FORMAT_R32G32B32_FLOAT; }
+            if (semanticName == "NORMAL") { return DXGI_FORMAT_R32G32B32_FLOAT; }
+            if (semanticName == "TEXCOORD") { return DXGI_FORMAT_R32G32_FLOAT; }
+            if (semanticName == "COLOR") { return DXGI_FORMAT_R32G32B32A32_FLOAT; }
+            throw Direct3DException("Invalid vertex semantic name.");
+        }
+    }
+
+    VertexShader::VertexShader(ID3DBlob* byteCode)
+        : BasicShader(ShaderType::vertex, byteCode)
+        , inputLayout_()
+    {
+        // Collect input elements
+        std::vector<D3D12_INPUT_ELEMENT_DESC> elems;
+        const auto signature = getD3DInputSignature();
+        for (const auto& param : signature)
+        {
+            D3D12_INPUT_ELEMENT_DESC elem;
+            elem.SemanticName = param.SemanticName;
+            elem.SemanticIndex = param.SemanticIndex;
+            elem.Format = getVertexFormat(param.SemanticName);
+            elem.InputSlot = elems.size();
+            elem.AlignedByteOffset = 0;
+            elem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+            elem.InstanceDataStepRate = 0;
+
+            elems.emplace_back(elem);
+        }
+
+        inputLayout_ = std::make_shared<InputLayout>(std::move(elems));
+    }
+
+    std::shared_ptr<InputLayout> VertexShader::getInputLayout() const
+    {
+        return inputLayout_;
+    }
+
+    PixelShader::PixelShader(ID3DBlob* byteCode)
+        : BasicShader(ShaderType::pixel, byteCode)
+    {
+    }
+
+    GeometryShader::GeometryShader(ID3DBlob* byteCode)
+        : BasicShader(ShaderType::geometry, byteCode)
+    {
     }
 }

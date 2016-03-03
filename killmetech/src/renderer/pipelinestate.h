@@ -12,6 +12,7 @@ namespace killme
     class RootSignature;
     class VertexShader;
     class PixelShader;
+    class GeometryShader;
 
     /** For PipelineState creation */
     struct PipelineStateDescription
@@ -19,6 +20,7 @@ namespace killme
         std::shared_ptr<RootSignature> rootSignature;
         Resource<VertexShader> vertexShader;
         Resource<PixelShader> pixelShader;
+        Resource<GeometryShader> geometryShader;
         BlendState blend;
     };
 
