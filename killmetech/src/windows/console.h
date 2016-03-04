@@ -14,6 +14,9 @@ namespace killme
         HANDLE outHandle_;
 
     public:
+        /** Construct */
+        Console();
+
         /** Allocate console */
         void allocate();
 
