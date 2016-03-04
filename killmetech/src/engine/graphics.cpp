@@ -21,7 +21,6 @@ namespace killme
     namespace
     {
         std::shared_ptr<RenderSystem> renderSystem;
-        std::shared_ptr<CommandList> commandList;
         std::unique_ptr<FbxMeshImporter> fbxImporter;
         std::unique_ptr<Scene> scene;
         std::shared_ptr<Camera> mainCamera;
@@ -44,7 +43,6 @@ namespace killme
         clientViewport.maxDepth = 1;
 
         renderSystem = std::make_shared<RenderSystem>(window);
-        commandList = renderSystem->createCommandList();
         scene = std::make_unique<Scene>(renderSystem);
         fbxImporter = std::make_unique<FbxMeshImporter>();
 
@@ -68,7 +66,6 @@ namespace killme
         mainCamera.reset();
         fbxImporter.reset();
         scene.reset();
-        commandList.reset();
         renderSystem.reset();
     }
 
@@ -116,13 +113,13 @@ namespace killme
     {
         // Clear the render target and the depth stencil
         const auto frame = renderSystem->getCurrentFrameResource();
-        renderSystem->beginCommands(commandList, nullptr);
-        commandList->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-        commandList->clearRenderTarget(frame.backBufferView, { 0, 0, 0, 1 });
-        commandList->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
-        commandList->clearDepthStencil(frame.depthStencilView, 1);
-        commandList->endCommands();
-        renderSystem->executeCommands(commandList);
+        const auto commands = renderSystem->beginCommands(nullptr);
+        commands->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+        commands->clearRenderTarget(frame.backBufferView, { 0, 0, 0, 1 });
+        commands->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+        commands->clearDepthStencil(frame.depthStencilView, 1);
+        commands->close();
+        renderSystem->executeCommands(commands);
 
         if (mainCamera)
         {

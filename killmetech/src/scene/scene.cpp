@@ -9,12 +9,10 @@ namespace killme
 {
     Scene::Scene(const std::shared_ptr<RenderSystem>& renderSystem)
         : renderSystem_(renderSystem)
-        , commandList_()
         , rootNode_(std::make_shared<SceneNode>())
         , ambientLight_(0.2f, 0.2f, 0.2f, 1)
         , lights_()
     {
-        commandList_ = renderSystem_->createCommandList();
     }
 
     std::shared_ptr<SceneNode> Scene::getRootNode()
@@ -53,7 +51,6 @@ namespace killme
 
         SceneContext context;
         context.frame = frame;
-        context.commandList = commandList_;
         context.renderSystem = renderSystem_;
 
         context.scissorRect.top = 0;

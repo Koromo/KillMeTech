@@ -72,29 +72,29 @@ namespace killme
                 const auto renderPass = [&]()
                 {
                     // Add draw commands
-                    context.renderSystem->beginCommands(context.commandList, pipelineState);
+                    const auto commands = context.renderSystem->beginCommands(pipelineState);
 
-                    context.commandList->resourceBarrior(context.frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-                    context.commandList->setRenderTarget(context.frame.backBufferView, context.frame.depthStencilView);
-                    context.commandList->setViewport(context.viewport);
-                    context.commandList->setScissorRect(context.scissorRect);
-                    context.commandList->setPrimitiveTopology(PrimitiveTopology::triangeList);
-                    context.commandList->setVertexBuffers(vertexViews);
-                    context.commandList->setIndexBuffer(indexBuffer);
+                    commands->resourceBarrior(context.frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+                    commands->setRenderTarget(context.frame.backBufferView, context.frame.depthStencilView);
+                    commands->setViewport(context.viewport);
+                    commands->setScissorRect(context.scissorRect);
+                    commands->setPrimitiveTopology(PrimitiveTopology::triangeList);
+                    commands->setVertexBuffers(vertexViews);
+                    commands->setIndexBuffer(indexBuffer);
 
-                    context.commandList->setRootSignature(rootSignature);
-                    context.commandList->setGpuResourceHeaps(heaps);
+                    commands->setRootSignature(rootSignature);
+                    commands->setGpuResourceHeaps(heaps);
                     for (const auto& t : heapTables)
                     {
-                        context.commandList->setGpuResourceTable(t.first, t.second);
+                        commands->setGpuResourceTable(t.first, t.second);
                     }
 
-                    context.commandList->drawIndexed(indexBuffer->getNumIndices());
-                    context.commandList->resourceBarrior(context.frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+                    commands->drawIndexed(indexBuffer->getNumIndices());
+                    commands->resourceBarrior(context.frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
 
-                    context.commandList->endCommands();
+                    commands->close();
 
-                    context.renderSystem->executeCommands(context.commandList);
+                    context.renderSystem->executeCommands(commands);
                 };
 
                 if (pass->forEachLight())

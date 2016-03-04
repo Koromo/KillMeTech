@@ -82,7 +82,7 @@ namespace killme
         void resourceBarrior(const std::shared_ptr<RenderTarget>& renderTarget, ResourceState before, ResourceState after);
 
         /** Ends command recording */
-        void endCommands();
+        void close();
 
         /** Draw call */
         void draw(size_t numVertices);

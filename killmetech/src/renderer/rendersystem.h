@@ -43,6 +43,7 @@ namespace killme
         ComUniquePtr<ID3D12Device> device_;
         ComUniquePtr<ID3D12CommandQueue> commandQueue_;
         ComUniquePtr<ID3D12CommandAllocator> commandAllocator_;
+        std::shared_ptr<CommandList> commandList_;
         ComUniquePtr<IDXGISwapChain3> swapChain_;
 
         size_t frameIndex_;
@@ -89,9 +90,6 @@ namespace killme
 		/** Create the pileline state */
         std::shared_ptr<PipelineState> createPipelineState(const PipelineStateDescription& pipelineDesc);
 
-        /** Create the command list */
-        std::shared_ptr<CommandList> createCommandList();
-
         /** Store a resource into a resource heap */
         template <class GpuResource>
         typename GpuResource::View createGpuResourceView(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<GpuResource>& resource)
@@ -107,7 +105,7 @@ namespace killme
         }
 
 		/** Reset a command list */
-        void beginCommands(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipeline);
+        std::shared_ptr<CommandList> beginCommands(const std::shared_ptr<PipelineState>& pipeline);
 
         /** Execute a command list */
         void executeCommands(const std::shared_ptr<CommandList>& list);

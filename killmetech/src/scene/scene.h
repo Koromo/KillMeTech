@@ -14,7 +14,6 @@ namespace killme
 {
     class RenderSystem;
     class SceneNode;
-    class CommandList;
     class ConstantBuffer;
     class Camera;
     class Light;
@@ -28,7 +27,6 @@ namespace killme
         Color ambientLight;
         Range<std::add_lvalue_reference_t<std::unordered_set<std::shared_ptr<Light>>>> lights_;
         ScissorRect scissorRect;
-        std::shared_ptr<CommandList> commandList;
         std::shared_ptr<RenderSystem> renderSystem;
 
     };
@@ -38,7 +36,6 @@ namespace killme
     {
     private:
         std::shared_ptr<RenderSystem> renderSystem_;
-        std::shared_ptr<CommandList> commandList_;
         std::shared_ptr<SceneNode> rootNode_;
         Color ambientLight_;
         std::unordered_set<std::shared_ptr<Light>> lights_;

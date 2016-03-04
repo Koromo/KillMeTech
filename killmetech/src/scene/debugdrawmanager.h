@@ -11,7 +11,6 @@ namespace killme
     class Vector3;
     class Color;
     class PipelineState;
-    class CommandList;
     class ConstantBuffer;
     class GpuResourceHeap;
     class RenderSystem;
@@ -31,7 +30,6 @@ namespace killme
         std::shared_ptr<ConstantBuffer> viewProjBuffer_;
         std::shared_ptr<GpuResourceHeap> viewProjHeap_;
         std::shared_ptr<PipelineState> pipeline_;
-        std::shared_ptr<CommandList> commandList_;
         ScissorRect scissorRect_;
 
     public:

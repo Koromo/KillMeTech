@@ -29,6 +29,7 @@ namespace killme
         , device_()
         , commandQueue_()
         , commandAllocator_()
+        , commandList_()
         , swapChain_()
         , frameIndex_()
         , backBufferHeap_()
@@ -155,6 +156,14 @@ namespace killme
         fence_ = makeComUnique(fence);
         fenceEvent_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
         fenceValue_ = 1;
+
+        // Create the command list
+        ID3D12GraphicsCommandList* list;
+        enforce<Direct3DException>(
+            SUCCEEDED(device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.get(), nullptr, IID_PPV_ARGS(&list))),
+            "Failed to create the command list.");
+        list->Close();
+        commandList_ = std::make_shared<CommandList>(list);
     }
 
     HWND RenderSystem::getTargetWindow()
@@ -468,17 +477,7 @@ namespace killme
         return std::make_shared<PipelineState>(pipelineState, pipelineDesc);
     }
 
-    std::shared_ptr<CommandList> RenderSystem::createCommandList()
-    {
-        ID3D12GraphicsCommandList* list;
-        enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.get(), nullptr, IID_PPV_ARGS(&list))),
-            "Failed to create the command list.");
-        list->Close();
-        return std::make_shared<CommandList>(list);
-    }
-
-    void RenderSystem::beginCommands(const std::shared_ptr<CommandList>& list, const std::shared_ptr<PipelineState>& pipeline)
+    std::shared_ptr<CommandList> RenderSystem::beginCommands(const std::shared_ptr<PipelineState>& pipeline)
     {
         enforce<Direct3DException>(
             SUCCEEDED(commandAllocator_->Reset()),
@@ -486,8 +485,10 @@ namespace killme
 
         const auto d3dPipeline = pipeline ? pipeline->getD3DPipelineState() : nullptr;
         enforce<Direct3DException>(
-            SUCCEEDED(list->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
+            SUCCEEDED(commandList_->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
             "Faild to reset the command list.");
+
+        return commandList_;
     }
 
     void RenderSystem::executeCommands(const std::shared_ptr<CommandList>& list)

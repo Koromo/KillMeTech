@@ -49,8 +49,6 @@ namespace killme
         pipelineDesc.blend = BlendState::DEFAULT;
         pipeline_ = renderSystem_->createPipelineState(pipelineDesc);
 
-        commandList_ = renderSystem_->createCommandList();
-
         RECT clientRect;
         GetClientRect(renderSystem_->getTargetWindow(), &clientRect);
         const auto clientWidth = clientRect.right - clientRect.left;
@@ -66,7 +64,6 @@ namespace killme
 
     void DebugDrawManager::shutdown()
     {
-        commandList_.reset();
         pipeline_.reset();
         viewProjHeap_.reset();
         viewProjBuffer_.reset();
@@ -119,23 +116,23 @@ namespace killme
         const auto& views = vertexData.getVertexViews(inputLayout);
 
         // Begin drawing to all debugs
-        renderSystem_->beginCommands(commandList_, pipeline_);
+        const auto commands = renderSystem_->beginCommands(pipeline_);
 
-        commandList_->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-        commandList_->setRenderTarget(frame.backBufferView, frame.depthStencilView);
-        commandList_->setViewport(viewport);
-        commandList_->setScissorRect(scissorRect_);
-        commandList_->setPrimitiveTopology(PrimitiveTopology::lineList);
-        commandList_->setVertexBuffers(views);
-        commandList_->setRootSignature(rootSignature);
+        commands->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+        commands->setRenderTarget(frame.backBufferView, frame.depthStencilView);
+        commands->setViewport(viewport);
+        commands->setScissorRect(scissorRect_);
+        commands->setPrimitiveTopology(PrimitiveTopology::lineList);
+        commands->setVertexBuffers(views);
+        commands->setRootSignature(rootSignature);
         const auto heaps = { viewProjHeap_ };
-        commandList_->setGpuResourceHeaps(heaps);
-        commandList_->setGpuResourceTable(0, viewProjHeap_);
-        commandList_->draw(numVertices);
-        commandList_->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
-        commandList_->endCommands();
+        commands->setGpuResourceHeaps(heaps);
+        commands->setGpuResourceTable(0, viewProjHeap_);
+        commands->draw(numVertices);
+        commands->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+        commands->close();
 
-        renderSystem_->executeCommands(commandList_);
+        renderSystem_->executeCommands(commands);
 
         clear();
     }

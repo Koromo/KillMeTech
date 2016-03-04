@@ -139,7 +139,7 @@ namespace killme
         list_->ResourceBarrier(1, &barrier);
     }
 
-    void CommandList::endCommands()
+    void CommandList::close()
     {
         enforce<Direct3DException>(SUCCEEDED(list_->Close()), "Failed to close the command list.");
     }
