@@ -65,7 +65,6 @@ namespace killme
         EventConnection connect(const std::string& type, EventHook hook);
 
         /** Dispatch an event */
-        /// NOTE: When event is emitting, calling the connect() or disconnect() is not permitted
         void emit(const Event& e);
 
         /** ditto */

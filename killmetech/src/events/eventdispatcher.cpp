@@ -1,6 +1,8 @@
 #include "eventdispatcher.h"
 #include "../core/utility.h"
 #include <unordered_map>
+#include <vector>
+#include <tuple>
 
 namespace killme
 {
@@ -9,32 +11,49 @@ namespace killme
         struct DispatcherImpl
         {
             std::unordered_multimap<std::string, std::pair<size_t, EventDispatcher::EventHook>> hookMap_;
+            std::vector<std::tuple<std::string, size_t, EventDispatcher::EventHook>> connects_;
+            std::vector<std::tuple<std::string, size_t>> disconnects_;
+
             UniqueCounter<size_t> uniqueId_;
 
         public:
             size_t connect(const std::string& type, EventDispatcher::EventHook hook)
             {
                 const auto id = uniqueId_();
-                hookMap_.emplace(type, std::make_pair(id, hook));
+                connects_.emplace_back(type, id, hook);
                 return id;
             }
 
             void disconnect(const std::string& type, size_t id)
             {
-                auto range = hookMap_.equal_range(type);
-                while (range.first != range.second)
-                {
-                    if (range.first->second.first == id)
-                    {
-                        hookMap_.erase(range.first);
-                        return;
-                    }
-                    ++range.first;
-                }
+                disconnects_.emplace_back(type, id);
             }
 
             void emit(const Event& e)
             {
+                for (const auto& t : connects_)
+                {
+                    hookMap_.emplace(std::get<0>(t), std::make_pair(std::get<1>(t), std::get<2>(t)));
+                }
+                for (const auto& t : disconnects_)
+                {
+                    auto range = hookMap_.equal_range(std::get<0>(t));
+                    while (range.first != range.second)
+                    {
+                        if (range.first->second.first == std::get<1>(t))
+                        {
+                            range.first = hookMap_.erase(range.first);
+                        }
+                        else
+                        {
+                            ++range.first;
+                        }
+                    }
+                }
+
+                connects_.clear();
+                disconnects_.clear();
+
                 auto range = hookMap_.equal_range(toLowers(e.getType()));
                 while (range.first != range.second)
                 {

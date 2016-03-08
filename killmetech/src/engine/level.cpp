@@ -63,7 +63,6 @@ namespace killme
         return *graphicsWorld_;
     }
 
-    /** begin this level */
     void Level::beginLevel()
     {
         physicsWorld_ = std::make_unique<PhysicsWorld>();
@@ -72,7 +71,6 @@ namespace killme
         onBeginLevel();
     }
 
-    /** End this level */
     void Level::endLevel()
     {
         onEndLevel();

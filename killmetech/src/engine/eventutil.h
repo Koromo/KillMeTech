@@ -90,4 +90,8 @@ namespace killme
 #define KILLME_CONNECT_EVENT_HOOKS() \
     (this->KILLME_CONNECT_EVENT_HOOKS_FUNCTION(this))
 
+/** Disconnect all defined event hooks */
+#define KILLME_CONNECT_EVENT_HOOKS() \
+    this->KILLME_EVENT_HOOK_CONNECTIONS.clear();
+
 #endif
