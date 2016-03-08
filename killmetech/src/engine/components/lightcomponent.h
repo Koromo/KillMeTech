@@ -2,22 +2,20 @@
 #define _KILLME_LIGHTCOMPONENT_H_
 
 #include "transformcomponent.h"
-#include "../../processes/process.h"
 #include <memory>
 
 namespace killme
 {
     class Light;
     class Color;
-    class Vector3;
-    class Quaternion;
 
-    /** The camera component adds a light source into an actor */
+    /** The light component defines a light source into an actor */
     class LightComponent : public TransformComponent
     {
+        KILLME_COMPONENT_DEFINE(LightComponent)
+
     private:
         std::shared_ptr<Light> light_;
-        Process process_;
 
     public:
         /** Construct */
@@ -26,11 +24,11 @@ namespace killme
         /** Property modifier */
         void setColor(const Color& c);
 
-        void onAttached();
-        void onDettached();
+        void onTranslated();
+        void onRotated();
 
-    private:
-        void tickScene();
+        void onActivate();
+        void onDeactivate();
     };
 }
 

@@ -135,10 +135,10 @@ namespace killme
     };
 
     /** Return whether parameter type is numeric or not */
-    bool isNumeric(TypeTag type);
+    bool isNumeric(TypeNumber type);
 
     /** Return whether parameter type is texture or not */
-    bool isTexture(TypeTag type);
+    bool isTexture(TypeNumber type);
 
     /** Define the view of vertices */
     /// NOTE: See a note about the mesh in mesh.h
@@ -147,7 +147,7 @@ namespace killme
     private:
         struct Param
         {
-            TypeTag type;
+            TypeNumber type;
             Variant value;
         };
 
@@ -172,7 +172,7 @@ namespace killme
             const auto it = params_.find(name);
 
             enforce<InvalidArgmentException>(it != std::cend(params_), "Parameter \'" + name + "\' not exists.");
-            enforce<InvalidArgmentException>(it->second.type == typeTag<T>(), "Mismatch parameter type.");
+            enforce<InvalidArgmentException>(it->second.type == typeNumber<T>(), "Mismatch parameter type.");
 
             return it->second.value;
         }
@@ -184,7 +184,7 @@ namespace killme
             const auto it = params_.find(name);
             if (it != std::cend(params_))
             {
-                enforce<InvalidArgmentException>(it->second.type == typeTag<T>(), "Mismatch numeric parameter type.");
+                enforce<InvalidArgmentException>(it->second.type == typeNumber<T>(), "Mismatch numeric parameter type.");
                 it->second.value = value;
                 for (const auto& tech : techMap_)
                 {

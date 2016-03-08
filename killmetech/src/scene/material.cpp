@@ -85,14 +85,14 @@ namespace killme
         return const_cast<float&>(static_cast<const MP_float4x4&>(*this)(r, c));
     }
 
-    bool isNumeric(TypeTag type)
+    bool isNumeric(TypeNumber type)
     {
         return !isTexture(type);
     }
 
-    bool isTexture(TypeTag type)
+    bool isTexture(TypeNumber type)
     {
-        return type == typeTag<MP_tex2d>();
+        return type == typeNumber<MP_tex2d>();
     }
 
     Material::Material(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc)
@@ -111,10 +111,10 @@ namespace killme
 
         for (const auto& paramDesc : desc.getParameters())
         {
+            const auto name = paramDesc.first;
             Param param;
             param.type = paramDesc.second.type;
             param.value = paramDesc.second.value;
-            const auto name = paramDesc.first;
             params_.emplace(name, param);
 
             if (isNumeric(param.type))
@@ -126,7 +126,7 @@ namespace killme
             }
             else
             {
-                const MP_tex2d tex = param.value;
+                const auto tex = to<MP_tex2d>(param.value);
                 for (const auto& tech : techMap_)
                 {
                     if (tex.texture.bound())
@@ -157,10 +157,8 @@ namespace killme
         const auto it = params_.find(name);
         if (it != std::cend(params_))
         {
-            enforce<InvalidArgmentException>(it->second.type == typeTag<MP_tex2d>(), "Mismatch texture parameter type.");
-            MP_tex2d tex2d = it->second.value;
-            tex2d.texture = tex;
-            params_[name].value = tex2d;
+            enforce<InvalidArgmentException>(it->second.type == typeNumber<MP_tex2d>(), "Mismatch texture parameter type.");
+            to<MP_tex2d&>(it->second.value).texture = tex;
             for (const auto& tech : techMap_)
             {
                 tech.second->updateTexture(name, tex);
@@ -181,10 +179,8 @@ namespace killme
         const auto it = params_.find(name);
         if (it != std::cend(params_))
         {
-            enforce<InvalidArgmentException>(it->second.type == typeTag<MP_tex2d>(), "Mismatch texture parameter type.");
-            MP_tex2d tex2d = it->second.value;
-            tex2d.sampler = sam;
-            params_[name].value = tex2d;
+            enforce<InvalidArgmentException>(it->second.type == typeNumber<MP_tex2d>(), "Mismatch texture parameter type.");
+            to<MP_tex2d&>(it->second.value).sampler = sam;
             for (const auto& tech : techMap_)
             {
                 tech.second->updateSampler(name, sam);

@@ -1,15 +1,32 @@
 #include "rigidbody.h"
 #include "collisionshape.h"
 #include "bulletsupport.h"
-#include <LinearMath/btDefaultMotionState.h>
 
 namespace killme
 {
+    void RigidBody::MotionState::getWorldTransform(btTransform& worldTrans) const
+    {
+        worldTrans.setIdentity();
+    }
+
+    void RigidBody::MotionState::setWorldTransform(const btTransform& worldTrans)
+    {
+        if (owner->listener_)
+        {
+            const auto pos = to<Vector3>(worldTrans.getOrigin());
+            const auto ori = to<Quaternion>(worldTrans.getRotation());
+            owner->listener_->onMoved(pos, ori);
+        }
+    }
+
     RigidBody::RigidBody(const std::shared_ptr<CollisionShape> shape, float mass)
         : body_()
-        , motionState_(std::make_unique<btDefaultMotionState>())
+        , motionState_()
         , shape_(shape)
+        , listener_()
     {
+        motionState_.owner = this;
+
         if (shape->getType() == ShapeType::static_)
         {
             mass = 0;
@@ -21,14 +38,13 @@ namespace killme
         {
             btShape->calculateLocalInertia(mass, inertia);
         }
-        btRigidBody::btRigidBodyConstructionInfo ci(mass, motionState_.get(), btShape, inertia);
+        btRigidBody::btRigidBodyConstructionInfo ci(mass, &motionState_, btShape, inertia);
         body_ = std::make_unique<btRigidBody>(ci);
     }
 
-    Vector3 RigidBody::getPosition() const
+    void RigidBody::setListener(const std::shared_ptr<PhysicsListener>& listener)
     {
-        auto trans = body_->getCenterOfMassTransform();
-        return to<Vector3>(trans.getOrigin());
+        listener_ = listener;
     }
 
     void RigidBody::setPosition(const Vector3& pos)
@@ -37,12 +53,6 @@ namespace killme
         trans.setOrigin(to<btVector3>(pos));
         body_->setCenterOfMassTransform(trans);
         body_->activate(true);
-    }
-
-    Quaternion RigidBody::getOrientation() const
-    {
-        auto trans = body_->getCenterOfMassTransform();
-        return to<Quaternion>(trans.getRotation());
     }
 
     void RigidBody::setOrientation(const Quaternion& q)

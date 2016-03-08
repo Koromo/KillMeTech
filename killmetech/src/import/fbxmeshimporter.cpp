@@ -4,7 +4,7 @@
 #include "../scene/materialcreation.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/vertexdata.h"
-#include "../resources/resourcemanager.h"
+#include "../resources/resource.h"
 #include "../core/exception.h"
 #include <stack>
 #include <vector>
@@ -513,8 +513,8 @@ namespace killme
                         vertexData->addVertices(SemanticNames::color, 0, colorBuffer);
                     }
 
-                    const auto material = resourceManager.getAccessor<Material>("media/box.material", true);
-                    parsedMesh->createSubMesh(fbxMesh->GetName(), vertexData, material);
+                    const Resource<Material> material(resourceManager, "media/box.material");
+                    parsedMesh->createSubmesh(fbxMesh->GetName(), vertexData, material);
                 }
 
                 const auto numChildren = top->GetChildCount();

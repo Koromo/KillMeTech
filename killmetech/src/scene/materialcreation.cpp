@@ -1,7 +1,7 @@
 #include "materialcreation.h"
 #include "material.h"
 #include "../renderer/texture.h"
-#include "../resources/resourcemanager.h"
+#include "../resources/resource.h"
 #include <fstream>
 #include <iterator>
 #include <queue>
@@ -302,7 +302,7 @@ namespace killme
 
             forward(context);
 
-            context.material.addParameter(name, { typeTag<MP_float4>(), Variant(value) });
+            context.material.addParameter(name, { typeNumber<MP_float4>(), Variant(value) });
         }
 
         // Parse "tex2d" element
@@ -321,7 +321,7 @@ namespace killme
                 forward(context, ";");
 
                 value = MP_tex2d::INIT;
-                value.texture = context.resourceManager->getAccessor<Texture>(path, true);
+                value.texture = Resource<Texture>(*context.resourceManager, path);
             }
             else if (*context.token == ";")
             {
@@ -334,7 +334,7 @@ namespace killme
 
             forward(context);
 
-            context.material.addParameter(name, { typeTag<MP_tex2d>(), Variant(value) });
+            context.material.addParameter(name, { typeNumber<MP_tex2d>(), Variant(value) });
         }
 
         // Parse "parameters" block
@@ -668,12 +668,12 @@ namespace killme
             addIdentifier(context, "_LightDirection");
             addIdentifier(context, "_LightColor");
 
-            context.material.addParameter("_WorldMatrix", { typeTag<MP_float4x4>(), Variant(MP_float4x4::INIT) });
-            context.material.addParameter("_ViewMatrix", { typeTag<MP_float4x4>(), Variant(MP_float4x4::INIT) });
-            context.material.addParameter("_ProjMatrix", { typeTag<MP_float4x4>(), Variant(MP_float4x4::INIT) });
-            context.material.addParameter("_AmbientLight", { typeTag<MP_float4>(), Variant(MP_float4::INIT) });
-            context.material.addParameter("_LightDirection", { typeTag<MP_float3>(), Variant(MP_float3::INIT) });
-            context.material.addParameter("_LightColor", { typeTag<MP_float4>(), Variant(MP_float4::INIT) });
+            context.material.addParameter("_WorldMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
+            context.material.addParameter("_ViewMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
+            context.material.addParameter("_ProjMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
+            context.material.addParameter("_AmbientLight", { typeNumber<MP_float4>(), Variant(MP_float4::INIT) });
+            context.material.addParameter("_LightDirection", { typeNumber<MP_float3>(), Variant(MP_float3::INIT) });
+            context.material.addParameter("_LightColor", { typeNumber<MP_float4>(), Variant(MP_float4::INIT) });
         }
 
         // Step position by find nonspace character
@@ -770,7 +770,7 @@ namespace killme
         techs_.emplace_back(std::make_pair(name, std::move(desc)));
     }
 
-    Optional<TypeTag> MaterialDescription::getParameterType(const std::string& name) const
+    Optional<TypeNumber> MaterialDescription::getParameterType(const std::string& name) const
     {
         const auto it = paramMap_.find(name);
         if (it != std::cend(paramMap_))

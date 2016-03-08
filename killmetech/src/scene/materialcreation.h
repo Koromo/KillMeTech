@@ -24,7 +24,7 @@ namespace killme
     /** Material parameter description */
     struct MaterialParameterDescription
     {
-        TypeTag type;
+        TypeNumber type;
         Variant value;
     };
 
@@ -64,21 +64,21 @@ namespace killme
         void addShaderBound(ShaderType type, const std::string& name, ShaderBoundDescription&& desc);
         void addTechnique(const std::string& name, TechniqueDescription&& desc);
 
-        Optional<TypeTag> getParameterType(const std::string& name) const;
+        Optional<TypeNumber> getParameterType(const std::string& name) const;
         bool hasShaderBound(ShaderType type, const std::string& name) const;
 
         const ShaderBoundDescription& getShaderBound(ShaderType type, const std::string& name) const;
 
         auto getParameters() const
-            -> decltype(makeRange(paramMap_))
+            -> decltype(constRange(paramMap_))
         {
-            return makeRange(paramMap_);
+            return constRange(paramMap_);
         }
 
         auto getTechniques() const
-            -> decltype(makeRange(techs_))
+            -> decltype(constRange(techs_))
         {
-            return makeRange(techs_);
+            return constRange(techs_);
         }
     };
 

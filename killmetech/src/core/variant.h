@@ -23,7 +23,7 @@ namespace killme
         {
             virtual ~Holder() noexcept = default;
             virtual Holder* copy() const = 0;
-            virtual TypeTag type() const noexcept = 0;
+            virtual TypeNumber type() const noexcept = 0;
             virtual size_t sizeOf() const noexcept = 0;
             virtual const void* ptr() const noexcept = 0;
         };
@@ -37,7 +37,7 @@ namespace killme
             TypedHolder(U&& val) : value(std::forward<U>(val)) {}
 
             Holder* copy() const { return new TypedHolder<T>(value); }
-            TypeTag type() const noexcept { return typeTag<T>(); }
+            TypeNumber type() const noexcept { return typeNumber<T>(); }
             size_t sizeOf() const noexcept { return sizeof(T); }
             const void* ptr() const noexcept { return &value; }
         };
@@ -49,6 +49,7 @@ namespace killme
         Variant() noexcept = default;
 
         /** Construct with a value  */
+        /// TOOD: We does not use explicit
         template <class T, class U = FixedType<T>>
         explicit Variant(T&& value)
             : holder_(std::make_shared<TypedHolder<U>>(std::forward<T>(value)))
@@ -94,15 +95,6 @@ namespace killme
             return *this;
         }
 
-        /** Cast operator */
-        template <class T, class U = FixedType<T>>
-        operator T() const noexcept
-        {
-            assert(hasValue() && "Variant has not value.");
-            assert(killme::is<U>(*this) && "Variant type not match.");
-            return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value;
-        }
-
         /** Equivalent test */
         template <class T, class U = FixedType<T>>
         bool operator ==(const T& a) const noexcept
@@ -114,11 +106,34 @@ namespace killme
             return std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value == a;
         }
 
-        // For killme::is()
-        template <class T>
-        bool is() const noexcept
+        // Cast
+        template <class T, class U = FixedType<T>>
+        T cast() const noexcept
         {
-            return hasValue() && typeTag<T>() == holder_->type();
+            assert(hasValue() && "Variant has not value.");
+            assert(killme::is<U>(*this) && "Variant type not match.");
+            return static_cast<const U&>(std::dynamic_pointer_cast<TypedHolder<U>>(holder_)->value);
+        }
+
+        /** ditto */
+        template <class T, class U = FixedType<T>>
+        T cast() noexcept
+        {
+            return const_cast<U&>(static_cast<const Variant&>(*this).template cast<const U&>());
+
+        }
+        /** Cast operator */
+        template <class T, class U = FixedType<T>>
+        operator T() const noexcept
+        {
+            return this->template cast<T>();
+        }
+
+        /** ditto */
+        template <class T, class U = FixedType<T>>
+        operator T() noexcept
+        {
+            return this->template cast<T>();
         }
 
         /** Return true if Variant has a value */
@@ -146,20 +161,41 @@ namespace killme
             }
             return holder_->ptr();
         }
+
+        // For killme::is()
+        template <class T>
+        bool isSame() const noexcept
+        {
+            return hasValue() && typeNumber<T>() == holder_->type();
+        }
     };
 
     /** Cast to "T" */
     template <class T>
     T to(const Variant& var) noexcept
     {
-        return static_cast<T>(var);
+        return var.template cast<T>();
+    }
+
+    /** ditto */
+    template <class T>
+    T to(Variant& var) noexcept
+    {
+        return var.template cast<T>();
+    }
+
+    /** ditto */
+    template <class T>
+    T to(Variant&& var) noexcept
+    {
+        return var.template cast<T>();
     }
 
     /** Return true if the type of a variant value is same to the "T" */
     template <class T>
     bool is(const Variant& v) noexcept
     {
-        return v.template is<T>();
+        return v.template isSame<T>();
     }
 
     /** Equivalent tests */

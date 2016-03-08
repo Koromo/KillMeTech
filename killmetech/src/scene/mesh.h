@@ -13,8 +13,8 @@ namespace killme
     class VertexData;
     class Material;
 
-    /** Sub mesh */
-    class SubMesh
+    /** Submesh */
+    class Submesh
     {
     private:
         std::shared_ptr<VertexData> vertexData_;
@@ -22,7 +22,7 @@ namespace killme
 
     public:
         /** Construct with a vertices and a material */
-        SubMesh(const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
+        Submesh(const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
             : vertexData_(vertexData)
             , material_(material)
         {}
@@ -43,23 +43,23 @@ namespace killme
     class Mesh : public IsResource
     {
     private:
-        using Pair = std::pair<std::string, std::shared_ptr<SubMesh>>;
-        std::vector<Pair> subMeshes_;
+        using Pair = std::pair<std::string, std::shared_ptr<Submesh>>;
+        std::vector<Pair> submeshes_;
 
     public:
-        /** Create the sub mesh */
-        std::shared_ptr<SubMesh> createSubMesh(const std::string& name, const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
+        /** Create a submesh */
+        std::shared_ptr<Submesh> createSubmesh(const std::string& name, const std::shared_ptr<VertexData>& vertexData, const Resource<Material>& material)
         {
-            const auto sm = std::make_shared<SubMesh>(vertexData, material);
-            subMeshes_.emplace_back(name, sm);
+            const auto sm = std::make_shared<Submesh>(vertexData, material);
+            submeshes_.emplace_back(name, sm);
             return sm;
         }
 
-        /** Return the sub mesh */
-        std::shared_ptr<SubMesh> findSubMesh(const std::string& name)
+        /** Return the submesh */
+        std::shared_ptr<Submesh> findSubmesh(const std::string& name)
         {
-            const auto begin = std::cbegin(subMeshes_);
-            const auto end = std::cend(subMeshes_);
+            const auto begin = std::cbegin(submeshes_);
+            const auto end = std::cend(submeshes_);
             const auto it = std::find_if(begin, end, [&](const Pair& pair) { return pair.first == name; });
             if (it == end)
             {
@@ -68,11 +68,11 @@ namespace killme
             return it->second;
         }
 
-        /** Return the range of sub meshes */
-        auto getSubMeshes()
-            -> decltype(makeRange(subMeshes_))
+        /** Return the range of submeshes */
+        auto getSubmeshes()
+            -> decltype(constRange(submeshes_))
         {
-            return makeRange(subMeshes_);
+            return constRange(submeshes_);
         }
     };
 }

@@ -3,247 +3,134 @@
 
 #include "vector3.h"
 #include "quaternion.h"
-#include "matrix44.h"
 #include "../utility.h"
 #include <unordered_set>
 #include <memory>
-#include <stack>
 #include <cassert>
 
 namespace killme
 {
-    /** Transform */
-    template <class T>
-    class Transform : public std::enable_shared_from_this<T>
+    class Matrix44;
+
+    /** Transform node */
+    class Transform
     {
     private:
         Vector3 position_;
         Quaternion orientation_;
         Vector3 scale_;
-        std::weak_ptr<T> parent_;
-        std::unordered_set<std::shared_ptr<T>> children_;
+        std::weak_ptr<Transform> parent_;
+        std::unordered_set<std::shared_ptr<Transform>> children_;
 
     public:
         /** Construct */
-        Transform()
-            : position_()
-            , orientation_()
-            , scale_(1, 1, 1)
-            , parent_()
-            , children_()
-        {
-        }
+        Transform();
 
         /** For drived classes */
         virtual ~Transform() = default;
 
         /** Return the parent */
-        std::shared_ptr<const T> lockParent() const
-        {
-            return parent_.lock();
-        }
+        std::shared_ptr<const Transform> lockParent() const;
 
-        std::shared_ptr<T> lockParent()
-        {
-            return parent_.lock();
-        }
+        /** ditto */
+        std::shared_ptr<Transform> lockParent();
 
-        /** Add the child node */
-        virtual void addChild(const std::shared_ptr<T>& child)
-        {
-            assert(child->parent_.expired() && "Child transform is already linked to an other node.");
-            child->parent_ = shared_from_this();
-            children_.emplace(child);
-        }
+        // For addChildNode()
+        void setParent(const std::weak_ptr<Transform>& parent);
 
-        /** Remove the child node */
-        void removeChild(const std::shared_ptr<T>& child)
-        {
-            const auto n = children_.erase(child);
-            if (n > 0)
-            {
-                child->parent_ = std::shared_ptr<T>();
-            }
-        }
+        // ditto
+        void addChild(const std::shared_ptr<Transform>& child);
+
+        // For removeChildNode()
+        bool removeChild(const std::shared_ptr<Transform>& child);
 
         /** Return count of child */
-        size_t getNumChildren() const
-        {
-            return children_.size();
-        }
+        size_t getNumChildren() const;
 
         /** Return the children */
         /// NOTE: Returned range is destroyed if modify children after get range 
         auto getChildren()
-            -> decltype(makeRange(children_))
+            -> decltype(constRange(children_))
         {
-            return makeRange(children_);
+            return constRange(children_);
         }
 
         /** Return the local relative position */
-        Vector3 getPosition() const
-        {
-            return position_;
-        }
+        Vector3 getPosition() const;
 
         /** Return the world relative position */
-        Vector3 getWorldPosition() const
-        {
-            return getWorldTransform().position;
-        }
+        Vector3 getWorldPosition() const;
 
         /** Set local relative position */
-        virtual void setPosition(const Vector3& pos)
-        {
-            position_ = pos;
-        }
+        virtual void setPosition(const Vector3& pos);
 
         /** Set world relative position */
-        void setWorldPosition(const Vector3& wpos)
-        {
-            setPosition(fromWorldPosition(wpos));
-        }
+        void setWorldPosition(const Vector3& wpos);
 
         /** Return the local relative orientation */
-        Quaternion getOrientation() const
-        {
-            return orientation_;
-        }
+        Quaternion getOrientation() const;
 
         /** Return the world relative orientation */
-        Quaternion getWorldOrientation() const
-        {
-            return getWorldTransform().orientation;
-        }
+        Quaternion getWorldOrientation() const;
 
         /** Set local relative orientation */
-        virtual void setOrientation(const Quaternion& q)
-        {
-            orientation_ = q;
-        }
+        virtual void setOrientation(const Quaternion& q);
 
         /** Set world relative orientation */
-        void setWorldOrientation(const Quaternion& wq)
-        {
-            setOrientation(fromWorldOrientation(wq));
-        }
+        void setWorldOrientation(const Quaternion& wq);
 
         /** Return the local relative scale */
-        Vector3 getScale() const
-        {
-            return scale_;
-        }
+        Vector3 getScale() const;
 
         /** Return the world relative scale */
-        Vector3 getWorldScale() const
-        {
-            return getWorldTransform().scale;
-        }
+        Vector3 getWorldScale() const;
 
         /** Set local relative scale */
-        void setScale(const Vector3& k)
-        {
-            scale_ = k;
-        }
+        void setScale(const Vector3& k);
 
         /** Set world relative scale */
-        void setWorldScale(const Vector3& wk)
-        {
-            setScale(fromWorldScale(wk));
-        }
+        void setWorldScale(const Vector3& wk);
 
         /** Convert the world position to local */
-        Vector3 fromWorldPosition(const Vector3& wpos)
-        {
-            if (parent_.expired())
-            {
-                return wpos;
-            }
-
-            const auto parent = parent_.lock();
-            const auto world = parent->getWorldTransform();
-            return inverse(world.orientation) * invScale(wpos - world.position, world.scale);
-        }
+        Vector3 fromWorldPosition(const Vector3& wpos) const;
 
         /** Convert the local position to world */
-        Vector3 toWorldPosition(const Vector3& pos)
-        {
-            if (parent_.expired())
-            {
-                return pos;
-            }
-
-            const auto parent = parent_.lock();
-            const auto world = parent->getWorldTransform();
-            return world.position + world.orientation * killme::scale(pos, world.scale);
-        }
+        Vector3 toWorldPosition(const Vector3& pos) const;
 
         /** Convert the world orientation to local */
-        Quaternion fromWorldOrientation(const Quaternion& wq)
-        {
-            if (parent_.expired())
-            {
-                return wq;
-            }
-
-            const auto parent = parent_.lock();
-            const auto world = parent->getWorldTransform();
-            return wq * inverse(world.orientation);
-        }
+        Quaternion fromWorldOrientation(const Quaternion& wq) const;
 
         /** Convert the local orientation to world */
-        Quaternion toWorldOrientation(const Quaternion& q)
-        {
-            if (parent_.expired())
-            {
-                return q;
-            }
-
-            const auto parent = parent_.lock();
-            const auto world = parent->getWorldTransform();
-            return q * world.orientation;
-        }
+        Quaternion toWorldOrientation(const Quaternion& q) const;
 
         /** Convert the world scale to local */
-        Vector3 fromWorldScale(const Vector3& wk)
-        {
-            if (parent_.expired())
-            {
-                return wk;
-            }
-
-            const auto parent = parent_.lock();
-            const auto world = parent->getWorldTransform();
-            return invScale(wk, world.scale);
-        }
+        Vector3 fromWorldScale(const Vector3& wk) const;
 
         /** Convert the local scale to world */
-        Vector3 toWorldScale(const Vector3& k)
-        {
-            if (parent_.expired())
-            {
-                return k;
-            }
-
-            const auto parent = parent_.lock();
-            const auto world = parent->getWorldTransform();
-            return killme::scale(k, world.scale);
-        }
+        Vector3 toWorldScale(const Vector3& k) const;
 
         /** Return the local matrix */
-        Matrix44 getMatrix() const
-        {
-            return makeTransformMatrix(scale_, orientation_, position_);
-        }
+        Matrix44 getMatrix() const;
 
         /** Return the world matrix */
-        Matrix44 getWorldMatrix() const
-        {
-            const auto world = getWorldTransform();
-            return makeTransformMatrix(world.scale, world.orientation, world.position);
-        }
+        Matrix44 getWorldMatrix() const;
+    };
 
-    private:
+    /** Add a child node */
+    template <class T>
+    std::shared_ptr<T> addChildNode(const std::shared_ptr<Transform>& parent, const std::shared_ptr<T>& child)
+    {
+        assert(!child->lockParent() && "Child transform node is already linked to an other node.");
+        parent->addChild(child);
+        child->setParent(parent);
+        return child;
+    }
+
+    /** Remove a child node */
+    void removeChildNode(const std::shared_ptr<Transform>& parent, const std::shared_ptr<Transform>& child);
+
+    namespace detail
+    {
         struct WorldTransform
         {
             Vector3 position;
@@ -251,38 +138,8 @@ namespace killme
             Vector3 scale;
         };
 
-        WorldTransform getWorldTransform() const
-        {
-            std::stack<std::shared_ptr<const Transform>> stack;
-            stack.emplace(shared_from_this());
-
-            auto parent = lockParent();
-            while (parent)
-            {
-                stack.emplace(parent);
-                parent = parent->lockParent();
-            }
-
-            WorldTransform world;
-
-            const auto root = stack.top();
-            world.position = root->position_;
-            world.orientation = root->orientation_;
-            world.scale = root->scale_;
-            stack.pop();
-
-            while (!stack.empty())
-            {
-                const auto trans = stack.top();
-                world.position += (world.orientation * killme::scale(trans->position_, world.scale));
-                world.orientation = trans->orientation_ * world.orientation;
-                world.scale = killme::scale(world.scale, trans->scale_);
-                stack.pop();
-            }
-
-            return world;
-        }
-    };
+        WorldTransform getWorldTransform(const Transform& node);
+    }
 }
 
 #endif

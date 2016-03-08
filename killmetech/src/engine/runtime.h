@@ -2,10 +2,17 @@
 #define _KILLME_RUNTIME_H_
 
 #include "../core/string.h"
+#include <Windows.h>
+#include <type_traits>
+#include <chrono>
+#include <deque>
+#include <array>
+#include <utility>
+#include <memory>
 
 namespace killme
 {
-    class LevelDesigner;
+    class Level;
 
     /** Frame rate definition */
     enum class FrameRate : size_t
@@ -19,31 +26,54 @@ namespace killme
     };
 
     /** KillMe Tech runtime engine */
-    struct RunTime
+    class RunTime
     {
+    private:
+        static constexpr size_t FRAME_CYCLE = 3;
+        static constexpr size_t NUM_STORE_DELTATIMES = 120;
+
+        std::unique_ptr<std::remove_pointer_t<HWND>, decltype(&DestroyWindow)> window_;
+        std::array<long long, FRAME_CYCLE> frameTimes_ms_;
+        size_t frameCounter_;
+        decltype(std::chrono::high_resolution_clock::now()) preFrameDate_;
+        std::deque<float> currentDeltaTimes_s_;
+
+    public:
+        /** Constructs */
+        RunTime();
+
         /** Initialize KillMe Tech */
-        static void startup(size_t width, size_t height, const tstring& title);
+        void startup(size_t width, size_t height, const tstring& title);
 
         /** Finalize KillMe Tech */
-        static void shutdown();
+        void shutdown();
 
         /** Set FPS */
-        static void setFrameRate(FrameRate fps);
+        void setFrameRate(FrameRate fps);
 
-        /** Return delta time[s] of current frame from previous */
-        static float getDeltaTime();
+        /** Return the delta time[s] of current frame from previous */
+        float getDeltaTime() const;
 
-        /** Return average fps of current n frame */
+        /** Return the average fps of current n frames */
         /// NOTE: n <= 120
-        static float getCurrentFrameRate(size_t n);
+        float getCurrentFrameRate(size_t n) const;
 
-        /** Start game */
-        static void run(LevelDesigner& designer);
-        static void run(LevelDesigner&& designer);
+        // For newLevel()
+        void run(Level& level);
 
-        /** Request to exit game */
-        static void quit();
+        /** Request to exit the game */
+        void quit();
     };
+
+    extern RunTime runTime;
+
+    /** Start new level */
+    template <class T, class... Args>
+    void newLevel(Args&&... args)
+    {
+        T level(std::forward<Args>(args)...);
+        runTime.run(level);
+    }
 }
 
 #endif

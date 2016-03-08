@@ -1,128 +1,117 @@
 #ifndef _KILLME_ACTOR_H_
 #define _KILLME_ACTOR_H_
 
-#include "components/actorcomponent.h"
+#include "../processes/process.h"
+#include "../core/utility.h"
 #include <memory>
 #include <unordered_map>
-#include <utility>
+#include <vector>
 #include <string>
 #include <type_traits>
 #include <cassert>
 
 namespace killme
 {
-    class World;
-    class ActorDesigner;
+    class Level;
+    class ActorComponent;
     class TransformComponent;
 
-    extern const std::string NAME_ROOT_TRANSFORM;
-
-    /** The actor is an element of level */
-    class Actor : public std::enable_shared_from_this<Actor>
+    /** The actor is an element of world */
+    class Actor
     {
     private:
-        std::weak_ptr<World> ownerWorld_;
+        Level* inLevel_;
         std::string name_;
+        std::unordered_multimap<TypeNumber, std::shared_ptr<ActorComponent>> componentMap_;
+        std::vector<std::shared_ptr<ActorComponent>> conceptComponents_;
         std::shared_ptr<TransformComponent> rootTransform_;
-        std::unordered_map<std::string, std::shared_ptr<ActorComponent>> componentMap_;
-        std::shared_ptr<ActorDesigner> designer_;
+        bool enableTicking_;
+        bool isActive_;
+        Process tickProcess_;
 
     public:
         /** Construct */
-        explicit Actor(const std::string& name);
+        Actor();
 
-        /** Set owner world */
-        void setOwnerWorld(const std::weak_ptr<World>& ownerWorld);
+        /** For drived classes */
+        virtual ~Actor() = default;
 
-        /** Called on spawned */
-        void onSpawned();
+        /** Set owner level and name */
+        void setOwnerLevel(Level* inLevel, const std::string& name);
 
-        /** Called on killed */
-        void onKilled();
+        /** Return owner level */
+        Level& getOwnerLevel();
+
+        /** Return the name */
+        std::string getName() const;
+
+        /** Activate this actor */
+        void activate();
+
+        /** Deactivate this actor */
+        void deactivate();
 
         /** Kill this actor */
         void kill();
 
-        /** Set designer */
-        void setDesigner(const std::shared_ptr<ActorDesigner>& designer);
-
-        /** Placement into the game world */
-        template <class T, class... Args>
-        std::shared_ptr<T> placement(Args&&... args)
-        {
-            assert(!rootTransform_ && "The actor is already placemented into the world.");
-
-            const auto trans = this->template attachComponentImpl<T>(NAME_ROOT_TRANSFORM, std::forward<Args>(args)...);
-            rootTransform_ = trans;
-            rootTransform_->onAttached();
-
-            return trans;
-        }
-
-        /** Return root transform */
-        template <class T = TransformComponent>
-        std::shared_ptr<T> getRootTransform()
-        {
-            assert(rootTransform_ && "The actor is not placemented into the world.");
-
-            const auto trans = std::dynamic_pointer_cast<T>(rootTransform_);
-            assert(trans && "Conflict component type.");
-
-            return trans;
-        }
-
-        /** Attach the component */
-        template <class T, class... Args>
-        std::shared_ptr<T> attachComponent(const std::string& name, Args&&... args)
-        {
-            assert(name != NAME_ROOT_TRANSFORM && "The name of component need to different to root transform.");
-
-            const auto c = this->template attachComponentImpl<T>(name, std::forward<Args>(args)...);
-
-            if (std::is_base_of<TransformComponent, T>::value)
-            {
-                createTransformTree(c); // Tree
-            }
-            c->onAttached(); // Attached
-
-            return c;
-        }
-
-        /** Dettache component */
-        void dettachComponent(const std::string& name);
-
-        /** Search component */
+        /** Attach a component to an actor */
+        /// NOTE: You need attach all components until end of onSpawn()
+        /// NOTE: If you want to attach transformed components, you no need to call this method. See a note of attachRootTransform().
         template <class T>
-        std::shared_ptr<T> findComponent(const std::string& name)
+        std::shared_ptr<T> attachComponent(const std::shared_ptr<T>& component)
         {
-            const auto it = componentMap_.find(name);
-            if (it == std::cend(componentMap_))
-            {
-                return nullptr;
-            }
-            return std::dynamic_pointer_cast<T>(it->second);
+            static_assert(!std::is_base_of<TransformComponent, T>::value, "You can not attach transformed component by this method.");
+            conceptComponents_.emplace_back(component);
+            return component;
         }
 
-        /** Tick actor */
-        void tick(float dt_s);
-
-    private:
-        template <class T, class... Args>
-        std::shared_ptr<T> attachComponentImpl(const std::string& name, Args&&... args)
+        /** Attach the root transform to an actor */
+        /// NOTE: If you need transform components, you need to attach root transform only.
+        template <class T>
+        std::shared_ptr<T> attachRootTransform(const std::shared_ptr<T>& root)
         {
-            assert(!ownerWorld_.expired() && "The negavite actor can not attach any components.");
-
-            const auto c = std::make_shared<T>(std::forward<Args>(args)...);
-            const auto check = componentMap_.emplace(name, c); // Insert
-            assert(check.second && "Conflicts component names.");
-
-            c->setOwner(shared_from_this()); // Set owner
-
-            return c;
+            static_assert(std::is_base_of<TransformComponent, T>::value, "You can not attach non transformed component by this method.");
+            assert(!rootTransform_ && "This actor is already has root transform.");
+            rootTransform_ = root;
+            return root;
         }
 
-        void createTransformTree(const std::shared_ptr<TransformComponent>& c);
+        /** Return the root transform */
+        std::shared_ptr<TransformComponent> getRootTransform();
+
+        /** Search components */
+        auto getComponents(TypeNumber type)
+            -> decltype(iteratorRange(componentMap_.equal_range(type).first, componentMap_.equal_range(type).second))
+        {
+            const auto range = componentMap_.equal_range(type);
+            return iteratorRange(range.first, range.second);
+        }
+
+        /** Called on just before spawned */
+        virtual void onSpawn() {}
+
+        /** Called on just before killed */
+        virtual void onKill() {}
+
+        /** Called every frame */
+        virtual void onTick(float dt_s) {}
+
+        /** If you call this function before end of onSpawn(), this actor is never called onTick() function */
+        void disableTicking();
     };
+
+    /** Search an component */
+    template <class Component>
+    std::shared_ptr<Component> findComponent(Actor& actor)
+    {
+        const auto range = actor.getComponents(typeNumber<Component>());
+        const auto front = std::cbegin(range);
+        if (front == std::cend(range))
+        {
+            return nullptr;
+        }
+        return std::static_pointer_cast<Component>(front->second);
+    }
 }
 
 #endif

@@ -1,14 +1,14 @@
 #include "lightcomponent.h"
-#include "../graphics.h"
-#include "../processes.h"
+#include "../level.h"
 #include "../../scene/light.h"
+#include "../../scene/scene.h"
 
 namespace killme
 {
     LightComponent::LightComponent()
         : light_(std::make_shared<Light>())
-        , process_()
     {
+        enableReceiveMove(true);
     }
 
     void LightComponent::setColor(const Color& c)
@@ -16,23 +16,23 @@ namespace killme
         light_->setColor(c);
     }
 
-    void LightComponent::onAttached()
-    {
-        TransformComponent::onAttached();
-        Graphics::addLight(light_);
-        process_ = Processes::start([&] { tickScene(); }, PROCESS_PRIORITY_SCENE);
-    }
-
-    void LightComponent::onDettached()
-    {
-        TransformComponent::onDettached();
-        Graphics::removeLight(light_);
-        process_.kill();
-    }
-
-    void LightComponent::tickScene()
+    void LightComponent::onTranslated()
     {
         light_->setPosition(getWorldPosition());
+    }
+
+    void LightComponent::onRotated()
+    {
         light_->setOrientation(getWorldOrientation());
+    }
+
+    void LightComponent::onActivate()
+    {
+        getOwnerLevel().getGraphicsWorld().addLight(light_);
+    }
+
+    void LightComponent::onDeactivate()
+    {
+        getOwnerLevel().getGraphicsWorld().removeLight(light_);
     }
 }

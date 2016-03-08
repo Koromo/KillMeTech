@@ -1,53 +1,42 @@
 #include "debug.h"
-#include "graphics.h"
+#include "graphicssystem.h"
+#include "../scene/scene.h"
 #include "../scene/debugdrawmanager.h"
-#include "../renderer/rendersystem.h"
-#include "../windows/console.h"
-#include "../core/platform.h"
 
 namespace killme
 {
 #ifdef KILLME_DEBUG
-
-    Console& Debug::console = killme::console;
-
-    void Debug::startup()
-    {
-        debugDrawManager.startup(Graphics::getRenderSystem());
-        Debug::console.allocate();
-    }
-
-    void Debug::shutdown()
-    {
-        Debug::console.free();
-        debugDrawManager.shutdown();
-    }
-
-    void Debug::line(const Vector3& from, const Vector3& to, const Color& color)
+    void detail::Debug::PhysicsDebugger::line(const Vector3& from, const Vector3& to, const Color& color)
     {
         debugDrawManager.line(from, to, color);
     }
 
-    void Debug::debugDraw()
+    void detail::Debug::startup()
     {
-        const auto camera = Graphics::getMainCamera();
+        debugDrawManager.initialize(graphicsSystem.getRenderSystem());
+    }
+
+    void detail::Debug::shutdown()
+    {
+        debugDrawManager.finalize();
+    }
+
+    void detail::Debug::line(const Vector3& from, const Vector3& to, const Color& color)
+    {
+        debugDrawManager.line(from, to, color);
+    }
+
+    void detail::Debug::draw(Scene& world, const FrameResource& frame)
+    {
+        const auto camera = world.getMainCamera();
         if (camera)
         {
-            debugDrawManager.debugDraw(*camera, Graphics::getRenderSystem()->getCurrentFrameResource());
+            debugDrawManager.debugDraw(*camera, frame);
         }
         else
         {
             debugDrawManager.clear();
         }
     }
-
-#else
-
-    Console& Debug::console = killme::console;
-    void Debug::startup() {}
-    void Debug::shutdown() {}
-    void Debug::line(const Vector3& from, const Vector3& to, const Color& color) {}
-    void Debug::debugDraw() {}
-
 #endif
 }

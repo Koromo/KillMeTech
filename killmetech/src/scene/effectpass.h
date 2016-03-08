@@ -79,16 +79,16 @@ namespace killme
         
         /** Return the resource heaps */
         auto getGpuResourceHeaps()
-            -> decltype(makeRange(resourceHeaps_))
+            -> decltype(constRange(resourceHeaps_))
         {
-            return makeRange(resourceHeaps_);
+            return constRange(resourceHeaps_);
         }
         
         /** Return bind tables that are pair of the root parameter index and the heap */
         auto getGpuResourceHeapTables()
-            -> decltype(makeRange(resourceHeapTables_))
+            -> decltype(constRange(resourceHeapTables_))
         {
-            return makeRange(resourceHeapTables_);
+            return constRange(resourceHeapTables_);
         }
     };
 }

@@ -1,42 +1,20 @@
 #include "runtime.h"
+#include "level.h"
+#include "audiosystem.h"
+#include "graphicssystem.h"
+#include "resourcemanagesystem.h"
+#include "inputmanager.h"
 #include "debug.h"
-#include "leveldesigner.h"
-#include "world.h"
-#include "inputs.h"
-#include "audio.h"
-#include "graphics.h"
-#include "physics.h"
-#include "events.h"
-#include "processes.h"
-#include "resources.h"
 #include "../windows/winsupport.h"
 #include "../core/exception.h"
-#include <Windows.h>
-#include <array>
-#include <deque>
-#include <chrono>
-#include <climits>
 #include <cassert>
 
 namespace killme
 {
+    RunTime runTime;
+
     namespace
     {
-        struct RunTimeImpl
-        {
-            HWND window;
-
-            static constexpr size_t FRAME_CYCLE = 3;
-            static constexpr size_t NUM_STORE_DELTATIMES = 120;
-
-            std::array<long long, FRAME_CYCLE> frameTimes_ms;
-            size_t frameCounter;
-            decltype(std::chrono::high_resolution_clock::now()) preFrameDate;
-            std::deque<float> currentDeltaTimes_s;
-        };
-
-        RunTimeImpl impl;
-
         LRESULT CALLBACK windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
         {
             switch (msg)
@@ -45,17 +23,15 @@ namespace killme
                 PostQuitMessage(0);
                 break;
 
+            case WM_SYSKEYDOWN:
             case WM_KEYDOWN:
-            case WM_SYSKEYDOWN: {
-                Inputs::onWinKeyUp(wp);
+                inputManager.onWinKeyDown(wp);
                 break;
-            }
 
+            case WM_SYSKEYUP:
             case WM_KEYUP:
-            case WM_SYSKEYUP: {
-                Inputs::onWinKeyDown(wp);
+                inputManager.onWinKeyUp(wp);
                 break;
-            }
 
             default:
                 break;
@@ -63,6 +39,15 @@ namespace killme
 
             return DefWindowProc(window, msg, wp, lp);
         }
+    }
+
+    RunTime::RunTime()
+        : window_(nullptr, DestroyWindow)
+        , frameTimes_ms_()
+        , frameCounter_()
+        , preFrameDate_()
+        , currentDeltaTimes_s_()
+    {
     }
 
     void RunTime::startup(size_t width, size_t height, const tstring& title)
@@ -98,41 +83,34 @@ namespace killme
         const auto windowHeight = rect.bottom - rect.top;
 
         // Create window
-        impl.window = enforce<WindowsException>(
+        window_.reset(enforce<WindowsException>(
             CreateWindow(wc.lpszClassName, wc.lpszClassName, style, CW_USEDEFAULT, CW_USEDEFAULT,
                 windowWidth, windowHeight, NULL, NULL, instance, NULL),
-            "Failed to create the window.");
+            "Failed to create the window."));
 
         // Initialize subsystems
-        Resources::startup();
-        Processes::startup();
-        Events::startup();
-        Physics::startup();
-        Audio::startup();
-        Graphics::startup(impl.window);
-        Debug::startup();
+        resourceManager.startup();
+        audioSystem.startup();
+        graphicsSystem.startup(window_.get());
+        KILLME_DEBUG_INITIALIZE();
 
         // Set to 60fps
         setFrameRate(FrameRate::_60);
-        impl.frameCounter = 0;
-        impl.preFrameDate = std::chrono::high_resolution_clock::now();
-        for (int i = 0; i < impl.NUM_STORE_DELTATIMES; ++i)
+        frameCounter_ = 0;
+        preFrameDate_ = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < NUM_STORE_DELTATIMES; ++i)
         {
-            impl.currentDeltaTimes_s.push_back(1 / 60.0f);
+            currentDeltaTimes_s_.push_back(1 / 60.0f);
         }
     }
 
     void RunTime::shutdown()
     {
-        impl.currentDeltaTimes_s.clear();
-        Debug::shutdown();
-        Graphics::shutdown();
-        Audio::shutdown();
-        Physics::shutdown();
-        Events::shutdown();
-        Processes::shutdown();
-        Resources::shutdown();
-        DestroyWindow(impl.window);
+        currentDeltaTimes_s_.clear();
+        KILLME_DEBUG_FINALIZE();
+        graphicsSystem.shutdown();
+        audioSystem.shutdown();
+        resourceManager.shutdown();
     }
 
     void RunTime::setFrameRate(FrameRate fps)
@@ -140,39 +118,39 @@ namespace killme
         switch (fps)
         {
         case FrameRate::noLimit:
-            impl.frameTimes_ms[0] = 0;
-            impl.frameTimes_ms[1] = 0;
-            impl.frameTimes_ms[2] = 0;
+            frameTimes_ms_[0] = 0;
+            frameTimes_ms_[1] = 0;
+            frameTimes_ms_[2] = 0;
             break;
 
         case FrameRate::_120:
-            impl.frameTimes_ms[0] = 8;
-            impl.frameTimes_ms[1] = 8;
-            impl.frameTimes_ms[2] = 9;
+            frameTimes_ms_[0] = 8;
+            frameTimes_ms_[1] = 8;
+            frameTimes_ms_[2] = 9;
             break;
 
         case FrameRate::_60:
-            impl.frameTimes_ms[0] = 16;
-            impl.frameTimes_ms[1] = 17;
-            impl.frameTimes_ms[2] = 17;
+            frameTimes_ms_[0] = 16;
+            frameTimes_ms_[1] = 17;
+            frameTimes_ms_[2] = 17;
             break;
 
         case FrameRate::_30:
-            impl.frameTimes_ms[0] = 30;
-            impl.frameTimes_ms[1] = 30;
-            impl.frameTimes_ms[2] = 40;
+            frameTimes_ms_[0] = 30;
+            frameTimes_ms_[1] = 30;
+            frameTimes_ms_[2] = 40;
             break;
 
         case FrameRate::_20:
-            impl.frameTimes_ms[0] = 50;
-            impl.frameTimes_ms[1] = 50;
-            impl.frameTimes_ms[2] = 50;
+            frameTimes_ms_[0] = 50;
+            frameTimes_ms_[1] = 50;
+            frameTimes_ms_[2] = 50;
             break;
 
         case FrameRate::_15:
-            impl.frameTimes_ms[0] = 60;
-            impl.frameTimes_ms[1] = 70;
-            impl.frameTimes_ms[2] = 70;
+            frameTimes_ms_[0] = 60;
+            frameTimes_ms_[1] = 70;
+            frameTimes_ms_[2] = 70;
             break;
 
         default:
@@ -181,34 +159,32 @@ namespace killme
         }
     }
 
-    float RunTime::getDeltaTime()
+    float RunTime::getDeltaTime() const
     {
-        return impl.currentDeltaTimes_s.back();
+        return currentDeltaTimes_s_.back();
     }
 
-    float RunTime::getCurrentFrameRate(size_t n)
+    float RunTime::getCurrentFrameRate(size_t n) const
     {
-        if (n > impl.NUM_STORE_DELTATIMES)
+        if (n > NUM_STORE_DELTATIMES)
         {
-            n = impl.NUM_STORE_DELTATIMES;
+            n = NUM_STORE_DELTATIMES;
         }
 
         float sum = 0;
         for (size_t i = 0; i < n; ++i)
         {
-            sum += impl.currentDeltaTimes_s[i];
+            sum += currentDeltaTimes_s_[i];
         }
         return 1 / (sum / n);
     }
 
-    void RunTime::run(LevelDesigner& designer)
+    void RunTime::run(Level& level)
     {
-        ShowWindow(impl.window, SW_SHOW);
+        ShowWindow(window_.get(), SW_SHOW);
 
-        // Build world
-        const auto world = std::make_shared<World>();
-        designer.setWorld(world);
-        designer.build();
+        // Build level
+        level.beginLevel();
 
         // Game loop until receive WM_QUIT. WM_QUIT is only sended by process WM_CLOSE
         /// TODO: If the console is allocated, then we want to continue the game loop when console is closed.
@@ -226,47 +202,40 @@ namespace killme
             {
                 // Adjust FPS
                 auto currentDate = std::chrono::high_resolution_clock::now();
-                auto dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(currentDate - impl.preFrameDate).count();
-                if (dt_ms < impl.frameTimes_ms[impl.frameCounter])
+                auto dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(currentDate - preFrameDate_).count();
+                if (dt_ms < frameTimes_ms_[frameCounter_])
                 {
-                    const auto sleepTime = impl.frameTimes_ms[impl.frameCounter] - dt_ms;
+                    const auto sleepTime = frameTimes_ms_[frameCounter_] - dt_ms;
                     Sleep(static_cast<DWORD>(sleepTime));
                     currentDate = std::chrono::high_resolution_clock::now();
-                    dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(currentDate - impl.preFrameDate).count();
+                    dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(currentDate - preFrameDate_).count();
                 }
-                ++impl.frameCounter;
-                impl.frameCounter %= impl.FRAME_CYCLE;
-                impl.preFrameDate = currentDate;
+                frameCounter_;
+                frameCounter_ %= FRAME_CYCLE;
+                preFrameDate_ = currentDate;
 
                 auto dt_s = dt_ms * 0.001f;
-                impl.currentDeltaTimes_s.pop_front();
-                impl.currentDeltaTimes_s.push_back(dt_s);
-                assert(impl.currentDeltaTimes_s.size() == impl.NUM_STORE_DELTATIMES && "Delta time queue error.");
+                currentDeltaTimes_s_.pop_front();
+                currentDeltaTimes_s_.push_back(dt_s);
+                assert(currentDeltaTimes_s_.size() == NUM_STORE_DELTATIMES && "Delta time queue error.");
 
                 // Tick frame
-                Audio::setNull3DListener();
-                Inputs::emitInputEvents();
-                designer.tick(dt_s);
-                world->tickActors(dt_s);
-                Physics::tickWorld(dt_s);
-                Processes::update(0, PROCESS_PRIORITY_MAX);
-                Graphics::renderScene();
-                Debug::debugDraw();
-                Graphics::presentBackBuffer();
+                level.beginFrame();
+                inputManager.emitInputEvents(level);
+                level.tickLevel(dt_s);
+                graphicsSystem.clearBackBuffer();
+                level.renderLevel(graphicsSystem.getCurrentFrameResource());
+                KILLME_DEBUG_DRAW(level.getGraphicsWorld(), graphicsSystem.getCurrentFrameResource());
+                graphicsSystem.presentBackBuffer();
             }
         }
 
-        designer.setWorld(nullptr);
-    }
-
-    void RunTime::run(LevelDesigner&& designer)
-    {
-        RunTime::run(designer);
+        level.endLevel();
     }
 
     void RunTime::quit()
     {
         // Request to close window
-        PostMessage(impl.window, WM_CLOSE, 0, 0);
+        PostMessage(window_.get(), WM_CLOSE, 0, 0);
     }
 }

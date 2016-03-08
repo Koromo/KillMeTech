@@ -1,6 +1,7 @@
 #ifndef _KILLME_RESOURCE_H_
 #define _KILLME_RESOURCE_H_
 
+#include "resourcemanager.h"
 #include <memory>
 #include <string>
 #include <functional>
@@ -8,20 +9,12 @@
 
 namespace killme
 {
-    class ResourceManager;
-
     /** For resource manegement */
     class IsResource
     {
     public:
         virtual ~IsResource() = default;
     };
-
-    namespace detail
-    {
-        std::shared_ptr<IsResource> callLoad(ResourceManager& msg, const std::string& path);
-        void callUnload(ResourceManager& msg, const std::string& path);
-    }
 
     /** Resource accessor */
     /// NOTE: Not support const resources
@@ -31,88 +24,100 @@ namespace killme
     private:
         struct Holder
         {
+            virtual ~Holder() = default;
             virtual std::unique_ptr<Holder> copy() const = 0;
             virtual std::shared_ptr<T> access() const = 0;
             virtual void load() const = 0;
             virtual void unload() const = 0;
         };
 
-        // For managed resources
-        struct ManagedHolder : Holder
+        // For media resources
+        struct MediaHolder : Holder
         {
-            ResourceManager& mng;
-            std::string path;
-            mutable std::weak_ptr<T> resource;
-            
-            ManagedHolder(ResourceManager& m, const std::string& p, const std::weak_ptr<T>& r)
-                : mng(m)
-                , path(p)
-                , resource(r)
+            std::weak_ptr<ResourceStore> store_;
+            std::string path_;
+            mutable std::weak_ptr<T> resource_;
+
+            MediaHolder(const std::weak_ptr<ResourceStore>& store, const std::string& path)
+                : store_(store)
+                , path_(path)
+                , resource_()
             {
+                if (const auto r = store_.lock()->getLoadedResource(path_))
+                {
+                    resource_ = std::dynamic_pointer_cast<T>(r);
+                    assert(resource_.lock() && "Mismatch resource type.");
+                }
             }
-            
+
             std::unique_ptr<Holder> copy() const
             {
-                return std::make_unique<ManagedHolder>(mng, path, resource);
+                return std::make_unique<MediaHolder>(store_, path_);
             }
 
             std::shared_ptr<T> access() const
             {
-                if (resource.expired())
+                if (resource_.expired())
                 {
                     load();
                 }
-                return resource.lock();
+                return resource_.lock();
             }
-            
+
             void load() const
             {
-                resource = std::dynamic_pointer_cast<T>(detail::callLoad(mng, path));
-                assert(resource.lock() && "Mismatch resource type.");
+                if (const auto s = store_.lock())
+                {
+                    resource_ = std::dynamic_pointer_cast<T>(s->load(path_));
+                    assert(resource_.lock() && "Mismatch resource type.");
+                }
             }
 
             void unload() const
             {
-                detail::callUnload(mng, path);
+                if (const auto s = store_.lock())
+                {
+                    s->unload(path_);
+                }
             }
         };
 
-        // For nonmanaged resources
-        struct NonmanagedHolder : Holder
+        // For application resources
+        struct AppHolder : Holder
         {
             using Loader = std::function<std::shared_ptr<T>()>;
 
-            mutable Loader loader;
-            mutable std::shared_ptr<T> resource;
+            mutable Loader loader_;
+            mutable std::shared_ptr<T> resource_;
 
-            NonmanagedHolder(Loader l, const std::shared_ptr<T>& r)
-                : loader(l)
-                , resource(r)
+            AppHolder(Loader loader, const std::shared_ptr<T>& resource)
+                : loader_(loader)
+                , resource_(resource)
             {
             }
 
             std::unique_ptr<Holder> copy() const
             {
-                return std::make_unique<NonmanagedHolder>(loader, resource);
+                return std::make_unique<AppHolder>(loader_, resource_);
             }
 
             std::shared_ptr<T> access() const
             {
-                if (!resource)
+                if (!resource_)
                 {
                     load();
                 }
-                return resource;
+                return resource_;
             }
 
             void load() const
             {
-                resource = loader();
+                resource_ = loader_();
             }
 
             void unload() const
             {
-                resource.reset();
+                resource_.reset();
             }
         };
 
@@ -122,15 +127,15 @@ namespace killme
         /** Construct */
         Resource() = default;
 
-        /** Construct as the managed resource */
-        Resource(ResourceManager& msg, const std::string& path, const std::weak_ptr<T>& resource)
-            : holder_(std::make_unique<ManagedHolder>(msg, path, resource))
+        /** Construct as the media resource */
+        Resource(ResourceManager& mng, const std::string& path)
+            : holder_(std::make_unique<MediaHolder>(mng.getStore(), path))
         {
         }
 
-        /** Construct as the nonmanaged resource */
-        Resource(typename NonmanagedHolder::Loader loader, const std::shared_ptr<T>& resource)
-            : holder_(std::make_unique<NonmanagedHolder>(loader, resource))
+        /** Construct as the application resource */
+        explicit Resource(typename AppHolder::Loader loader)
+            : holder_(std::make_unique<AppHolder>(loader, loader()))
         {
         }
 
@@ -165,9 +170,10 @@ namespace killme
         }
 
         /** Load resource */
-        void load() const
+        std::shared_ptr<T> load() const
         {
             holder_->load();
+            return holder_->access();
         }
 
         /** Unload resource */

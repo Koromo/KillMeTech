@@ -2,7 +2,6 @@
 #include "collisionshape.h"
 #include "rigidbody.h"
 #include "bulletsupport.h"
-#include "../scene/debugdrawmanager.h"
 #include "../core/math/color.h"
 #include <BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h>
 #include <BulletCollision/CollisionDispatch/btCollisionDispatcher.h>
@@ -14,23 +13,17 @@
 
 namespace killme
 {
-    namespace
+    void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to_, const btVector3& color)
     {
-        struct DebugDrawer : btIDebugDraw
-        {
-            void drawLine(const btVector3& from, const btVector3& to_, const btVector3& color)
-            {
-                const Color c = {color.x(), color.y(), color.z(), 1};
-                debugDrawManager.line(to<Vector3>(from), to<Vector3>(to_), c);
-            }
-
-            void drawContactPoint(const btVector3&, const btVector3&, btScalar, int, const btVector3&) {}
-            void reportErrorWarning(const char*) {}
-            void draw3dText(const btVector3&, const char*) {}
-            void setDebugMode(int) {}
-            int getDebugMode() const { return btIDebugDraw::DBG_DrawWireframe; }
-        };
+        const Color c = { color.x(), color.y(), color.z(), 1 };
+        line(to<Vector3>(from), to<Vector3>(to_), c);
     }
+
+    void PhysicsDebugDrawer::drawContactPoint(const btVector3&, const btVector3&, btScalar, int, const btVector3&) {}
+    void PhysicsDebugDrawer::reportErrorWarning(const char*) {}
+    void PhysicsDebugDrawer::draw3dText(const btVector3&, const char*) {}
+    void PhysicsDebugDrawer::setDebugMode(int) {}
+    int PhysicsDebugDrawer::getDebugMode() const { return btIDebugDraw::DBG_DrawWireframe; }
 
     PhysicsWorld::PhysicsWorld()
         : config_()
@@ -57,18 +50,10 @@ namespace killme
         rigidBodies_.clear();
     }
 
-    void PhysicsWorld::debugDrawWorld(bool debug)
+    void PhysicsWorld::debugDraw(const std::shared_ptr<PhysicsDebugDrawer>& drawer)
     {
-        if (debug)
-        {
-            debugDrawer_ = std::make_unique<DebugDrawer>();
-            world_->setDebugDrawer(debugDrawer_.get());
-        }
-        else
-        {
-            world_->setDebugDrawer(nullptr);
-            debugDrawer_.reset();
-        }
+        debugDrawer_ = drawer;
+        world_->setDebugDrawer(debugDrawer_.get());
     }
 
     void PhysicsWorld::addRigidBody(const std::shared_ptr<RigidBody>& body)
@@ -89,7 +74,7 @@ namespace killme
         }
     }
 
-    void PhysicsWorld::tick(float dt_s)
+    void PhysicsWorld::stepSimulation(float dt_s)
     {
         const auto fixedTimeStep = 0.01666666754f;
         world_->stepSimulation(dt_s, static_cast<int>(dt_s / fixedTimeStep + 1.0001f), fixedTimeStep);

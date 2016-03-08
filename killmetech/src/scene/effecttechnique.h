@@ -39,9 +39,9 @@ namespace killme
 
         /** Return passes */
         auto getPasses()
-            -> decltype(makeRange(passes_))
+            -> decltype(constRange(passes_))
         {
-            return makeRange(passes_);
+            return constRange(passes_);
         }
     };
 }

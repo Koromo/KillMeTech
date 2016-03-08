@@ -11,23 +11,39 @@ namespace killme
     class Quaternion;
     class CollisionShape;
 
+    /** Physics listener */
+    class PhysicsListener
+    {
+    public:
+        virtual ~PhysicsListener() = default;
+        virtual void onMoved(const Vector3& pos, const Quaternion& q) {}
+    };
+
     /** Rigid body */
     class RigidBody
     {
     private:
+        struct MotionState : public btMotionState
+        {
+            RigidBody* owner;
+            void getWorldTransform(btTransform& worldTrans) const;
+            void setWorldTransform(const btTransform& worldTrans);
+        };
+
         std::unique_ptr<btRigidBody> body_;
-        std::unique_ptr<btMotionState> motionState_;
+        MotionState motionState_;
         std::shared_ptr<CollisionShape> shape_;
+        std::shared_ptr<PhysicsListener> listener_;
 
     public:
         /** Construct with a body and mass */
         RigidBody(const std::shared_ptr<CollisionShape> shape, float mass);
 
-        /** Transform modifiers */
-        Vector3 getPosition() const;
-        void setPosition(const Vector3& pos);
+        /** Set a listener */
+        void setListener(const std::shared_ptr<PhysicsListener>& listener);
 
-        Quaternion getOrientation() const;
+        /** Transform modifiers */
+        void setPosition(const Vector3& pos);
         void setOrientation(const Quaternion& q);
 
         /** Return the bullet body */

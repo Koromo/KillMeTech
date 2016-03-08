@@ -1,81 +1,62 @@
 #include "transformcomponent.h"
-#include "../graphics.h"
-#include "../processes.h"
-#include "../../scene/scenenode.h"
-#include <assert.h>
 
 namespace killme
 {
     TransformComponent::TransformComponent()
-        : sceneNode_(std::make_shared<SceneNode>())
-        , process_()
+        : enableReceiveMove_(false)
+        , preWorldPosition_()
     {
+        enableBeginFrame();
     }
 
-#ifdef KILLME_DEBUG
-    void TransformComponent::addChild(const std::shared_ptr<TransformComponent>& child)
+    void TransformComponent::enableReceiveMove(bool enable)
     {
-        // Transform should be active (attached).
-        assert(lockOwner() && "The negative transform has not children.");
-        assert(lockOwner() == child->lockOwner() && "Invalid transform tree.");
-        Transform<TransformComponent>::addChild(child);
+        enableReceiveMove_ = enable;
     }
-#endif
 
-    void TransformComponent::onAttached()
+    Vector3 TransformComponent::getPreFrameWorldPosition() const
     {
-        // Transform should be leaf
-        assert(getNumChildren() == 0 && "Transform should be leaf when attached.");
+        return preWorldPosition_;
+    }
 
-        if (const auto parent = lockParent())
+    void TransformComponent::setPosition(const Vector3& pos)
+    {
+        Transform::setPosition(pos);
+        const auto& receivers = notifyMove();
+        for (const auto& receiver : receivers)
         {
-            // This is not root transform
-            parent->sceneNode_->addChild(sceneNode_);
+            receiver->onTranslated();
         }
-        else
-        {
-            // This is root transform
-            Graphics::addSceneNode(sceneNode_);
-        }
-
-        process_ = Processes::start([&] { tickScene(); }, PROCESS_PRIORITY_SCENE);
     }
 
-    void TransformComponent::onDettached()
+    void TransformComponent::setOrientation(const Quaternion& q)
     {
-        if (const auto parent = lockParent())
+        Transform::setOrientation(q);
+        const auto& receivers = notifyMove();
+        for (const auto& receiver : receivers)
         {
-            // This is not root transform
-            parent->removeChild(shared_from_this());
-            for (const auto& c : getChildren())
-            {
-                parent->addChild(c);
-            }
-
-            parent->sceneNode_->removeChild(sceneNode_);
-            for (const auto& c : sceneNode_->getChildren())
-            {
-                parent->sceneNode_->addChild(c);
-            }
+            receiver->onRotated();
         }
-        else
-        {
-            // This is root transform that should be no children
-            assert(getNumChildren() == 0 && "Invalid dettach order.");
-        }
-
-        process_.kill();
     }
 
-    std::shared_ptr<SceneNode> TransformComponent::getSceneNode()
+    void TransformComponent::setScale(const Vector3& k)
     {
-        return sceneNode_;
-
+        Transform::setScale(k);
+        const auto& receivers = notifyMove();
+        for (const auto& receiver : receivers)
+        {
+            receiver->onScaled();
+        }
     }
-    void TransformComponent::tickScene()
+
+    void TransformComponent::onBeginFrame()
     {
-        sceneNode_->setPosition(getPosition());
-        sceneNode_->setOrientation(getOrientation());
-        sceneNode_->setScale(getScale());
+        preWorldPosition_ = getPosition();
+    }
+
+    Vector3 getWorldVelocity(const TransformComponent& transform, float dt_s)
+    {
+        const auto v = transform.getWorldPosition() - transform.getPreFrameWorldPosition();
+        return v / dt_s;
     }
 }

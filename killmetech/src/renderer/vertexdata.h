@@ -86,7 +86,7 @@ namespace killme
 
         /** Return the vertex views from an input layout */
         auto getVertexViews(const std::shared_ptr<InputLayout>& layout)
-            -> decltype(makeRange(std::vector<D3D12_VERTEX_BUFFER_VIEW>()))
+            -> decltype(emplaceRange(std::vector<D3D12_VERTEX_BUFFER_VIEW>()))
         {
             // Collect vertex buffer views by the input layout
             const auto d3dLayout = layout->getD3DLayout();
@@ -112,7 +112,7 @@ namespace killme
                 enforce<Direct3DException>(found, "The vertex data has not required semantics for the input layout of argments.");
             }
 
-            return makeRange(std::move(views));
+            return emplaceRange(std::move(views));
         }
 
         /** Return the index buffer */

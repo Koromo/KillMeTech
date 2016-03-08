@@ -1,98 +1,127 @@
 #include "actor.h"
+#include "level.h"
+#include "components/actorcomponent.h"
 #include "components/transformcomponent.h"
-#include "actordesigner.h"
-#include "world.h"
+#include <stack>
+#include <cassert>
 
 namespace killme
 {
-    const std::string NAME_ROOT_TRANSFORM = "_RootTransform";
-
-    Actor::Actor(const std::string& name)
-        : ownerWorld_()
-        , name_(name)
-        , rootTransform_()
+    Actor::Actor()
+        : inLevel_()
+        , name_()
         , componentMap_()
-        , designer_()
+        , conceptComponents_()
+        , rootTransform_()
+        , enableTicking_(true)
+        , tickProcess_()
     {
     }
 
-    void Actor::setOwnerWorld(const std::weak_ptr<World>& ownerWorld)
+    void Actor::setOwnerLevel(Level* inLevel, const std::string& name)
     {
-        ownerWorld_ = ownerWorld;
+        inLevel_ = inLevel;
+        name_ = name;
     }
 
-    void Actor::onSpawned()
+    Level& Actor::getOwnerLevel()
     {
-        if (designer_)
+        assert(inLevel_ && "No owner level.");
+        return *inLevel_;
+    }
+
+    std::string Actor::getName() const
+    {
+        return name_;
+    }
+
+    void Actor::activate()
+    {
+        if (enableTicking_)
         {
-            designer_->onSpawned(); // After initializes
+            tickProcess_ = getOwnerLevel().registerTickingActor(*this);
         }
-    }
 
-    void Actor::onKilled()
-    {
-        if (designer_)
+        for (const auto& c : conceptComponents_)
         {
-            designer_->onKilled(); // Before finalizes
+            c->setOwnerActor(this);
+            c->activate();
+            componentMap_.emplace(c->getComponentType(), c);
         }
 
-        while (componentMap_.size() > static_cast<size_t>(rootTransform_ ? 1 : 0))
+        if (!rootTransform_)
         {
-            auto it = std::cbegin(componentMap_);
-            if (it->first == NAME_ROOT_TRANSFORM)
+            return;
+        }
+
+        std::stack<std::shared_ptr<TransformComponent>> stack;
+        stack.emplace(rootTransform_);
+        
+        while (!stack.empty())
+        {
+            const auto top = stack.top();
+            stack.pop();
+
+            top->setOwnerActor(this);
+            top->activate();
+            componentMap_.emplace(top->getComponentType(), top);
+
+            for (const auto& child : top->getChildren())
             {
-                ++it;
+                stack.emplace(std::static_pointer_cast<TransformComponent>(child));
             }
-            dettachComponent(it->first);
+        }
+    }
+
+    void Actor::deactivate()
+    {
+        for (const auto& c : conceptComponents_)
+        {
+            c->deactivate();
+            c->setOwnerActor(nullptr);
         }
 
         if (rootTransform_)
         {
-            rootTransform_->onDettached(); // Dettached
-            rootTransform_->setOwner(std::shared_ptr<Actor>()); // Null owner
-            rootTransform_.reset(); // Erase
-            componentMap_.clear();
+            std::stack<std::shared_ptr<TransformComponent>> stack;
+            stack.emplace(rootTransform_);
+
+            while (!stack.empty())
+            {
+                const auto top = stack.top();
+                stack.pop();
+
+                top->deactivate();
+                top->setOwnerActor(nullptr);
+
+                for (const auto& child : top->getChildren())
+                {
+                    stack.emplace(std::static_pointer_cast<TransformComponent>(child));
+                }
+            }
         }
+
+        rootTransform_.reset();
+        conceptComponents_.clear();
+        componentMap_.clear();
+        tickProcess_.kill();
     }
 
     void Actor::kill()
     {
-        if (const auto w = ownerWorld_.lock())
+        if (inLevel_)
         {
-            w->killActor(name_);
+            killActor(*inLevel_, name_);
         }
     }
 
-    void Actor::setDesigner(const std::shared_ptr<ActorDesigner>& designer)
+    std::shared_ptr<TransformComponent> Actor::getRootTransform()
     {
-        designer_ = designer;
-        designer_->setActor(shared_from_this());
+        return rootTransform_;
     }
 
-    void Actor::dettachComponent(const std::string& name)
+    void Actor::disableTicking()
     {
-        assert(name != NAME_ROOT_TRANSFORM && "Root transform can not dettach.");
-        const auto it = componentMap_.find(name);
-        if (it != std::cend(componentMap_))
-        {
-            it->second->onDettached(); // Dettached
-            it->second->setOwner(std::shared_ptr<Actor>()); // Null owner
-            componentMap_.erase(it); // Erase
-        }
-    }
-
-    void Actor::tick(float dt_s)
-    {
-        if (designer_)
-        {
-            designer_->onTicked(dt_s);
-        }
-    }
-
-    void Actor::createTransformTree(const std::shared_ptr<TransformComponent>& c)
-    {
-        assert(rootTransform_ &&
-            "You can not attach any transformed components becouse the actor is not placemented into the game world.");
-        rootTransform_->addChild(c);
+        enableTicking_ = false;
     }
 }

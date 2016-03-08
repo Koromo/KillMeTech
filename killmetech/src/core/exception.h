@@ -1,20 +1,11 @@
 #ifndef _KILLME_EXCEPTION_H_
 #define _KILLME_EXCEPTION_H_
 
+#include "utility.h"
 #include <exception>
 #include <string>
 #include <utility>
 #include <functional>
-
-// For KILLME_SCOPE_GUARD
-#ifdef __COUNTER__
-#define KILLME_ID __COUNTER__
-#elif
-#define KILLME_ID __LINE__
-#endif
-
-// For KILLME_SCOPE_GUARD
-#define KILLME_CAT(a, b) (a ## b)
 
 /** Scope guard statement */
 #define KILLME_SCOPE_EXIT_NAME(id) KILLME_CAT(killme_scope_exit, id)

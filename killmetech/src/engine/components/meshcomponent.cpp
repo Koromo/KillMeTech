@@ -1,19 +1,44 @@
 #include "meshcomponent.h"
-#include "../../scene/scenenode.h"
-#include "../../scene/meshentity.h"
+#include "../level.h"
+#include "../../scene/meshinstance.h"
 #include "../../scene/mesh.h"
+#include "../../scene/scene.h"
 
 namespace killme
 {
     MeshComponent::MeshComponent(const Resource<Mesh>& mesh)
-        : entity_()
+        : inst_(std::make_shared<MeshInstance>(mesh))
     {
-        const auto meshNode = getSceneNode();
-        entity_ = meshNode->attachEntity<MeshEntity>(mesh);
+        enableReceiveMove(true);
     }
 
-    std::shared_ptr<SubMesh> MeshComponent::findSubMesh(const std::string& name)
+    std::shared_ptr<Submesh> MeshComponent::findSubmesh(const std::string& name)
     {
-        return entity_->findSubMesh(name);
+        return inst_->getMesh().access()->findSubmesh(name);
+    }
+
+    void MeshComponent::onTranslated()
+    {
+        inst_->setPosition(getWorldPosition());
+    }
+
+    void MeshComponent::onRotated()
+    {
+        inst_->setOrientation(getWorldOrientation());
+    }
+
+    void MeshComponent::onScaled()
+    {
+        inst_->setScale(getWorldScale());
+    }
+
+    void MeshComponent::onActivate()
+    {
+        getOwnerLevel().getGraphicsWorld().addMeshInstance(inst_);
+    }
+
+    void MeshComponent::onDeactivate()
+    {
+        getOwnerLevel().getGraphicsWorld().removeMeshInstance(inst_);
     }
 }

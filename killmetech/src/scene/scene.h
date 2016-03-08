@@ -3,61 +3,62 @@
 
 #include "../renderer/rendersystem.h"
 #include "../renderer/renderstate.h"
-#include "../core/math/matrix44.h"
 #include "../core/math/color.h"
-#include "../core/utility.h"
 #include <memory>
 #include <unordered_set>
-#include <type_traits>
 
 namespace killme
 {
     class RenderSystem;
-    class SceneNode;
-    class ConstantBuffer;
     class Camera;
     class Light;
-
-    struct SceneContext
-    {
-        FrameResource frame;
-        Matrix44 viewMatrix;
-        Matrix44 projMatrix;
-        Viewport viewport;
-        Color ambientLight;
-        Range<std::add_lvalue_reference_t<std::unordered_set<std::shared_ptr<Light>>>> lights_;
-        ScissorRect scissorRect;
-        std::shared_ptr<RenderSystem> renderSystem;
-
-    };
+    class MeshInstance;
 
     /** Render scene */
     class Scene
     {
     private:
         std::shared_ptr<RenderSystem> renderSystem_;
-        std::shared_ptr<SceneNode> rootNode_;
+        ScissorRect scissorRect_;
         Color ambientLight_;
         std::unordered_set<std::shared_ptr<Light>> lights_;
+        std::unordered_set<std::shared_ptr<Camera>> cameras_;
+        std::unordered_set<std::shared_ptr<MeshInstance>> meshInstances_;
+        std::shared_ptr<Camera> mainCamera_;
 
     public:
         /** Construct */
         explicit Scene(const std::shared_ptr<RenderSystem>& renderSystem);
 
-        /** Return the current scene */
-        std::shared_ptr<SceneNode> getRootNode();
-
-        /** Set ambient light */
+        /** Set the ambient light */
         void setAmbientLight(const Color& c);
 
-        /** Add light */
+        /** Add a light */
         void addLight(const std::shared_ptr<Light>& light);
 
-        /** Remove light */
+        /** Remove a light */
         void removeLight(const std::shared_ptr<Light>& light);
 
-        /** Clear the back buffer and draw the current scene */
-        void renderScene(const Camera& camera, const FrameResource& frame);
+        /** Set the main camera */
+        void setMainCamera(const std::shared_ptr<Camera>& camera);
+
+        /** Return the main camera */
+        std::shared_ptr<Camera> getMainCamera();
+
+        /** Add a camera */
+        void addCamera(const std::shared_ptr<Camera>& camera);
+
+        /** Remove a camera */
+        void removeCamera(const std::shared_ptr<Camera>& camera);
+
+        /** Add a mesh instance */
+        void addMeshInstance(const std::shared_ptr<MeshInstance>& inst);
+
+        /** Remove a mesh instance */
+        void removeMeshInstance(const std::shared_ptr<MeshInstance>& inst);
+
+        /** Draw the current scene */
+        void renderScene(const FrameResource& frame);
     };
 }
 

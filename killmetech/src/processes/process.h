@@ -5,34 +5,32 @@
 
 namespace killme
 {
-    class ProcessScheduler;
-
-    namespace detail
+    /** Process deleter */
+    struct ProcessKiller
     {
-        struct Killer
-        {
-            std::weak_ptr<ProcessScheduler> scheduler_;
-            size_t id_;
-            size_t priority_;
-            Killer(const std::weak_ptr<ProcessScheduler>& scheduler, size_t id, size_t priority);
-            ~Killer();
-            void kill();
-        };
-    }
+        virtual ~ProcessKiller() = default;
+    };
 
     /** Process handle */
     class Process
     {
     private:
-        std::shared_ptr<detail::Killer> killer_;
+        std::shared_ptr<ProcessKiller> killer_;
 
     public:
         /** Construct */
         Process() = default;
-        Process(const std::weak_ptr<ProcessScheduler>& scheduler, size_t id, size_t priority);
+
+        explicit Process(const std::shared_ptr<ProcessKiller>& killer)
+            : killer_(killer)
+        {
+        }
 
         /** Kill process */
-        void kill();
+        void kill()
+        {
+            killer_.reset();
+        }
     };
 }
 

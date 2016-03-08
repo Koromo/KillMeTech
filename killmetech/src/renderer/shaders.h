@@ -88,9 +88,9 @@ namespace killme
 
         /** Return the descriptions of variable */
         auto describeVariables() const
-            -> decltype(makeRange(variables_))
+            -> decltype(constRange(variables_))
         {
-            return makeRange(variables_);
+            return constRange(variables_);
         }
     };
 
@@ -119,14 +119,14 @@ namespace killme
 
         /** Return the Direct3D input signature */
         auto getD3DInputSignature()
-            -> decltype(makeRange(std::vector<D3D12_SIGNATURE_PARAMETER_DESC>()))
+            -> decltype(emplaceRange(std::vector<D3D12_SIGNATURE_PARAMETER_DESC>()))
         {
             std::vector<D3D12_SIGNATURE_PARAMETER_DESC> params(desc_.InputParameters);
             for (size_t i = 0; i < desc_.InputParameters; ++i)
             {
                 reflection_->GetInputParameterDesc(i, &(params[i]));
             }
-            return makeRange(std::move(params));
+            return emplaceRange(std::move(params));
         }
 
         /** Return bound resource description */
@@ -137,7 +137,7 @@ namespace killme
 
         /** Return bound resource descriptions */
         auto describeBoundResources(BoundResourceType type)
-            -> decltype(makeRange(std::vector<BoundResourceDescription>()))
+            -> decltype(emplaceRange(std::vector<BoundResourceDescription>()))
         {
             const auto& d3dDescs = describeD3DBoundResources(detail::toD3DSIType(type));
 
@@ -148,12 +148,12 @@ namespace killme
                 descs.emplace_back(d3dDesc);
             }
 
-            return makeRange(std::move(descs));
+            return emplaceRange(std::move(descs));
         }
 
         /** Return constant buffer descriptions */
         auto describeConstnatBuffers()
-            -> decltype(makeRange(std::vector<ConstantBufferDescription>()))
+            -> decltype(emplaceRange(std::vector<ConstantBufferDescription>()))
         {
             const auto& d3dResourceDescs = describeD3DBoundResources(D3D_SIT_CBUFFER);
 
@@ -166,12 +166,12 @@ namespace killme
                 cbuffers.emplace_back(cbuffer, d3dResourceDesc);
             }
 
-            return makeRange(std::move(cbuffers));
+            return emplaceRange(std::move(cbuffers));
         }
 
     private:
         auto describeD3DBoundResources(D3D_SHADER_INPUT_TYPE type)
-            -> decltype(makeRange(std::vector<D3D12_SHADER_INPUT_BIND_DESC>()))
+            -> decltype(emplaceRange(std::vector<D3D12_SHADER_INPUT_BIND_DESC>()))
         {
             std::vector<D3D12_SHADER_INPUT_BIND_DESC> descs;
             descs.reserve(desc_.BoundResources);
@@ -187,7 +187,7 @@ namespace killme
                 }
             }
 
-            return makeRange(std::move(descs));
+            return emplaceRange(std::move(descs));
         }
     };
 

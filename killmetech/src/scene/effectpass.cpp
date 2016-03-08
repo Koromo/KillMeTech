@@ -7,8 +7,6 @@
 #include "../renderer/rootsignature.h"
 #include "../renderer/pipelinestate.h"
 #include "../renderer/constantbuffer.h"
-#include "../resources/resource.h"
-#include "../resources/resourcemanager.h"
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -145,19 +143,19 @@ namespace killme
             std::shared_ptr<BasicShader> shaderBase;
             if (ref.first == ShaderType::vertex)
             {
-                const auto shader = resourceManager.getAccessor<VertexShader>(bound.path, true);
+                const Resource<VertexShader> shader(resourceManager, bound.path);
                 pipelineDesc.vertexShader = shader;
                 eachShaders.emplace(shader.access(), bound);
             }
             else if (ref.first == ShaderType::pixel)
             {
-                const auto shader = resourceManager.getAccessor<PixelShader>(bound.path, true);
+                const Resource<PixelShader> shader(resourceManager, bound.path);
                 pipelineDesc.pixelShader = shader;
                 eachShaders.emplace(shader.access(), bound);
             }
             else if (ref.first == ShaderType::geometry)
             {
-                const auto shader = resourceManager.getAccessor<GeometryShader>(bound.path, true);
+                const Resource<GeometryShader> shader(resourceManager, bound.path);
                 pipelineDesc.geometryShader = shader;
                 eachShaders.emplace(shader.access(), bound);
             }

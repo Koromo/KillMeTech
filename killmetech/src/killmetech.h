@@ -2,22 +2,19 @@
 #define _KILLME_KILLMETECH_H_
 
 #include "engine/actor.h"
-#include "engine/actordesigner.h"
-#include "engine/leveldesigner.h"
-#include "engine/world.h"
 #include "engine/debug.h"
 #include "engine/runtime.h"
-#include "engine/processes.h"
-#include "engine/audio.h"
-#include "engine/physics.h"
-#include "engine/graphics.h"
-#include "engine/events.h"
-#include "engine/inputs.h"
-#include "engine/resources.h"
+#include "engine/audiosystem.h"
+#include "engine/graphicssystem.h"
+#include "engine/resourcemanagesystem.h"
+#include "engine/inputmanager.h"
+#include "engine/keycode.h"
+#include "engine/level.h"
+#include "engine/eventutil.h"
 #include "engine/components/actorcomponent.h"
 #include "engine/components/transformcomponent.h"
-#include "engine/components/audioemittercomponent.h"
-#include "engine/components/audiolistenercomponent.h"
+#include "engine/components/audiocomponent.h"
+#include "engine/components/listenercomponent.h"
 #include "engine/components/cameracomponent.h"
 #include "engine/components/lightcomponent.h"
 #include "engine/components/meshcomponent.h"
@@ -34,14 +31,11 @@
 #include "physics/physicsworld.h"
 #include "physics/rigidbody.h"
 
-#include "audio/audio3d.h"
 #include "audio/audioclip.h"
-#include "audio/audioengine.h"
+#include "audio/audiomanager.h"
+#include "audio/audioworld.h"
 #include "audio/sourcevoice.h"
 #include "audio/xaudiosupport.h"
-
-#include "hid/inputstatus.h"
-#include "hid/keycode.h"
 
 #include "scene/camera.h"
 #include "scene/light.h"
@@ -50,11 +44,8 @@
 #include "scene/effecttechnique.h"
 #include "scene/effectpass.h"
 #include "scene/mesh.h"
-#include "scene/meshentity.h"
-#include "scene/renderqueue.h"
+#include "scene/meshinstance.h"
 #include "scene/scene.h"
-#include "scene/sceneentity.h"
-#include "scene/scenenode.h"
 #include "scene/debugdrawmanager.h"
 
 #include "import/fbxmeshimporter.h"
@@ -95,7 +86,7 @@
 #include "core/math/transform.h"
 #include "core/math/vector3.h"
 
-#ifdef KILLME_USING_NAMESPACE
+#ifndef KILLME_NO_INCLUDE_NAMESPACE
 using namespace killme;
 #endif
 

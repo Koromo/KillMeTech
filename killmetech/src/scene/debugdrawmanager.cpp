@@ -20,7 +20,7 @@ namespace killme
 {
     DebugDrawManager debugDrawManager;
 
-    void DebugDrawManager::startup(const std::shared_ptr<RenderSystem>& renderSystem)
+    void DebugDrawManager::initialize(const std::shared_ptr<RenderSystem>& renderSystem)
     {
         renderSystem_ = renderSystem;
 
@@ -35,12 +35,8 @@ namespace killme
 
         const auto rootSig = renderSystem_->createRootSignature(rootSigDesc);
 
-        const auto vs = Resource<VertexShader>(
-            [] { return compileHlslShader<VertexShader>(toCharSet("media/debugdraw_vs.vhlsl")); },
-            nullptr);
-        const auto ps = Resource<PixelShader>(
-            [] { return compileHlslShader<PixelShader>(toCharSet("media/debugdraw_ps.phlsl")); },
-            nullptr);
+        const auto vs = Resource<VertexShader>([] { return compileHlslShader<VertexShader>(toCharSet("media/debugdraw_vs.vhlsl")); });
+        const auto ps = Resource<PixelShader>([] { return compileHlslShader<PixelShader>(toCharSet("media/debugdraw_ps.phlsl")); });
 
         PipelineStateDescription pipelineDesc;
         pipelineDesc.rootSignature = rootSig;
@@ -62,7 +58,7 @@ namespace killme
         clear();
     }
 
-    void DebugDrawManager::shutdown()
+    void DebugDrawManager::finalize()
     {
         pipeline_.reset();
         viewProjHeap_.reset();

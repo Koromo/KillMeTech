@@ -28,9 +28,6 @@
     <Filter Include="src\processes">
       <UniqueIdentifier>{49a40820-ee69-44ae-b530-7a8631361825}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\scene">
-      <UniqueIdentifier>{0883153e-8597-4155-afbd-e47cabd61863}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\engine">
       <UniqueIdentifier>{2d422d0b-9602-4a69-b9a4-ebdee9b0d04e}</UniqueIdentifier>
     </Filter>
@@ -40,11 +37,11 @@
     <Filter Include="src\events">
       <UniqueIdentifier>{0552df4d-d6f2-48c6-b0d4-5e52cc4ca5ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\hid">
-      <UniqueIdentifier>{f00b0e90-52b6-48d2-ac6a-ddcd3f7376a9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\engine\components">
       <UniqueIdentifier>{d79f53fb-c9aa-4e2f-bda1-39cc53b45807}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\scene">
+      <UniqueIdentifier>{0883153e-8597-4155-afbd-e47cabd61863}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -102,14 +99,8 @@
     <ClCompile Include="src\physics\rigidbody.cpp">
       <Filter>src\physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\resources\resource.cpp">
-      <Filter>src\resources</Filter>
-    </ClCompile>
     <ClCompile Include="src\resources\resourcemanager.cpp">
       <Filter>src\resources</Filter>
-    </ClCompile>
-    <ClCompile Include="src\audio\audioengine.cpp">
-      <Filter>src\audio</Filter>
     </ClCompile>
     <ClCompile Include="src\physics\physicsworld.cpp">
       <Filter>src\physics</Filter>
@@ -117,58 +108,16 @@
     <ClCompile Include="src\scene\material.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\meshentity.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\scene\scene.cpp">
       <Filter>src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\scene\scenenode.cpp">
-      <Filter>src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\processes\process.cpp">
-      <Filter>src\processes</Filter>
-    </ClCompile>
-    <ClCompile Include="src\processes\processscheduler.cpp">
-      <Filter>src\processes</Filter>
     </ClCompile>
     <ClCompile Include="src\import\fbxmeshimporter.cpp">
       <Filter>src\import</Filter>
     </ClCompile>
-    <ClCompile Include="src\events\eventdispatcher.cpp">
-      <Filter>src\events</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\events.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hid\inputstatus.cpp">
-      <Filter>src\hid</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\inputs.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\audio.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\resources.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\actor.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\world.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\runtime.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\processes.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\graphics.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\physics.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
     <ClCompile Include="src\scene\debugdrawmanager.cpp">
@@ -177,12 +126,6 @@
     <ClCompile Include="src\engine\debug.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\components\audioemittercomponent.cpp">
-      <Filter>src\engine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\components\audiolistenercomponent.cpp">
-      <Filter>src\engine\components</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\components\cameracomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
@@ -190,9 +133,6 @@
       <Filter>src\engine\components</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\components\rigidbodycomponent.cpp">
-      <Filter>src\engine\components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\components\transformcomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
     <ClCompile Include="src\scene\effecttechnique.cpp">
@@ -221,6 +161,45 @@
     </ClCompile>
     <ClCompile Include="src\renderer\shaders.cpp">
       <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\events\eventdispatcher.cpp">
+      <Filter>src\events</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\math\transform.cpp">
+      <Filter>src\core\math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\listenercomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\audiocomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\audio\audiomanager.cpp">
+      <Filter>src\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\audio\audioworld.cpp">
+      <Filter>src\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\level.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\actorcomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\transformcomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\graphicssystem.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\resourcemanagesystem.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\audiosystem.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\inputmanager.cpp">
+      <Filter>src\engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -305,9 +284,6 @@
     <ClInclude Include="src\core\utility.h">
       <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\audio\audio3d.h">
-      <Filter>src\audio</Filter>
-    </ClInclude>
     <ClInclude Include="src\physics\collisionshape.h">
       <Filter>src\physics</Filter>
     </ClInclude>
@@ -329,9 +305,6 @@
     <ClInclude Include="src\resources\resourcemanager.h">
       <Filter>src\resources</Filter>
     </ClInclude>
-    <ClInclude Include="src\audio\audioengine.h">
-      <Filter>src\audio</Filter>
-    </ClInclude>
     <ClInclude Include="src\physics\physicsworld.h">
       <Filter>src\physics</Filter>
     </ClInclude>
@@ -342,21 +315,6 @@
       <Filter>src\scene</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\mesh.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\meshentity.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\scene.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\sceneentity.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\scenenode.h">
-      <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\renderqueue.h">
       <Filter>src\scene</Filter>
     </ClInclude>
     <ClInclude Include="src\processes\process.h">
@@ -371,56 +329,20 @@
     <ClInclude Include="src\import\fbxsupport.h">
       <Filter>src\import</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\inputs.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\events.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\events\event.h">
       <Filter>src\events</Filter>
     </ClInclude>
     <ClInclude Include="src\events\eventdispatcher.h">
       <Filter>src\events</Filter>
     </ClInclude>
-    <ClInclude Include="src\hid\inputstatus.h">
-      <Filter>src\hid</Filter>
-    </ClInclude>
-    <ClInclude Include="src\hid\keycode.h">
-      <Filter>src\hid</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\audio.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\resources.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\actor.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\world.h">
       <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\runtime.h">
       <Filter>src\engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\processes.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\leveldesigner.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\actordesigner.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\killmetech.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\graphics.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\physics.h">
-      <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\debugdrawmanager.h">
       <Filter>src\scene</Filter>
@@ -429,12 +351,6 @@
       <Filter>src\engine</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\components\actorcomponent.h">
-      <Filter>src\engine\components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\components\audioemittercomponent.h">
-      <Filter>src\engine\components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\components\audiolistenercomponent.h">
       <Filter>src\engine\components</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\components\cameracomponent.h">
@@ -469,6 +385,45 @@
     </ClInclude>
     <ClInclude Include="src\renderer\shaders.h">
       <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\listenercomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\audiocomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\level.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scene.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audiomanager.h">
+      <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\audio\audioworld.h">
+      <Filter>src\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\meshinstance.h">
+      <Filter>src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\graphicssystem.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\resourcemanagesystem.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\audiosystem.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\inputmanager.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\keycode.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\eventutil.h">
+      <Filter>src\engine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

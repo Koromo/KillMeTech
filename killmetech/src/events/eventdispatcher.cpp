@@ -1,21 +1,55 @@
 #include "eventdispatcher.h"
-#include "event.h"
-#include "../core/string.h"
+#include "../core/utility.h"
+#include <unordered_map>
 
 namespace killme
 {
-    EventDispatcher eventDispatcher;
-
-    detail::Disconnector::~Disconnector()
+    namespace detail
     {
-        disconnect();
-    }
-
-    void detail::Disconnector::disconnect()
-    {
-        if (const auto o = owner.lock())
+        struct DispatcherImpl
         {
-            o->disconnect(type, id);
+            std::unordered_multimap<std::string, std::pair<size_t, EventDispatcher::EventHook>> hookMap_;
+            UniqueCounter<size_t> uniqueId_;
+
+        public:
+            size_t connect(const std::string& type, EventDispatcher::EventHook hook)
+            {
+                const auto id = uniqueId_();
+                hookMap_.emplace(type, std::make_pair(id, hook));
+                return id;
+            }
+
+            void disconnect(const std::string& type, size_t id)
+            {
+                auto range = hookMap_.equal_range(type);
+                while (range.first != range.second)
+                {
+                    if (range.first->second.first == id)
+                    {
+                        hookMap_.erase(range.first);
+                        return;
+                    }
+                    ++range.first;
+                }
+            }
+
+            void emit(const Event& e)
+            {
+                auto range = hookMap_.equal_range(toLowers(e.getType()));
+                while (range.first != range.second)
+                {
+                    range.first->second.second(e);
+                    ++range.first;
+                }
+            }
+        };
+
+        Disconnector::~Disconnector()
+        {
+            if (const auto d = dispatcher.lock())
+            {
+                d->disconnect(type, id);
+            }
         }
     }
 
@@ -26,53 +60,28 @@ namespace killme
 
     void EventConnection::disconnect()
     {
-        if (disconnector_)
-        {
-            disconnector_.reset();
-        }
+        disconnector_.reset();
     }
 
     EventDispatcher::EventDispatcher()
-        : hookMap_()
-        , idCounter_(0)
+        : impl_(std::make_shared<detail::DispatcherImpl>())
     {
     }
 
     EventConnection EventDispatcher::connect(const std::string& type, EventHook hook)
     {
         const auto lowers = toLowers(type);
-        const auto id = idCounter_++;
-        hookMap_.emplace(toLowers(type), std::make_pair(id, hook));
+        const auto id = impl_->connect(lowers, hook);
 
         const auto disconnector = std::make_shared<detail::Disconnector>();
         disconnector->id = id;
         disconnector->type = lowers;
-        disconnector->owner = shared_from_this();
-
+        disconnector->dispatcher = impl_;
         return EventConnection(disconnector);
-    }
-
-    void EventDispatcher::disconnect(const std::string& type, size_t id)
-    {
-        auto range = hookMap_.equal_range(toLowers(type));
-        while (range.first != range.second)
-        {
-            if (range.first->second.first == id)
-            {
-                hookMap_.erase(range.first);
-                return;
-            }
-            ++range.first;
-        }
     }
 
     void EventDispatcher::emit(const Event& e)
     {
-        auto range = hookMap_.equal_range(toLowers(e.getType()));
-        while (range.first != range.second)
-        {
-            range.first->second.second(e);
-            ++range.first;
-        }
+        impl_->emit(e);
     }
 }

@@ -4,29 +4,39 @@
 #include <utility>
 #include <type_traits>
 
+/** Generate unique id */
+#ifdef __COUNTER__
+#define KILLME_ID __COUNTER__
+#elif
+#define KILLME_ID __LINE__
+#endif
+
+/** Cat string */
+#define KILLME_CAT(a, b) (a ## b)
+
 namespace killme
 {
     namespace detail
     {
         template <class It>
-        struct RangeFromIterator
+        struct IteratorRange
         {
             It begin_;
             It end_;
 
-            RangeFromIterator() = default;
+            IteratorRange() = default;
 
-            RangeFromIterator(It begin, It end)
+            IteratorRange(It begin, It end)
                 : begin_(begin)
                 , end_(end)
             {
             }
 
-            RangeFromIterator(const RangeFromIterator&) = default;
-            RangeFromIterator(RangeFromIterator&&) = default;
+            IteratorRange(const IteratorRange&) = default;
+            IteratorRange(IteratorRange&&) = default;
 
-            RangeFromIterator& operator =(const RangeFromIterator&) = default;
-            RangeFromIterator& operator =(RangeFromIterator&&) = default;
+            IteratorRange& operator =(const IteratorRange&) = default;
+            IteratorRange& operator =(IteratorRange&&) = default;
 
             It begin() const
             {
@@ -40,104 +50,120 @@ namespace killme
         };
 
         template <class C>
-        struct RangeWithMove
+        struct EmplaceRange
         {
             C c_;
 
-            RangeWithMove() = default;
+            EmplaceRange() = default;
 
-            RangeWithMove(C&& c)
+            EmplaceRange(C&& c)
                 : c_(std::move(c))
             {
             }
 
-            RangeWithMove(RangeWithMove&& rhs)
+            EmplaceRange(EmplaceRange&& rhs)
                 : c_(std::move(rhs.c_))
             {
             }
 
-            RangeWithMove(const RangeWithMove&) = delete;
+            EmplaceRange(const EmplaceRange&) = delete;
 
-            RangeWithMove& operator =(RangeWithMove&& rhs)
+            EmplaceRange& operator =(EmplaceRange&& rhs)
             {
                 c_ = std::move(rhs.c_);
                 return *this;
             }
 
-            RangeWithMove& operator =(const RangeWithMove&) = delete;
+            EmplaceRange& operator =(const EmplaceRange&) = delete;
 
-            auto begin() const
+            auto begin()
                 -> decltype(std::begin(c_))
             {
                 return std::begin(c_);
             }
 
-            auto end() const
+            auto end()
                 -> decltype(std::end(c_))
             {
                 return std::end(c_);
+            }
+
+            auto begin() const
+                -> decltype(std::cbegin(c_))
+            {
+                return std::cbegin(c_);
+            }
+
+            auto end() const
+                -> decltype(std::cend(c_))
+            {
+                return std::cend(c_);
             }
         };
     }
 
     /** Create a range from an iterator range */
     template <class It>
-    detail::RangeFromIterator<It> makeRange(It begin, It end)
+    auto iteratorRange(It begin, It end)
+        -> decltype(detail::IteratorRange<It>(begin, end))
     {
-        return detail::RangeFromIterator<It>(begin, end);
+        return detail::IteratorRange<It>(begin, end);
     }
 
     /** Create a range from a container */
     template <class C>
-    auto makeRange(const C& c)
-        -> decltype(makeRange(std::cbegin(c), std::cend(c)))
+    auto constRange(const C& c)
+        -> decltype(iteratorRange(std::cbegin(c), std::cend(c)))
     {
-        return makeRange(std::cbegin(c), std::cend(c));
+        return iteratorRange(std::cbegin(c), std::cend(c));
     }
 
     /** ditto */
     template <class C>
-    auto makeRange(C& c)
-        -> decltype(makeRange(std::begin(c), std::end(c)))
+    auto mutableRange(C& c)
+        -> decltype(iteratorRange(std::begin(c), std::end(c)))
     {
-        return makeRange(std::begin(c), std::end(c));
+        return iteratorRange(std::begin(c), std::end(c));
     }
 
-    /** Create a range with move a right value container */
+    /** ditto */
     template <class C>
-    detail::RangeWithMove<C> makeRange(C&& c)
+    auto emplaceRange(C&& c)
+        -> decltype(detail::EmplaceRange<C>(std::move(c)))
     {
-        return detail::RangeWithMove<C>(std::move(c));
+        return detail::EmplaceRange<C>(std::move(c));
     }
-
-    /** Alias of decltype(makeRange(C)) */
-    template <class C>
-    using Range = decltype(makeRange(std::forward<C>(std::declval<C>())));
 
     namespace detail
     {
         template <class T>
-        struct TypeTagGen
+        struct TypeNumberGen
         {
             static void id() {}
         };
     }
 
-    /** Type tag */
-    using TypeTag = void(*)();
+    /** Unique type number */
+    using TypeNumber = void(*)();
 
-    /*
-    /// NOTE: From C++14
+    /** Return the type number */
     template <class T>
-    TypeTag typeTag = detail::TypeTagGen<T>::id;
-    */
-
-    /** Return type tag */
-    template <class T>
-    TypeTag typeTag() noexcept
+    TypeNumber typeNumber() noexcept
     {
-        return detail::TypeTagGen<T>::id;
+        return detail::TypeNumberGen<T>::id;
     }
+
+    /** Unique id generator */
+    template <class T>
+    class UniqueCounter
+    {
+    private:
+        T cnt_;
+
+    public:
+        UniqueCounter() : cnt_(0) {}
+        T operator ()() { return cnt_++; }
+    };
 
     /** Type converter */
     template <class T, class U>

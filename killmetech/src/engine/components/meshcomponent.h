@@ -2,27 +2,37 @@
 #define _KILLME_MESHCOMPONENT_H_
 
 #include "transformcomponent.h"
-#include "../resources.h"
+#include "../../resources/resource.h"
 #include <memory>
+#include <string>
 
 namespace killme
 {
     class Mesh;
-    class SubMesh;
-    class MeshEntity;
+    class Submesh;
+    class MeshInstance;
 
     /** The mesh component adds rendered mesh into an actor */
     class MeshComponent : public TransformComponent
     {
+        KILLME_COMPONENT_DEFINE(MeshComponent)
+
     private:
-        std::shared_ptr<MeshEntity> entity_;
+        std::shared_ptr<MeshInstance> inst_;
 
     public:
         /** Construct */
         explicit MeshComponent(const Resource<Mesh>& mesh);
 
-        /** Return the sub mesh */
-        std::shared_ptr<SubMesh> findSubMesh(const std::string& name);
+        /** Return the submesh */
+        std::shared_ptr<Submesh> findSubmesh(const std::string& name);
+
+        void onTranslated();
+        void onRotated();
+        void onScaled();
+
+        void onActivate();
+        void onDeactivate();
     };
 }
 

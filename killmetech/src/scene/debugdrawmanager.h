@@ -2,7 +2,6 @@
 #define _KILLME_DEBUGDRAWMANAGER_H_
 
 #include "../renderer/renderstate.h"
-#include "../core/platform.h"
 #include <memory>
 #include <vector>
 
@@ -16,8 +15,6 @@ namespace killme
     class RenderSystem;
     class Camera;
     struct FrameResource;
-
-#ifdef KILLME_DEBUG
 
     /** Debug drawer */
     class DebugDrawManager
@@ -34,10 +31,10 @@ namespace killme
 
     public:
         /** Initialize */
-        void startup(const std::shared_ptr<RenderSystem>& renderSystem);
+        void initialize(const std::shared_ptr<RenderSystem>& renderSystem);
 
         /** Finalize */
-        void shutdown();
+        void finalize();
 
         /** Add line */
         void line(const Vector3& from, const Vector3& to, const Color& color);
@@ -48,20 +45,6 @@ namespace killme
         /** Draw */
         void debugDraw(const Camera& camera, const FrameResource& frame);
     };
-
-#else
-
-    class DebugDrawManager
-    {
-    public:
-        void startup(const std::shared_ptr<RenderSystem>&) {}
-        void shutdown() {}
-        void line(const Vector3&, const Vector3&, const Color&) {}
-        void clear() {}
-        void debugDraw(const Camera&, const FrameResource&) {}
-    };
-
-#endif
 
     extern DebugDrawManager debugDrawManager;
 }

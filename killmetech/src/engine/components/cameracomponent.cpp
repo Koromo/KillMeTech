@@ -1,14 +1,16 @@
 #include "cameracomponent.h"
-#include "../graphics.h"
-#include "../processes.h"
+#include "../level.h"
+#include "../graphicssystem.h"
 #include "../../scene/camera.h"
+#include "../../scene/scene.h"
 
 namespace killme
 {
     CameraComponent::CameraComponent()
-        : camera_(std::make_shared<Camera>(Graphics::getClientViewport()))
-        , process_()
+        : camera_(std::make_shared<Camera>(graphicsSystem.getClientViewport()))
+        , setToMainCamera_(false)
     {
+        enableReceiveMove(true);
     }
 
     void CameraComponent::setViewport(const Viewport& vp)
@@ -36,23 +38,49 @@ namespace killme
         camera_->setFarZ(z);
     }
 
-    void CameraComponent::onAttached()
+    void CameraComponent::enable()
     {
-        TransformComponent::onAttached();
-        process_ = Processes::start([&] { tickScene(); }, PROCESS_PRIORITY_SCENE);
-        Graphics::setMainCamera(camera_);
+        if (isActive())
+        {
+            getOwnerLevel().getGraphicsWorld().setMainCamera(camera_);
+        }
+        else
+        {
+            setToMainCamera_ = true;
+        }
     }
 
-    void CameraComponent::onDettached()
+    void CameraComponent::disable()
     {
-        TransformComponent::onDettached();
-        Graphics::setMainCamera(nullptr);
-        process_.kill();
+        if (isActive() && getOwnerLevel().getGraphicsWorld().getMainCamera() == camera_)
+        {
+            getOwnerLevel().getGraphicsWorld().setMainCamera(nullptr);
+        }
     }
 
-    void CameraComponent::tickScene()
+    void CameraComponent::onTranslated()
     {
         camera_->setPosition(getWorldPosition());
+    }
+
+    void CameraComponent::onRotated()
+    {
         camera_->setOrientation(getWorldOrientation());
+    }
+
+    void CameraComponent::onActivate()
+    {
+        getOwnerLevel().getGraphicsWorld().addCamera(camera_);
+        if (setToMainCamera_)
+        {
+            enable();
+            setToMainCamera_ = false;
+        }
+    }
+
+    void CameraComponent::onDeactivate()
+    {
+        disable();
+        getOwnerLevel().getGraphicsWorld().removeCamera(camera_);
     }
 }
