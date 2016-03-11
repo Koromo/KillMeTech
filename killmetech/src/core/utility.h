@@ -153,6 +153,54 @@ namespace killme
         return detail::TypeNumberGen<T>::id;
     }
 
+    /** Index sequence */
+    template <size_t... Indices>
+    struct IndexSequence
+    {
+        static constexpr size_t length = sizeof...(Indices);
+    };
+
+    namespace detail
+    {
+        // Sequence {0...M-1, Indices...}
+        template <size_t M, size_t... Indices>
+        struct IndexSequenceImpl : IndexSequenceImpl<M - 1, M - 1, Indices...>
+        {
+        };
+
+        template <size_t... Indices>
+        struct IndexSequenceImpl<0, Indices...>
+        {
+            using Seq = IndexSequence<Indices...>;
+        };
+    }
+
+    /** Create [0, N) sequence */
+    template <size_t N>
+    auto makeIndexSequence()
+        -> typename detail::IndexSequenceImpl<N>::Seq
+    {
+        return typename detail::IndexSequenceImpl<N>::Seq();
+    }
+
+    namespace detail
+    {
+        template <size_t N, class Arg, class... Args>
+        struct NthTypeImpl : NthTypeImpl<N - 1, Args...>
+        {
+        };
+
+        template <class Arg, class... Args>
+        struct NthTypeImpl<0, Arg, Args...>
+        {
+            using Type = Arg;
+        };
+    }
+
+    /** N'th type in argments */
+    template <size_t N, class... Args>
+    using NthType = typename detail::NthTypeImpl<N, Args...>::Type;
+
     /** Unique id generator */
     template <class T>
     class UniqueCounter

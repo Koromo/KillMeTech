@@ -54,7 +54,7 @@ namespace killme
             const auto check = actors_.emplace(actorName, actor);
             assert(check.second && ("Conflict actor name \'" + actorName + "\'.").c_str());
 
-            actor->spawned(this, name);
+            actor->spawned(this, actorName);
             if (activate)
             {
                 actor->activate();

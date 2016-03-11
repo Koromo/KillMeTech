@@ -5,6 +5,21 @@
 
 namespace killme
 {
+    Collider::Collider(RigidBodyComponent* body)
+        : body_(body)
+    {
+    }
+
+    RigidBodyComponent& Collider::getBody() const
+    {
+        return *body_;
+    }
+
+    Actor& Collider::getActor() const
+    {
+        return body_->getOwnerActor();
+    }
+
     void RigidBodyComponent::Listener::onMoved(const Vector3& pos, const Quaternion& q)
     {
         owner->setMoveRecievable(false);
@@ -15,7 +30,7 @@ namespace killme
 
     void RigidBodyComponent::Listener::onCollided(RigidBody& collider)
     {
-        owner->getOwnerActor().emit(ACTOR_Collided, *owner, *static_cast<RigidBodyComponent*>(collider.getUserPointer()));
+        owner->getOwnerActor().emit(ACTOR_Collided, Collider(owner), Collider(static_cast<RigidBodyComponent*>(collider.getUserPointer())));
     }
 
     RigidBodyComponent::RigidBodyComponent(const std::shared_ptr<CollisionShape>& shape, float mass)

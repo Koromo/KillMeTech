@@ -37,7 +37,7 @@ namespace killme
             {
                 btPersistentManifold* contactManifold = world->getDispatcher()->getManifoldByIndexInternal(i);
                 auto objA = static_cast<RigidBody*>(contactManifold->getBody0()->getUserPointer());
-                auto objB = static_cast<RigidBody*>(contactManifold->getBody0()->getUserPointer());
+                auto objB = static_cast<RigidBody*>(contactManifold->getBody1()->getUserPointer());
                 if (objA < objB)
                 {
                     cllidedObjects->operator[](objA).emplace(objB);

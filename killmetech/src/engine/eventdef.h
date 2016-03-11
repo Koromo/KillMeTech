@@ -56,10 +56,10 @@ namespace killme
 
     /** Actor event definitions */
     /**
-     *  0 RigidBodyComponent: Collided body of this actor
-     *  1 RigidBodyComponent: Collided body of other actor
+     *  0 Collider: Collided body of self actor
+     *  1 Collider: Collided body of other actor
      */
-    KILLME_DEFINE_ACTOR_EVENT(Collided, RigidBodyComponent, RigidBodyComponent);
+    KILLME_DEFINE_ACTOR_EVENT(Collided, Collider, Collider);
 
     /** Component event definitions */
 
@@ -67,24 +67,49 @@ namespace killme
     namespace detail
     {
         template <class C, class R, class... Args>
-        R unpackEventCall(R(*fun)(Args...), C&&, const Event& e)
+        struct UnpackEventCall
         {
-            size_t i = e.num();
-            return fun(to<Args>(e[--i])...);
+            template <class Fun>
+            static R call(Fun fun, C& c, const Event& e)
+            {
+                return impl(fun, c, e, makeIndexSequence<sizeof...(Args)>());
+            }
+
+            template <size_t... Indices>
+            static R impl(R(*fun)(Args...), C&, const Event& e, IndexSequence<Indices...>)
+            {
+                return fun(to<NthType<Indices, Args...>>(e[Indices])...);
+            }
+
+            template <size_t... Indices>
+            static R impl(R(C::*fun)(Args...), C& c, const Event& e, IndexSequence<Indices...>)
+            {
+                return (c.*fun)(to<NthType<Indices, Args...>>(e[Indices])...);
+            }
+
+            template <size_t... Indices>
+            static R impl(R(C::*fun)(Args...) const, C& c, const Event& e, IndexSequence<Indices...>)
+            {
+                return (c.*fun)(to<NthType<Indices, Args...>>(e[Indices])...);
+            }
+        };
+
+        template <class C, class R, class... Args>
+        R unpackEventCall(R(*fun)(Args...), C& c, const Event& e)
+        {
+            return UnpackEventCall<C, R, Args...>::call(fun, c, e);
         }
 
         template <class C, class R, class... Args>
         R unpackEventCall(R(C::*fun)(Args...), C& c, const Event& e)
         {
-            size_t i = e.num();
-            return (c.*fun)(to<Args>(e[--i])...);
+            return UnpackEventCall<C, R, Args...>::call(fun, c, e);
         }
 
         template <class C, class R, class... Args>
-        R unpackEventCall(R(C::*fun)(Args...) const, const C& c, const Event& e)
+        R unpackEventCall(R(C::*fun)(Args...) const, C& c, const Event& e)
         {
-            size_t i = e.num();
-            return (c.*fun)(to<Args>(e[--i])...);
+            return UnpackEventCall<C, R, Args...>::call(fun, c, e);
         }
 
         struct EventHookInfo

@@ -50,12 +50,6 @@ namespace killme
         {
             return params_[i];
         }
-
-        /** Return count of parameters */
-        size_t num() const
-        {
-            return params_.size();
-        }
     };
 }
 

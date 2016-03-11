@@ -8,6 +8,25 @@
 namespace killme
 {
     class CollisionShape;
+    class Actor;
+    class RigidBodyComponent;
+
+    /** An argment of LEVEL_Collided */
+    class Collider
+    {
+    private:
+        RigidBodyComponent* body_;
+
+    public:
+        /** Construct */
+        explicit Collider(RigidBodyComponent* body);
+
+        /** Return collided body */
+        RigidBodyComponent& getBody() const;
+
+        /** Return owner actor */
+        Actor& getActor() const;
+    };
 
     /** The rigid body component defines of physics body into an actor */
     class RigidBodyComponent : public TransformComponent
