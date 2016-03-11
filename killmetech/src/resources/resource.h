@@ -14,6 +14,9 @@ namespace killme
     {
     public:
         virtual ~IsResource() = default;
+
+    protected:
+        IsResource() = default;
     };
 
     /** Resource accessor */

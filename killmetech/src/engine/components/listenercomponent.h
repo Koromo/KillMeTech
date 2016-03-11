@@ -11,21 +11,19 @@ namespace killme
     /** The listener component defines listening audio into an actor */
     class ListenerComponent : public TransformComponent
     {
-        KILLME_COMPONENT_DEFINE(ListenerComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(ListenerComponent)
+        KILLME_COMPONENT_DEFINE_END
 
     private:
         std::shared_ptr<AudioListener> listener_;
-        bool setToMainListener_;
+        bool isMainListener_;
 
     public:
         /** Construct */
         ListenerComponent();
 
-        /** Set this listener as the main listener */
-        void enable();
-
-        /** Set this listener as the non main listener */
-        void disable();
+        /** If true, set this listener as the main listener */
+        void setEnable(bool enable);
 
         void onTranslated();
         void onRotated();

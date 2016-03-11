@@ -36,9 +36,9 @@
     <ClCompile Include="src\engine\audiosystem.cpp" />
     <ClCompile Include="src\engine\components\actorcomponent.cpp" />
     <ClCompile Include="src\engine\components\audiocomponent.cpp" />
-    <ClCompile Include="src\engine\components\listenercomponent.cpp" />
     <ClCompile Include="src\engine\components\cameracomponent.cpp" />
     <ClCompile Include="src\engine\components\lightcomponent.cpp" />
+    <ClCompile Include="src\engine\components\listenercomponent.cpp" />
     <ClCompile Include="src\engine\components\meshcomponent.cpp" />
     <ClCompile Include="src\engine\components\rigidbodycomponent.cpp" />
     <ClCompile Include="src\engine\components\transformcomponent.cpp" />
@@ -94,14 +94,14 @@
     <ClInclude Include="src\engine\audiosystem.h" />
     <ClInclude Include="src\engine\components\actorcomponent.h" />
     <ClInclude Include="src\engine\components\audiocomponent.h" />
-    <ClInclude Include="src\engine\components\listenercomponent.h" />
     <ClInclude Include="src\engine\components\cameracomponent.h" />
     <ClInclude Include="src\engine\components\lightcomponent.h" />
+    <ClInclude Include="src\engine\components\listenercomponent.h" />
     <ClInclude Include="src\engine\components\meshcomponent.h" />
     <ClInclude Include="src\engine\components\rigidbodycomponent.h" />
     <ClInclude Include="src\engine\components\transformcomponent.h" />
     <ClInclude Include="src\engine\debug.h" />
-    <ClInclude Include="src\engine\eventutil.h" />
+    <ClInclude Include="src\engine\eventdef.h" />
     <ClInclude Include="src\engine\graphicssystem.h" />
     <ClInclude Include="src\engine\inputmanager.h" />
     <ClInclude Include="src\engine\keycode.h" />

@@ -12,11 +12,12 @@ namespace killme
     /** The camera component defines virtual camera for render scene into an actor */
     class CameraComponent : public TransformComponent
     {
-        KILLME_COMPONENT_DEFINE(CameraComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(CameraComponent)
+        KILLME_COMPONENT_DEFINE_END
 
     private:
         std::shared_ptr<Camera> camera_;
-        bool setToMainCamera_;
+        bool isMainCamera_;
 
     public:
         /** Construct */
@@ -31,11 +32,8 @@ namespace killme
         void setNearZ(float z);
         void setFarZ(float z);
 
-        /** Set this camera as the main camera */
-        void enable();
-
-        /** Set this camera as the non main camera */
-        void disable();
+        /** If true, set this camera as the main camera */
+        void setEnable(bool enable);
 
         void onTranslated();
         void onRotated();

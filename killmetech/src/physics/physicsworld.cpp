@@ -7,8 +7,10 @@
 #include <BulletCollision/CollisionDispatch/btCollisionDispatcher.h>
 #include <BulletCollision/BroadphaseCollision/btDbvtBroadphase.h>
 #include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
+#include <BulletDynamics/Dynamics/btDynamicsWorld.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <algorithm>
+#include <unordered_map>
 #include <cassert>
 
 namespace killme
@@ -25,6 +27,29 @@ namespace killme
     void PhysicsDebugDrawer::setDebugMode(int) {}
     int PhysicsDebugDrawer::getDebugMode() const { return btIDebugDraw::DBG_DrawWireframe; }
 
+    namespace
+    {
+        void tickCallback(btDynamicsWorld* world, btScalar)
+        {
+            const auto cllidedObjects = static_cast<std::unordered_map<RigidBody*, std::unordered_set<RigidBody*>>*>(world->getWorldUserInfo());
+            const auto numManifolds = world->getDispatcher()->getNumManifolds();
+            for (int i = 0; i < numManifolds; i++)
+            {
+                btPersistentManifold* contactManifold = world->getDispatcher()->getManifoldByIndexInternal(i);
+                auto objA = static_cast<RigidBody*>(contactManifold->getBody0()->getUserPointer());
+                auto objB = static_cast<RigidBody*>(contactManifold->getBody0()->getUserPointer());
+                if (objA < objB)
+                {
+                    cllidedObjects->operator[](objA).emplace(objB);
+                }
+                else
+                {
+                    cllidedObjects->operator[](objB).emplace(objA);
+                }
+            }
+        }
+    }
+
     PhysicsWorld::PhysicsWorld()
         : config_()
         , dispather_()
@@ -38,6 +63,7 @@ namespace killme
         broadphase_ = std::make_unique<btDbvtBroadphase>();
         solver_ = std::make_unique<btSequentialImpulseConstraintSolver>();
         world_ = std::make_unique<btDiscreteDynamicsWorld>(dispather_.get(), broadphase_.get(), solver_.get(), config_.get());
+        world_->setInternalTickCallback(tickCallback);
     }
     
     PhysicsWorld::~PhysicsWorld()
@@ -76,8 +102,22 @@ namespace killme
 
     void PhysicsWorld::stepSimulation(float dt_s)
     {
-        const auto fixedTimeStep = 0.01666666754f;
-        world_->stepSimulation(dt_s, static_cast<int>(dt_s / fixedTimeStep + 1.0001f), fixedTimeStep);
+        static const auto FIXED_TIME_STEP = 0.01666666754f;
+        std::unordered_map<RigidBody*, std::unordered_set<RigidBody*>> collidedObjects;
+
+        world_->setWorldUserInfo(&collidedObjects);
+        world_->stepSimulation(dt_s, static_cast<int>(dt_s / FIXED_TIME_STEP + 1.0001f), FIXED_TIME_STEP);
+        world_->setWorldUserInfo(nullptr);
+
+        for (const auto& objA : collidedObjects)
+        {
+            for (const auto& objB : objA.second)
+            {
+                objA.first->notifyCollision(*objB);
+                objB->notifyCollision(*objA.first);
+            }
+        }
+
         if (debugDrawer_)
         {
             world_->debugDrawWorld();

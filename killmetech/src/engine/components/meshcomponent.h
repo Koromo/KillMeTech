@@ -15,7 +15,8 @@ namespace killme
     /** The mesh component adds rendered mesh into an actor */
     class MeshComponent : public TransformComponent
     {
-        KILLME_COMPONENT_DEFINE(MeshComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(MeshComponent)
+        KILLME_COMPONENT_DEFINE_END
 
     private:
         std::shared_ptr<MeshInstance> inst_;

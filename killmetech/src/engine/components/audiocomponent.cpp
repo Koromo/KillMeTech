@@ -12,7 +12,7 @@ namespace killme
         , localVoice_(audioSystem.createSourceVoice(clip))
     {
         emitter_->voice = audioSystem.createSourceVoice(clip);
-        enableReceiveMove(true);
+        setMoveRecievable(true);
     }
 
     void AudioComponent::play(bool local)
@@ -60,7 +60,7 @@ namespace killme
     void AudioComponent::onTranslated()
     {
         emitter_->position = getWorldPosition();
-        emitter_->velocity = getWorldVelocity(*this, runTime.getDeltaTime());
+        emitter_->velocity = getWorldVelocity(*this, runtime.getDeltaTime());
     }
 
     void AudioComponent::onRotated()

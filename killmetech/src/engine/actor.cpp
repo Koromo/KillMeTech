@@ -1,27 +1,21 @@
 #include "actor.h"
-#include "level.h"
 #include "components/actorcomponent.h"
 #include "components/transformcomponent.h"
-#include <stack>
-#include <cassert>
 
 namespace killme
 {
-    Actor::Actor()
-        : inLevel_()
-        , name_()
-        , componentMap_()
-        , conceptComponents_()
-        , rootTransform_()
-        , enableTicking_(true)
-        , tickProcess_()
-    {
-    }
-
-    void Actor::setOwnerLevel(Level* inLevel, const std::string& name)
+    void Actor::spawned(Level* inLevel, const std::string& name)
     {
         inLevel_ = inLevel;
         name_ = name;
+        onSpawn();
+    }
+
+    void Actor::despawned()
+    {
+        onDespawn();
+        inLevel_ = nullptr;
+        name_.clear();
     }
 
     Level& Actor::getOwnerLevel()
@@ -32,87 +26,79 @@ namespace killme
 
     std::string Actor::getName() const
     {
+        assert(inLevel_ && "No actor name.");
         return name_;
     }
 
     void Actor::activate()
     {
-        if (enableTicking_)
-        {
-            tickProcess_ = getOwnerLevel().registerTickingActor(*this);
-        }
-
-        for (const auto& c : conceptComponents_)
-        {
-            c->setOwnerActor(this);
-            c->activate();
-            componentMap_.emplace(c->getComponentType(), c);
-        }
-
-        if (!rootTransform_)
+        if (isActive_ || !inLevel_)
         {
             return;
         }
 
-        std::stack<std::shared_ptr<TransformComponent>> stack;
-        stack.emplace(rootTransform_);
-        
-        while (!stack.empty())
+        KILLME_CONNECT_EVENT_HOOKS();
+        if (tickable_)
         {
-            const auto top = stack.top();
-            stack.pop();
+            tickingProcess_ = getOwnerLevel().registerTicking(*this);
+        }
+        onActivate();
+        isActive_ = true;
 
-            top->setOwnerActor(this);
-            top->activate();
-            componentMap_.emplace(top->getComponentType(), top);
-
-            for (const auto& child : top->getChildren())
+        for (const auto& c : conceptComponents_)
+        {
+            c->activate();
+        }
+        if (rootTransform_)
+        {
+            depthTraverse(*rootTransform_, [](TransformComponent& n)
             {
-                stack.emplace(std::static_pointer_cast<TransformComponent>(child));
-            }
+                n.activate();
+                return true;
+            });
         }
     }
 
     void Actor::deactivate()
     {
+        if (!isActive_ || !inLevel_)
+        {
+            return;
+        }
+
+        onDeactivate();
+        setTickable(false);
+        KILLME_DISCONNECT_EVENT_HOOKS();
+        isActive_ = false;
+
         for (const auto& c : conceptComponents_)
         {
             c->deactivate();
-            c->setOwnerActor(nullptr);
         }
-
         if (rootTransform_)
         {
-            std::stack<std::shared_ptr<TransformComponent>> stack;
-            stack.emplace(rootTransform_);
-
-            while (!stack.empty())
+            depthTraverse(*rootTransform_, [](TransformComponent& n)
             {
-                const auto top = stack.top();
-                stack.pop();
-
-                top->deactivate();
-                top->setOwnerActor(nullptr);
-
-                for (const auto& child : top->getChildren())
-                {
-                    stack.emplace(std::static_pointer_cast<TransformComponent>(child));
-                }
-            }
+                n.deactivate();
+                return true;
+            });
         }
-
-        rootTransform_.reset();
-        conceptComponents_.clear();
-        componentMap_.clear();
-        tickProcess_.kill();
     }
 
-    void Actor::kill()
+    void Actor::attachConceptComponentImpl(const std::shared_ptr<ActorComponent>& component)
     {
-        if (inLevel_)
+        component->setOwner(this);
+        componentMap_.emplace(component->getComponentType(), component);
+    }
+
+    void Actor::attachTransformedComponentImpl(const std::shared_ptr<TransformComponent>& component)
+    {
+        depthTraverse(component, [&](const std::shared_ptr<TransformComponent>& n)
         {
-            killActor(*inLevel_, name_);
-        }
+            n->setOwner(this);
+            componentMap_.emplace(n->getComponentType(), n);
+            return true;
+        });
     }
 
     std::shared_ptr<TransformComponent> Actor::getRootTransform()
@@ -120,8 +106,41 @@ namespace killme
         return rootTransform_;
     }
 
-    void Actor::disableTicking()
+    void Actor::tick(float dt_s)
     {
-        enableTicking_ = false;
+        onTick(dt_s);
+    }
+
+    void Actor::setTickable(bool enable)
+    {
+        if (tickable_ == enable)
+        {
+            return;
+        }
+        if (isActive_)
+        {
+            if (enable)
+            {
+                tickingProcess_ = getOwnerLevel().registerTicking(*this);
+            }
+            else
+            {
+                tickingProcess_.kill();
+            }
+        }
+
+        tickable_ = enable;
+    }
+
+    Actor::Actor()
+        : inLevel_()
+        , name_()
+        , componentMap_()
+        , conceptComponents_()
+        , rootTransform_()
+        , tickable_(false)
+        , isActive_(false)
+        , tickingProcess_()
+    {
     }
 }

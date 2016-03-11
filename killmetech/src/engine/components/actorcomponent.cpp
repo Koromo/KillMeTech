@@ -5,18 +5,9 @@
 
 namespace killme
 {
-    ActorComponent::ActorComponent()
-        : owner_(nullptr)
-        , isActive_(false)
-        , enableTicking_(false)
-        , enableBeginFrame_(false)
-        , processes_()
+    void ActorComponent::setOwner(Actor* owner)
     {
-    }
-
-    void ActorComponent::setOwnerActor(Actor* owner)
-    {
-        assert((!owner || !owner_) && "This component is already attached to an other actor.");
+        assert(!owner_ && "This component is already attached to an other actor.");
         owner_ = owner;
     }
 
@@ -31,24 +22,27 @@ namespace killme
         return getOwnerActor().getOwnerLevel();
     }
 
+    bool ActorComponent::hasOwner() const
+    {
+        return !!owner_;
+    }
+
     void ActorComponent::activate()
     {
-        if (enableTicking_)
+        KILLME_CONNECT_EVENT_HOOKS();
+        if (tickable_)
         {
-            processes_.emplace_back(getOwnerLevel().registerTickingComponent(*this));
+            tickingProcess_ = getOwnerLevel().registerTicking(*this);
         }
-        if (enableBeginFrame_)
-        {
-            processes_.emplace_back(getOwnerLevel().registerOnBeginFrameComponent(*this));
-        }
-        isActive_ = true;
         onActivate();
+        isActive_ = true;
     }
 
     void ActorComponent::deactivate()
     {
         onDeactivate();
-        processes_.clear();
+        setTickable(false);
+        KILLME_DISCONNECT_EVENT_HOOKS();
         isActive_ = false;
     }
 
@@ -57,14 +51,37 @@ namespace killme
         return isActive_;
     }
 
-
-    void ActorComponent::enableTicking()
+    void ActorComponent::tick(float dt_s)
     {
-        enableTicking_ = true;
+        onTick(dt_s);
     }
 
-    void ActorComponent::enableBeginFrame()
+    void ActorComponent::setTickable(bool enable)
     {
-        enableBeginFrame_ = true;
+        if (tickable_ == enable)
+        {
+            return;
+        }
+        if (isActive_)
+        {
+            if (enable)
+            {
+                tickingProcess_ = getOwnerLevel().registerTicking(*this);
+            }
+            else
+            {
+                tickingProcess_.kill();
+            }
+        }
+
+        tickable_ = enable;
+    }
+
+    ActorComponent::ActorComponent()
+        : owner_(nullptr)
+        , isActive_(false)
+        , tickable_(false)
+        , tickingProcess_()
+    {
     }
 }

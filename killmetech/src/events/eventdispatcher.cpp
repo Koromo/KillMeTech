@@ -1,5 +1,6 @@
 #include "eventdispatcher.h"
 #include "../core/utility.h"
+#include "../core/string.h"
 #include <unordered_map>
 #include <vector>
 #include <tuple>

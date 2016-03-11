@@ -1,6 +1,9 @@
 #ifndef _KILLME_ACTOR_H_
 #define _KILLME_ACTOR_H_
 
+#include "eventdef.h"
+#include "level.h"
+#include "../events/eventdispatcher.h"
 #include "../processes/process.h"
 #include "../core/utility.h"
 #include <memory>
@@ -10,34 +13,41 @@
 #include <type_traits>
 #include <cassert>
 
+/** When you define an actor, you have to use this macro */
+#define KILLME_ACTOR_DEFINE_BEGIN KILLME_EVENT_HOOKS_BEGIN
+#define KILLME_ACTOR_DEFINE_END KILLME_EVENT_HOOKS_END
+
 namespace killme
 {
-    class Level;
     class ActorComponent;
     class TransformComponent;
 
     /** The actor is an element of world */
-    class Actor
+    /// NOTE: If you need any components, you have to attach all needed components in constructor
+    class Actor : public EventDispatcher
     {
+        KILLME_ACTOR_DEFINE_BEGIN
+        KILLME_ACTOR_DEFINE_END
+
     private:
         Level* inLevel_;
         std::string name_;
         std::unordered_multimap<TypeNumber, std::shared_ptr<ActorComponent>> componentMap_;
         std::vector<std::shared_ptr<ActorComponent>> conceptComponents_;
         std::shared_ptr<TransformComponent> rootTransform_;
-        bool enableTicking_;
+        bool tickable_;
         bool isActive_;
-        Process tickProcess_;
+        Process tickingProcess_;
 
     public:
-        /** Construct */
-        Actor();
-
         /** For drived classes */
         virtual ~Actor() = default;
 
-        /** Set owner level and name */
-        void setOwnerLevel(Level* inLevel, const std::string& name);
+        /** Called on spawned */
+        void spawned(Level* inLevel, const std::string& name);
+
+        /** Called on despawned */
+        void despawned();
 
         /** Return owner level */
         Level& getOwnerLevel();
@@ -51,28 +61,34 @@ namespace killme
         /** Deactivate this actor */
         void deactivate();
 
-        /** Kill this actor */
-        void kill();
+        // Attach a concept component to this actor
+        void attachConceptComponentImpl(const std::shared_ptr<ActorComponent>& component);
 
-        /** Attach a component to an actor */
-        /// NOTE: You need attach all components until end of onSpawn()
-        /// NOTE: If you want to attach transformed components, you no need to call this method. See a note of attachRootTransform().
+        // Attach transform components to this actor
+        void attachTransformedComponentImpl(const std::shared_ptr<TransformComponent>& component);
+
+        /** Attach a concept component to this actor */
+        /// NOTE: If you want to attach transform components, you need use attachRootTransform().
         template <class T>
-        std::shared_ptr<T> attachComponent(const std::shared_ptr<T>& component)
+        std::shared_ptr<T> attachConceptComponent(const std::shared_ptr<T>& component)
         {
-            static_assert(!std::is_base_of<TransformComponent, T>::value, "You can not attach transformed component by this method.");
+            //static_assert(!std::is_base_of<TransformComponent, T>::value, "You can not attach transform components by attachConceptComponent().");
+            attachConceptComponentImpl(component);
             conceptComponents_.emplace_back(component);
             return component;
         }
 
-        /** Attach the root transform to an actor */
+        /** Attach the root transform to this actor */
         /// NOTE: If you need transform components, you need to attach root transform only.
+        ///       Child components of root transform are attached automatically.
         template <class T>
         std::shared_ptr<T> attachRootTransform(const std::shared_ptr<T>& root)
         {
-            static_assert(std::is_base_of<TransformComponent, T>::value, "You can not attach non transformed component by this method.");
+            //static_assert(std::is_base_of<TransformComponent, T>::value, "You can not attach oncept components by attachRootTransform().");
             assert(!rootTransform_ && "This actor is already has root transform.");
+            attachTransformedComponentImpl(root);
             rootTransform_ = root;
+
             return root;
         }
 
@@ -87,17 +103,30 @@ namespace killme
             return iteratorRange(range.first, range.second);
         }
 
-        /** Called on just before spawned */
+        /** Called every frame */
+        void tick(float dt_s);
+
+        /** If set to true, this actor ticked every frame */
+        void setTickable(bool enable);
+
+    protected:
+        /** Construct */
+        Actor();
+
+        /** Called on spawned */
         virtual void onSpawn() {}
 
-        /** Called on just before killed */
-        virtual void onKill() {}
+        /** Called on despawned */
+        virtual void onDespawn() {}
 
-        /** Called every frame */
+        /** Called on activate */
+        virtual void onActivate() {}
+
+        /** Called on deactivate */
+        virtual void onDeactivate() {}
+
+        /** Called on tick */
         virtual void onTick(float dt_s) {}
-
-        /** If you call this function before end of onSpawn(), this actor is never called onTick() function */
-        void disableTicking();
     };
 
     /** Search an component */

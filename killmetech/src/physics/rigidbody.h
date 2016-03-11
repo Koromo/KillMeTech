@@ -10,6 +10,7 @@ namespace killme
     class Vector3;
     class Quaternion;
     class CollisionShape;
+    class RigidBody;
 
     /** Physics listener */
     class PhysicsListener
@@ -17,6 +18,7 @@ namespace killme
     public:
         virtual ~PhysicsListener() = default;
         virtual void onMoved(const Vector3& pos, const Quaternion& q) {}
+        virtual void onCollided(RigidBody& collider) {}
     };
 
     /** Rigid body */
@@ -34,6 +36,7 @@ namespace killme
         MotionState motionState_;
         std::shared_ptr<CollisionShape> shape_;
         std::shared_ptr<PhysicsListener> listener_;
+        void* userPointer_;
 
     public:
         /** Construct with a body and mass */
@@ -45,6 +48,13 @@ namespace killme
         /** Transform modifiers */
         void setPosition(const Vector3& pos);
         void setOrientation(const Quaternion& q);
+
+        /** Notify cllision */
+        void notifyCollision(RigidBody& collider);
+
+        /** User pointer modifiers */
+        void setUserPointer(void* p);
+        void* getUserPointer();
 
         /** Return the bullet body */
         btRigidBody* getBtBody();

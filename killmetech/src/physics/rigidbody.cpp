@@ -24,6 +24,7 @@ namespace killme
         , motionState_()
         , shape_(shape)
         , listener_()
+        , userPointer_(nullptr)
     {
         motionState_.owner = this;
 
@@ -40,6 +41,7 @@ namespace killme
         }
         btRigidBody::btRigidBodyConstructionInfo ci(mass, &motionState_, btShape, inertia);
         body_ = std::make_unique<btRigidBody>(ci);
+        body_->setUserPointer(this);
     }
 
     void RigidBody::setListener(const std::shared_ptr<PhysicsListener>& listener)
@@ -61,6 +63,24 @@ namespace killme
         trans.setRotation(to<btQuaternion>(q));
         body_->setCenterOfMassTransform(trans);
         body_->activate(true);
+    }
+
+    void RigidBody::notifyCollision(RigidBody& collider)
+    {
+        if (listener_)
+        {
+            listener_->onCollided(collider);
+        }
+    }
+
+    void RigidBody::setUserPointer(void* p)
+    {
+        userPointer_ = p;
+    }
+
+    void* RigidBody::getUserPointer()
+    {
+        return userPointer_;
     }
 
     btRigidBody* RigidBody::getBtBody()

@@ -8,7 +8,7 @@ namespace killme
     LightComponent::LightComponent()
         : light_(std::make_shared<Light>())
     {
-        enableReceiveMove(true);
+        setMoveRecievable(true);
     }
 
     void LightComponent::setColor(const Color& c)

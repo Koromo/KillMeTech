@@ -1,4 +1,5 @@
 #include "runtime.h"
+#include "eventdef.h"
 #include "level.h"
 #include "audiosystem.h"
 #include "graphicssystem.h"
@@ -11,7 +12,7 @@
 
 namespace killme
 {
-    RunTime runTime;
+    Runtime runtime;
 
     namespace
     {
@@ -41,7 +42,7 @@ namespace killme
         }
     }
 
-    RunTime::RunTime()
+    Runtime::Runtime()
         : window_(nullptr, DestroyWindow)
         , frameTimes_ms_()
         , frameCounter_()
@@ -50,7 +51,7 @@ namespace killme
     {
     }
 
-    void RunTime::startup(size_t width, size_t height, const tstring& title)
+    void Runtime::startup(size_t width, size_t height, const tstring& title)
     {
         // Register the window class
         const auto instance = GetModuleHandle(NULL);
@@ -104,7 +105,7 @@ namespace killme
         }
     }
 
-    void RunTime::shutdown()
+    void Runtime::shutdown()
     {
         currentDeltaTimes_s_.clear();
         KILLME_DEBUG_FINALIZE();
@@ -113,7 +114,7 @@ namespace killme
         resourceManager.shutdown();
     }
 
-    void RunTime::setFrameRate(FrameRate fps)
+    void Runtime::setFrameRate(FrameRate fps)
     {
         switch (fps)
         {
@@ -159,12 +160,12 @@ namespace killme
         }
     }
 
-    float RunTime::getDeltaTime() const
+    float Runtime::getDeltaTime() const
     {
         return currentDeltaTimes_s_.back();
     }
 
-    float RunTime::getCurrentFrameRate(size_t n) const
+    float Runtime::getCurrentFrameRate(size_t n) const
     {
         if (n > NUM_STORE_DELTATIMES)
         {
@@ -179,12 +180,12 @@ namespace killme
         return 1 / (sum / n);
     }
 
-    void RunTime::run(Level& level)
+    void Runtime::run(Level& level)
     {
         ShowWindow(window_.get(), SW_SHOW);
 
         // Build level
-        level.beginLevel();
+        level.begin();
 
         // Game loop until receive WM_QUIT. WM_QUIT is only sended by process WM_CLOSE
         /// TODO: If the console is allocated, then we want to continue the game loop when console is closed.
@@ -220,20 +221,20 @@ namespace killme
                 assert(currentDeltaTimes_s_.size() == NUM_STORE_DELTATIMES && "Delta time queue error.");
 
                 // Tick frame
-                level.beginFrame();
+                level.emit(LEVEL_BeginFrame);
                 inputManager.emitInputEvents(level);
-                level.tickLevel(dt_s);
+                level.tick(dt_s);
                 graphicsSystem.clearBackBuffer();
-                level.renderLevel(graphicsSystem.getCurrentFrameResource());
+                level.draw(graphicsSystem.getCurrentFrameResource());
                 KILLME_DEBUG_DRAW(level.getGraphicsWorld(), graphicsSystem.getCurrentFrameResource());
                 graphicsSystem.presentBackBuffer();
             }
         }
 
-        level.endLevel();
+        level.end();
     }
 
-    void RunTime::quit()
+    void Runtime::quit()
     {
         // Request to close window
         PostMessage(window_.get(), WM_CLOSE, 0, 0);

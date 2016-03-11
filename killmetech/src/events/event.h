@@ -2,7 +2,6 @@
 #define _KILLME_EVENT_H_
 
 #include "../core/variant.h"
-#include "../core/string.h"
 #include <string>
 #include <vector>
 
@@ -58,32 +57,6 @@ namespace killme
             return params_.size();
         }
     };
-
-    /** Call event hook with unpack event parameters */
-    /// TODO: Not support lumbda expression and functor
-    /** For function */
-    template <class R, class... Args>
-    R unpackEventCall(R(*fun)(Args...), const Event& e)
-    {
-        size_t i = e.num();
-        return fun(to<Args>(e[--i])...);
-    }
-
-    /** For member function */
-    template <class C, class R, class... Args>
-    R unpackEventCall(R(C::*fun)(Args...), C&& c, const Event& e)
-    {
-        size_t i = e.num();
-        return (c.*fun)(to<Args>(e[--i])...);
-    }
-
-    /** For const member function */
-    template <class C, class R, class... Args>
-    R unpackEventCall(R(C::*fun)(Args...) const, const C& c, const Event& e)
-    {
-        size_t i = e.num();
-        return (c.*fun)(to<Args>(e[--i])...);
-    }
 }
 
 #endif

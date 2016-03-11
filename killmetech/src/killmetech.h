@@ -10,7 +10,7 @@
 #include "engine/inputmanager.h"
 #include "engine/keycode.h"
 #include "engine/level.h"
-#include "engine/eventutil.h"
+#include "engine/eventdef.h"
 #include "engine/components/actorcomponent.h"
 #include "engine/components/transformcomponent.h"
 #include "engine/components/audiocomponent.h"

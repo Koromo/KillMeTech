@@ -1,6 +1,7 @@
 #ifndef _KILLME_LEBEL_H_
 #define _KILLME_LEBEL_H_
 
+#include "eventdef.h"
 #include "../processes/processscheduler.h"
 #include "../events/eventdispatcher.h"
 #include "../core/utility.h"
@@ -8,6 +9,11 @@
 #include <unordered_map>
 #include <utility>
 #include <string>
+#include <cassert>
+
+/** When you define a level, you have to use this macro */
+#define KILLME_LEVEL_DEFINE_BEGIN KILLME_EVENT_HOOKS_BEGIN
+#define KILLME_LEVEL_DEFINE_END KILLME_EVENT_HOOKS_END
 
 namespace killme
 {
@@ -22,6 +28,9 @@ namespace killme
     /** Level */
     class Level : public EventDispatcher
     {
+        KILLME_LEVEL_DEFINE_BEGIN
+        KILLME_LEVEL_DEFINE_END
+
     private:
         std::unordered_map<std::string, std::shared_ptr<Actor>> actors_;
         UniqueCounter<size_t> actorCounter_;
@@ -32,20 +41,30 @@ namespace killme
 
         ProcessScheduler<float> tickingActors_;
         ProcessScheduler<float> tickingComponents_;
-        ProcessScheduler<> onBeginFrameComponents_;
 
     public:
-        /** For drived classes */
-        virtual ~Level() = default;
+        /** Destruct */
+        virtual ~Level();
 
-        // For spawnActorWithName()
-        std::string uniqueActorName();
+        /** Add an actor to this level */
+        template <class T>
+        std::shared_ptr<T> spawnActor(const std::shared_ptr<T>& actor, const std::string& name = "", bool activate = true)
+        {
+            const auto actorName = name.empty() ? "_Actor_" + std::to_string(actorCounter_()) : name;
+            const auto check = actors_.emplace(actorName, actor);
+            assert(check.second && ("Conflict actor name \'" + actorName + "\'.").c_str());
 
-        // ditto
-        void addActor(const std::string& name, const std::shared_ptr<Actor>& actor);
+            actor->spawned(this, name);
+            if (activate)
+            {
+                actor->activate();
+            }
 
-        // For killme::killActor()
-        void killActor(const std::string& name);
+            return actor;
+        }
+
+        /** Remove an actor from this level */
+        void despawnActor(const std::string& name);
 
         /** Search an actor */
         std::shared_ptr<Actor> findActor(const std::string& name);
@@ -59,58 +78,37 @@ namespace killme
         /** Return the graphics world of this level */
         Scene& getGraphicsWorld();
 
-        /** begin this level */
-        void beginLevel();
+        /** Begin this level */
+        void begin();
 
         /** End this level */
-        void endLevel();
-
-        /** Begin frame */
-        void beginFrame();
+        void end();
 
         /** Advance time of this level */
-        void tickLevel(float dt_s);
+        void tick(float dt_s);
 
         /** Draw current level */
-        void renderLevel(const FrameResource& frame);
+        void draw(const FrameResource& frame);
 
         /** Register an actor for ticking */
-        Process registerTickingActor(Actor& actor);
+        Process registerTicking(Actor& actor);
 
         /** Register a component for ticking */
-        Process registerTickingComponent(ActorComponent& component);
+        Process registerTicking(ActorComponent& component);
 
-        /** Register a component for onBeginFrame() */
-        Process registerOnBeginFrameComponent(ActorComponent& component);
+    protected:
+        /** Construct */
+        Level();
 
-        /** Called every frame */
-        virtual void onTickLevel(float dt_s) {}
-
-        /** Called on begin level */
-        virtual void onBeginLevel() {}
+        /** Called on level begin */
+        virtual void onBegin() {}
 
         /** Called on end level */
-        virtual void onEndLevel() {}
+        virtual void onEnd() {}
+
+        /** Called on tick level */
+        virtual void onTick(float dt_s) {}
     };
-
-    /** Spawn an actor in a level */
-    template <class T, class... Args>
-    std::shared_ptr<T> spawnActorWithName(Level& level, std::string& name, Args&&... args)
-    {
-        const auto actor = std::make_shared<T>(std::forward<Args>(args)...);
-        level.addActor(name, actor);
-        return actor;
-    }
-
-    /** ditto */
-    template <class T, class... Args>
-    std::shared_ptr<T> spawnActor(Level& level, Args&&... args)
-    {
-        return spawnActorWithName<T>(level, level.uniqueActorName(), std::forward<Args>(args)...);
-    }
-
-    /** Kill an actor in a level */
-    void killActor(Level& level, const std::string& name);
 }
 
 #endif

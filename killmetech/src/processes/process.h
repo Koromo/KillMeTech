@@ -31,6 +31,12 @@ namespace killme
         {
             killer_.reset();
         }
+
+        /** Whether process is running */
+        operator bool() const
+        {
+            return !!killer_;
+        }
     };
 }
 

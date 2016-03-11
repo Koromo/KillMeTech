@@ -8,9 +8,9 @@ namespace killme
 {
     CameraComponent::CameraComponent()
         : camera_(std::make_shared<Camera>(graphicsSystem.getClientViewport()))
-        , setToMainCamera_(false)
+        , isMainCamera_(false)
     {
-        enableReceiveMove(true);
+        setMoveRecievable(true);
     }
 
     void CameraComponent::setViewport(const Viewport& vp)
@@ -38,23 +38,19 @@ namespace killme
         camera_->setFarZ(z);
     }
 
-    void CameraComponent::enable()
+    void CameraComponent::setEnable(bool enable)
     {
+        isMainCamera_ = enable;
         if (isActive())
         {
-            getOwnerLevel().getGraphicsWorld().setMainCamera(camera_);
-        }
-        else
-        {
-            setToMainCamera_ = true;
-        }
-    }
-
-    void CameraComponent::disable()
-    {
-        if (isActive() && getOwnerLevel().getGraphicsWorld().getMainCamera() == camera_)
-        {
-            getOwnerLevel().getGraphicsWorld().setMainCamera(nullptr);
+            if (enable)
+            {
+                getOwnerLevel().getGraphicsWorld().setMainCamera(camera_);
+            }
+            else if (getOwnerLevel().getGraphicsWorld().getMainCamera() == camera_)
+            {
+                getOwnerLevel().getGraphicsWorld().setMainCamera(nullptr);
+            }
         }
     }
 
@@ -71,16 +67,15 @@ namespace killme
     void CameraComponent::onActivate()
     {
         getOwnerLevel().getGraphicsWorld().addCamera(camera_);
-        if (setToMainCamera_)
+        if (isMainCamera_)
         {
-            enable();
-            setToMainCamera_ = false;
+            getOwnerLevel().getGraphicsWorld().setMainCamera(camera_);
         }
     }
 
     void CameraComponent::onDeactivate()
     {
-        disable();
+        setEnable(false);
         getOwnerLevel().getGraphicsWorld().removeCamera(camera_);
     }
 }

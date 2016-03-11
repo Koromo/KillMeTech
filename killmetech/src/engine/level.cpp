@@ -7,33 +7,26 @@
 #include "../physics/physicsworld.h"
 #include "../audio/audioworld.h"
 #include "../scene/scene.h"
-#include <cassert>
 
 namespace killme
 {
-    std::string Level::uniqueActorName()
+    Level::~Level()
     {
-        return "_Actor_" + std::to_string(actorCounter_());
+        auto it = std::cbegin(actors_);
+        while (it != std::cend(actors_))
+        {
+            despawnActor(it->first);
+            it = std::cbegin(actors_);
+        }
     }
 
-    void Level::addActor(const std::string& name, const std::shared_ptr<Actor>& actor)
-    {
-        const auto check = actors_.emplace(name, actor);
-        assert(check.second && ("Conflict actor name \'" + name + "\'.").c_str());
-
-        actor->setOwnerLevel(this, name);
-        actor->onSpawn();
-        actor->activate();
-    }
-
-    void Level::killActor(const std::string& name)
+    void Level::despawnActor(const std::string& name)
     {
         const auto it = actors_.find(name);
         if (it != std::cend(actors_))
         {
-            it->second->onKill();
             it->second->deactivate();
-            it->second->setOwnerLevel(nullptr, "");
+            it->second->despawned();
             actors_.erase(it);
         }
     }
@@ -63,64 +56,53 @@ namespace killme
         return *graphicsWorld_;
     }
 
-    void Level::beginLevel()
+    void Level::begin()
     {
-        physicsWorld_ = std::make_unique<PhysicsWorld>();
-        audioWorld_ = std::make_unique<AudioWorld>(audioSystem.getDeviceDetails());
-        graphicsWorld_ = std::make_unique<Scene>(graphicsSystem.getRenderSystem());
-        onBeginLevel();
+        KILLME_CONNECT_EVENT_HOOKS();
+        onBegin();
     }
 
-    void Level::endLevel()
+    void Level::end()
     {
-        onEndLevel();
-        auto it = std::cbegin(actors_);
-        while (it != std::cend(actors_))
-        {
-            killme::killActor(*this, it->first);
-            it = std::cbegin(actors_);
-        }
-        graphicsWorld_.reset();
-        audioWorld_.reset();
-        physicsWorld_.reset();
+        onEnd();
+        KILLME_DISCONNECT_EVENT_HOOKS();
     }
 
-    void Level::beginFrame()
+    void Level::tick(float dt_s)
     {
-        onBeginFrameComponents_.update();
-    }
-
-    void Level::tickLevel(float dt_s)
-    {
-        onTickLevel(dt_s);
+        onTick(dt_s);
         tickingActors_.update(dt_s);
         tickingComponents_.update(dt_s);
         physicsWorld_->stepSimulation(dt_s);
         audioWorld_->simulate();
     }
 
-    void Level::renderLevel(const FrameResource& frame)
+    void Level::draw(const FrameResource& frame)
     {
         graphicsWorld_->renderScene(frame);
     }
 
-    Process Level::registerTickingActor(Actor& actor)
+    Process Level::registerTicking(Actor& actor)
     {
-        return tickingActors_.startProcess([&](float dt_s) { actor.onTick(dt_s); });
+        return tickingActors_.startProcess([&](float dt_s) { actor.tick(dt_s); });
     }
 
-    Process Level::registerTickingComponent(ActorComponent& component)
+    Process Level::registerTicking(ActorComponent& component)
     {
-        return tickingComponents_.startProcess([&](float dt_s) { component.onTick(dt_s); });
+        return tickingComponents_.startProcess([&](float dt_s) { component.tick(dt_s); });
     }
 
-    Process Level::registerOnBeginFrameComponent(ActorComponent& component)
+    Level::Level()
+        : actors_()
+        , actorCounter_()
+        , audioWorld_()
+        , physicsWorld_()
+        , graphicsWorld_()
+        , tickingActors_()
+        , tickingComponents_()
     {
-        return onBeginFrameComponents_.startProcess([&] { component.onBeginFrame(); });
-    }
-
-    void killActor(Level& level, const std::string& name)
-    {
-        level.killActor(name);
+        physicsWorld_ = std::make_unique<PhysicsWorld>();
+        audioWorld_ = std::make_unique<AudioWorld>(audioSystem.getDeviceDetails());
+        graphicsWorld_ = std::make_unique<Scene>(graphicsSystem.getRenderSystem());
     }
 }

@@ -1,4 +1,5 @@
 #include "rigidbodycomponent.h"
+#include "../actor.h"
 #include "../level.h"
 #include "../../physics/physicsworld.h"
 
@@ -6,10 +7,15 @@ namespace killme
 {
     void RigidBodyComponent::Listener::onMoved(const Vector3& pos, const Quaternion& q)
     {
-        owner->enableReceiveMove(false);
+        owner->setMoveRecievable(false);
         owner->setWorldPosition(pos);
         owner->setWorldOrientation(q);
-        owner->enableReceiveMove(true);
+        owner->setMoveRecievable(true);
+    }
+
+    void RigidBodyComponent::Listener::onCollided(RigidBody& collider)
+    {
+        owner->getOwnerActor().emit(ACTOR_Collided, *owner, *static_cast<RigidBodyComponent*>(collider.getUserPointer()));
     }
 
     RigidBodyComponent::RigidBodyComponent(const std::shared_ptr<CollisionShape>& shape, float mass)
@@ -18,7 +24,9 @@ namespace killme
     {
         listener_->owner = this;
         body_->setListener(listener_);
-        enableReceiveMove(true);
+        body_->setUserPointer(this);
+        setMoveRecievable(true);
+        setIgnoreParentMove(true);
     }
 
     void RigidBodyComponent::onTranslated()

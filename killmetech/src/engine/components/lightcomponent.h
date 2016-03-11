@@ -12,7 +12,8 @@ namespace killme
     /** The light component defines a light source into an actor */
     class LightComponent : public TransformComponent
     {
-        KILLME_COMPONENT_DEFINE(LightComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(LightComponent)
+        KILLME_COMPONENT_DEFINE_END
 
     private:
         std::shared_ptr<Light> light_;

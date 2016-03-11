@@ -103,14 +103,10 @@ namespace killme
         ComUniquePtr<ID3D12ShaderReflection> reflection_;
         D3D12_SHADER_DESC desc_;
 
-    protected:
-        /** Construct with a byte code */
-        BasicShader(ShaderType type, ID3DBlob* byteCode);
-
+    public:
         /** For drived classes */
         virtual ~BasicShader() = default;
 
-    public:
         /** Return shader type */
         ShaderType getType() const;
 
@@ -168,6 +164,11 @@ namespace killme
 
             return emplaceRange(std::move(cbuffers));
         }
+
+
+    protected:
+        /** Construct with a byte code */
+        BasicShader(ShaderType type, ID3DBlob* byteCode);
 
     private:
         auto describeD3DBoundResources(D3D_SHADER_INPUT_TYPE type)

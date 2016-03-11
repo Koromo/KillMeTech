@@ -11,7 +11,6 @@ namespace killme
     {
         // Down the audio playing flag
         const auto p = static_cast<SourceVoice*>(context);
-        assert(p && "Source buffer context is not SourceVoice.");
         p->isPlaying_ = false;
     }
 

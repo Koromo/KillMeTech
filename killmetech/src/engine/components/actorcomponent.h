@@ -1,54 +1,67 @@
 #ifndef _KILLME_ACTORCOMPONENT_H_
 #define _KILLME_ACTORCOMPONENT_H_
 
+#include "../eventdef.h"
+#include "../actor.h"
+#include "../level.h"
 #include "../../processes/process.h"
 #include "../../core/utility.h"
 #include <memory>
-#include <vector>
+
+/** When you define a component, you have to use this macro */
+#define KILLME_COMPONENT_DEFINE_BEGIN(Type) \
+    public: \
+    virtual TypeNumber getComponentType() const { return typeNumber<Type>(); } \
+    KILLME_EVENT_HOOKS_BEGIN
+
+#define KILLME_COMPONENT_DEFINE_END KILLME_EVENT_HOOKS_END
 
 namespace killme
 {
-    class Actor;
-    class Level;
-
-#define KILLME_COMPONENT_DEFINE(Type) \
-public: \
-virtual TypeNumber getComponentType() const { return typeNumber<Type>(); } \
-private:
-
-    /** The interface of actor components. Components defines function of an actor. */
+    /** The interface of actor components. Components defines a function to an actor. */
     class ActorComponent
     {
-        KILLME_COMPONENT_DEFINE(ActorComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(ActorComponent)
+        KILLME_COMPONENT_DEFINE_END
 
     private:
         Actor* owner_;
         bool isActive_;
-        bool enableTicking_;
-        bool enableBeginFrame_;
-        std::vector<Process> processes_;
+        bool tickable_;
+        Process tickingProcess_;
 
-    protected:
-        /** Construct */
-        ActorComponent();
-
+    public:
         /** For drived classes */
         virtual ~ActorComponent() = default;
 
-    public:
-        /** Owner accessor */
-        void setOwnerActor(Actor* owner);
+        /** Set the owner */
+        void setOwner(Actor* owner);
+
+        /** Return the owner */
         Actor& getOwnerActor();
         Level& getOwnerLevel();
 
-        /** Activate component */
+        /** Whether owner is exists or not */
+        bool hasOwner() const;
+
+        /** On actor activated */
         void activate();
 
-        /** Deactivate component */
+        /** On actor deactivated */
         void deactivate();
 
         /** Return whether this is active */
         bool isActive() const;
+
+        /** Called every frame */
+        void tick(float dt_s);
+
+        /** If set to true, this component ticked every frame */
+        void setTickable(bool enable);
+
+    protected:
+        /** Construct */
+        ActorComponent();
 
         /** Called on activate */
         virtual void onActivate() {}
@@ -56,19 +69,8 @@ private:
         /** Called on deactivate */
         virtual void onDeactivate() {}
 
-        /** Called every frame */
+        /** Called on tick */
         virtual void onTick(float dt_s) {}
-
-        /** Called on begin frame */
-        virtual void onBeginFrame() {}
-
-        /** If you call this, onTick() is called every frame */
-        /// NOTE: You need call this until end of onActivate()
-        void enableTicking();
-
-        /** If you call this, onBeginFrame() is called every frame begin */
-        /// NOTE: You need call this until end of onActivate()
-        void enableBeginFrame();
     };
 }
 

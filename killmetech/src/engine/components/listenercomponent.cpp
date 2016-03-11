@@ -7,35 +7,31 @@ namespace killme
 {
     ListenerComponent::ListenerComponent()
         : listener_(std::make_shared<AudioListener>())
-        , setToMainListener_(false)
+        , isMainListener_(false)
     {
-        enableReceiveMove(true);
+        setMoveRecievable(true);
     }
 
-    void ListenerComponent::enable()
+    void ListenerComponent::setEnable(bool enable)
     {
+        isMainListener_ = enable;
         if (isActive())
         {
-            getOwnerLevel().getAudioWorld().setMainListener(listener_);
-        }
-        else
-        {
-            setToMainListener_ = true;
-        }
-    }
-
-    void ListenerComponent::disable()
-    {
-        if (getOwnerLevel().getAudioWorld().getMainListener() == listener_)
-        {
-            getOwnerLevel().getAudioWorld().setMainListener(nullptr);
+            if (enable)
+            {
+                getOwnerLevel().getAudioWorld().setMainListener(listener_);
+            }
+            else if (getOwnerLevel().getAudioWorld().getMainListener() == listener_)
+            {
+                getOwnerLevel().getAudioWorld().setMainListener(nullptr);
+            }
         }
     }
 
     void ListenerComponent::onTranslated()
     {
         listener_->position = getWorldPosition();
-        listener_->velocity = getWorldVelocity(*this, runTime.getDeltaTime());
+        listener_->velocity = getWorldVelocity(*this, runtime.getDeltaTime());
     }
 
     void ListenerComponent::onRotated()
@@ -46,16 +42,15 @@ namespace killme
     void ListenerComponent::onActivate()
     {
         getOwnerLevel().getAudioWorld().addListener(listener_);
-        if (setToMainListener_)
+        if (isMainListener_)
         {
-            enable();
-            setToMainListener_ = false;
+            getOwnerLevel().getAudioWorld().setMainListener(listener_);
         }
     }
 
     void ListenerComponent::onDeactivate()
     {
-        disable();
+        setEnable(false);
         getOwnerLevel().getAudioWorld().removeListener(listener_);
     }
 }

@@ -14,7 +14,8 @@ namespace killme
     /** The audio component defines emitting audio into an actor */
     class AudioComponent : public TransformComponent
     {
-        KILLME_COMPONENT_DEFINE(AudioComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(AudioComponent)
+        KILLME_COMPONENT_DEFINE_END
 
     private:
         std::shared_ptr<AudioEmitter> emitter_;

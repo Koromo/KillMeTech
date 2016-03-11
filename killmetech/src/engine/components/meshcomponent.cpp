@@ -9,7 +9,7 @@ namespace killme
     MeshComponent::MeshComponent(const Resource<Mesh>& mesh)
         : inst_(std::make_shared<MeshInstance>(mesh))
     {
-        enableReceiveMove(true);
+        setMoveRecievable(true);
     }
 
     std::shared_ptr<Submesh> MeshComponent::findSubmesh(const std::string& name)

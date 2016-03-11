@@ -26,7 +26,7 @@ namespace killme
     };
 
     /** KillMe Tech runtime engine */
-    class RunTime
+    class Runtime
     {
     private:
         static constexpr size_t FRAME_CYCLE = 3;
@@ -40,7 +40,7 @@ namespace killme
 
     public:
         /** Constructs */
-        RunTime();
+        Runtime();
 
         /** Initialize KillMe Tech */
         void startup(size_t width, size_t height, const tstring& title);
@@ -65,14 +65,14 @@ namespace killme
         void quit();
     };
 
-    extern RunTime runTime;
+    extern Runtime runtime;
 
     /** Start new level */
     template <class T, class... Args>
     void newLevel(Args&&... args)
     {
         T level(std::forward<Args>(args)...);
-        runTime.run(level);
+        runtime.run(level);
     }
 }
 
