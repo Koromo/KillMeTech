@@ -40,6 +40,7 @@ namespace killme
         /** Return true if the audio is playing now */
         bool isPlaying(bool local = false) const;
 
+    private:
         void onTranslated();
         void onRotated();
 

@@ -1,5 +1,5 @@
-#ifndef _KILLME_LIGHTCOMPONENT_H_
-#define _KILLME_LIGHTCOMPONENT_H_
+#ifndef _KILLME_DIRECTIONALLIGHTCOMPONENT_H_
+#define _KILLME_DIRECTIONALLIGHTCOMPONENT_H_
 
 #include "transformcomponent.h"
 #include <memory>
@@ -8,11 +8,12 @@ namespace killme
 {
     class Light;
     class Color;
+    enum class LightType;
 
-    /** The light component defines a light source into an actor */
-    class LightComponent : public TransformComponent
+    /** The DirectionalLightComponents defines a directional light source into an actor */
+    class DirectionalLightComponent : public TransformComponent
     {
-        KILLME_COMPONENT_DEFINE_BEGIN(LightComponent)
+        KILLME_COMPONENT_DEFINE_BEGIN(DirectionalLightComponent)
         KILLME_COMPONENT_DEFINE_END
 
     private:
@@ -20,12 +21,12 @@ namespace killme
 
     public:
         /** Construct */
-        LightComponent();
+        DirectionalLightComponent();
 
         /** Property modifier */
         void setColor(const Color& c);
 
-        void onTranslated();
+    private:
         void onRotated();
 
         void onActivate();

@@ -16,7 +16,8 @@
 #include "engine/components/audiocomponent.h"
 #include "engine/components/listenercomponent.h"
 #include "engine/components/cameracomponent.h"
-#include "engine/components/lightcomponent.h"
+#include "engine/components/directionallightcomponent.h"
+#include "engine/components/pointlightcomponent.h"
 #include "engine/components/meshcomponent.h"
 #include "engine/components/rigidbodycomponent.h"
 

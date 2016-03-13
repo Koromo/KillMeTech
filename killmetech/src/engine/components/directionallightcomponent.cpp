@@ -1,37 +1,32 @@
-#include "lightcomponent.h"
+#include "directionallightcomponent.h"
 #include "../level.h"
 #include "../../scene/light.h"
 #include "../../scene/scene.h"
 
 namespace killme
 {
-    LightComponent::LightComponent()
-        : light_(std::make_shared<Light>())
+    DirectionalLightComponent::DirectionalLightComponent()
+        : light_(std::make_shared<Light>(LightType::directional))
     {
         setMoveRecievable(true);
     }
 
-    void LightComponent::setColor(const Color& c)
+    void DirectionalLightComponent::setColor(const Color& c)
     {
         light_->setColor(c);
     }
 
-    void LightComponent::onTranslated()
-    {
-        light_->setPosition(getWorldPosition());
-    }
-
-    void LightComponent::onRotated()
+    void DirectionalLightComponent::onRotated()
     {
         light_->setOrientation(getWorldOrientation());
     }
 
-    void LightComponent::onActivate()
+    void DirectionalLightComponent::onActivate()
     {
         getOwnerLevel().getGraphicsWorld().addLight(light_);
     }
 
-    void LightComponent::onDeactivate()
+    void DirectionalLightComponent::onDeactivate()
     {
         getOwnerLevel().getGraphicsWorld().removeLight(light_);
     }

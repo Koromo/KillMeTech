@@ -28,6 +28,7 @@ namespace killme
         /** Return the submesh */
         std::shared_ptr<Submesh> findSubmesh(const std::string& name);
 
+    private:
         void onTranslated();
         void onRotated();
         void onScaled();

@@ -5,6 +5,7 @@
 
 namespace killme
 {
+    const MP_float MP_float::INIT = { 0 };
     const MP_float3 MP_float3::INIT = { 0, 0, 0 };
     const MP_float4 MP_float4::INIT = { 0, 0, 0, 0 };
     const MP_float4x4 MP_float4x4::INIT = {
@@ -14,6 +15,22 @@ namespace killme
         0, 0, 0, 0
     };
     const MP_tex2d MP_tex2d::INIT = { Resource<Texture>(), std::make_shared<Sampler>() };
+
+    const float& MP_float::operator [](size_t i) const
+    {
+        switch (i)
+        {
+        case 0: return x;
+        default:
+            assert(false && "Index out of range.");
+            return x; // For warning
+        }
+    }
+
+    float& MP_float::operator [](size_t i)
+    {
+        return const_cast<float&>(static_cast<const MP_float&>(*this)[i]);
+    }
 
     const float& MP_float3::operator [](size_t i) const
     {

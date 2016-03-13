@@ -49,6 +49,7 @@ namespace killme
         /** Construct */
         RigidBodyComponent(const std::shared_ptr<CollisionShape>& shape, float mass);
 
+    private:
         void onTranslated();
         void onRotated();
 

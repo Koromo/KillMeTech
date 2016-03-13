@@ -102,6 +102,15 @@ namespace killme
         /** Return the world matrix */
         Matrix44 getWorldMatrix() const;
 
+        /** Local relative translattion */
+        void translate(const Vector3& offset);
+
+        /** Local relative rotation */
+        void rotate(const Quaternion& q);
+
+        /** Local relative scaling */
+        void scale(const Vector3& k);
+
     protected:
         /** Set update need */
         void setUpdateNeed(bool need);

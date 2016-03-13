@@ -37,7 +37,8 @@
     <ClCompile Include="src\engine\components\actorcomponent.cpp" />
     <ClCompile Include="src\engine\components\audiocomponent.cpp" />
     <ClCompile Include="src\engine\components\cameracomponent.cpp" />
-    <ClCompile Include="src\engine\components\lightcomponent.cpp" />
+    <ClCompile Include="src\engine\components\directionallightcomponent.cpp" />
+    <ClCompile Include="src\engine\components\pointlightcomponent.cpp" />
     <ClCompile Include="src\engine\components\listenercomponent.cpp" />
     <ClCompile Include="src\engine\components\meshcomponent.cpp" />
     <ClCompile Include="src\engine\components\rigidbodycomponent.cpp" />
@@ -95,7 +96,8 @@
     <ClInclude Include="src\engine\components\actorcomponent.h" />
     <ClInclude Include="src\engine\components\audiocomponent.h" />
     <ClInclude Include="src\engine\components\cameracomponent.h" />
-    <ClInclude Include="src\engine\components\lightcomponent.h" />
+    <ClInclude Include="src\engine\components\directionallightcomponent.h" />
+    <ClInclude Include="src\engine\components\pointlightcomponent.h" />
     <ClInclude Include="src\engine\components\listenercomponent.h" />
     <ClInclude Include="src\engine\components\meshcomponent.h" />
     <ClInclude Include="src\engine\components\rigidbodycomponent.h" />

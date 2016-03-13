@@ -153,6 +153,21 @@ namespace killme
         return makeTransformMatrix(worldScale_, worldOrientation_, worldPosition_);
     }
 
+    void Transform::translate(const Vector3& offset)
+    {
+        setPosition(position_ + offset);
+    }
+
+    void Transform::rotate(const Quaternion& q)
+    {
+        setOrientation(q * orientation_);
+    }
+
+    void Transform::scale(const Vector3& k)
+    {
+        setScale(killme::scale(scale_, k));
+    }
+
     void Transform::setUpdateNeed(bool need)
     {
         needUpdate_ = need;

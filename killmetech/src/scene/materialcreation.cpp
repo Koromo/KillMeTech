@@ -30,6 +30,24 @@ namespace killme
             throw std::invalid_argument(s + "is not boolean.");
         }
 
+        // Get LightIteration from string
+        LightIteration toLightIteration(const std::string& s)
+        {
+            if (s == "none")
+            {
+                return LightIteration::none;
+            }
+            else if (s == "directional")
+            {
+                return  LightIteration::directional;
+            }
+            else if (s == "point")
+            {
+                return  LightIteration::point;
+            }
+            throw std::invalid_argument(s + "is not LightIteration.");
+        }
+
         // Get Blend from string
         Blend toBlend(const std::string& s)
         {
@@ -271,8 +289,9 @@ namespace killme
             }
         }
 
-        // Parse "float4" element
-        void elem_float4(ParseContext& context)
+        // Parse "float", "float3" or float4 elements
+        template <class Float, size_t N>
+        void elem_float(ParseContext& context)
         {
             const auto name = forward(context);
 
@@ -280,20 +299,20 @@ namespace killme
 
             forward(context);
 
-            MP_float4 value;
+            Float value;
             if (*context.token == "=")
             {
-                const auto arr = literal_array<float, 4>(context);
+                const auto arr = literal_array<float, N>(context);
                 forward(context, ";");
 
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < N; ++i)
                 {
                     value[i] = arr[i];
                 }
             }
             else if (*context.token == ";")
             {
-                value = MP_float4::INIT;
+                value = Float::INIT;
             }
             else
             {
@@ -302,7 +321,7 @@ namespace killme
 
             forward(context);
 
-            context.material.addParameter(name, { typeNumber<MP_float4>(), Variant(value) });
+            context.material.addParameter(name, { typeNumber<Float>(), Variant(value) });
         }
 
         // Parse "tex2d" element
@@ -341,8 +360,10 @@ namespace killme
         void block_parameters(ParseContext& context)
         {
             static ParserMap map({
-                {"float4", elem_float4},
-                {"tex2d", elem_tex2d}
+                { "float", elem_float<MP_float, 1> },
+                { "float3", elem_float<MP_float3, 3> },
+                { "float4", elem_float<MP_float4, 4> },
+                { "tex2d", elem_tex2d }
             });
 
             forward(context, "{");
@@ -524,10 +545,10 @@ namespace killme
         {
             forward(context, "=");
 
-            bool b;
+            LightIteration type;
             try
             {
-                b = stob(forward(context));
+                type = toLightIteration(forward(context));
             }
             catch (const std::invalid_argument&)
             {
@@ -537,7 +558,7 @@ namespace killme
             forward(context, ";");
             forward(context);
 
-            context.currentPass->forEachLight = b;
+            context.currentPass->lightIteration = type;
         }
 
         // Parse "vertex_shader_ref", "pixel_shader_ref" or "geometry_shader_ref", element
@@ -570,7 +591,7 @@ namespace killme
             });
 
             PassDescription pass;
-            pass.forEachLight = false;
+            pass.lightIteration = LightIteration::none;
             pass.blendState = BlendState::DEFAULT;
             context.currentPass = &pass;
 
@@ -642,6 +663,8 @@ namespace killme
             addIdentifier(context, "min");
             addIdentifier(context, "max");
             addIdentifier(context, "parameters");
+            addIdentifier(context, "float");
+            addIdentifier(context, "float3");
             addIdentifier(context, "float4");
             addIdentifier(context, "tex2d");
             addIdentifier(context, "vertex_shader");
@@ -656,6 +679,9 @@ namespace killme
             addIdentifier(context, "pixel_shader_ref");
             addIdentifier(context, "geometry_shader_ref");
             addIdentifier(context, "for_each_light");
+            addIdentifier(context, "none");
+            addIdentifier(context, "directional");
+            addIdentifier(context, "point");
             addIdentifier(context, "blend_enable");
             addIdentifier(context, "blend_op");
             addIdentifier(context, "blend_src");
@@ -665,15 +691,25 @@ namespace killme
             addIdentifier(context, "_ViewMatrix");
             addIdentifier(context, "_ProjMatrix");
             addIdentifier(context, "_AmbientLight");
-            addIdentifier(context, "_LightDirection");
             addIdentifier(context, "_LightColor");
+            addIdentifier(context, "_LightDirection");
+            addIdentifier(context, "_LightPosition");
+            addIdentifier(context, "_LightAttRange");
+            addIdentifier(context, "_LightAttConstant");
+            addIdentifier(context, "_LightAttLiner");
+            addIdentifier(context, "_LightAttQuadratic");
 
             context.material.addParameter("_WorldMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
             context.material.addParameter("_ViewMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
             context.material.addParameter("_ProjMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
             context.material.addParameter("_AmbientLight", { typeNumber<MP_float4>(), Variant(MP_float4::INIT) });
-            context.material.addParameter("_LightDirection", { typeNumber<MP_float3>(), Variant(MP_float3::INIT) });
             context.material.addParameter("_LightColor", { typeNumber<MP_float4>(), Variant(MP_float4::INIT) });
+            context.material.addParameter("_LightDirection", { typeNumber<MP_float3>(), Variant(MP_float3::INIT) });
+            context.material.addParameter("_LightPosition", { typeNumber<MP_float3>(), Variant(MP_float3::INIT) });
+            context.material.addParameter("_LightAttRange", { typeNumber<MP_float>(), Variant(MP_float::INIT) });
+            context.material.addParameter("_LightAttConstant", { typeNumber<MP_float>(), Variant(MP_float::INIT) });
+            context.material.addParameter("_LightAttLiner", { typeNumber<MP_float>(), Variant(MP_float::INIT) });
+            context.material.addParameter("_LightAttQuadratic", { typeNumber<MP_float>(), Variant(MP_float::INIT) });
         }
 
         // Step position by find nonspace character
@@ -729,13 +765,16 @@ namespace killme
                 // Erase comments
                 if (commentOut)
                 {
-                    auto p = line.find("*/");
-                    commentOut = (p == std::string::npos);
-                    if (commentOut)
+                    const auto p = line.find("*/");
+                    if (p == std::string::npos)
                     {
-                        p = 0;
+                        line.clear();
                     }
-                    line = line.substr(0, p);
+                    else
+                    {
+                        line = line.substr(p + 2);
+                        commentOut = false;
+                    }
                 }
 
                 const auto p = line.find("/*");

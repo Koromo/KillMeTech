@@ -100,6 +100,7 @@ namespace killme
         /** Construct */
         Level();
 
+    private:
         /** Called on level begin */
         virtual void onBegin() {}
 

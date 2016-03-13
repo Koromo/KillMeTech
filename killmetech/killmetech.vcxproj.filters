@@ -195,10 +195,13 @@
     <ClCompile Include="src\engine\components\cameracomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\components\lightcomponent.cpp">
+    <ClCompile Include="src\engine\components\meshcomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\components\meshcomponent.cpp">
+    <ClCompile Include="src\engine\components\pointlightcomponent.cpp">
+      <Filter>src\engine\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\components\directionallightcomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
   </ItemGroup>
@@ -419,10 +422,13 @@
     <ClInclude Include="src\engine\components\cameracomponent.h">
       <Filter>src\engine\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\components\lightcomponent.h">
+    <ClInclude Include="src\engine\components\meshcomponent.h">
       <Filter>src\engine\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\components\meshcomponent.h">
+    <ClInclude Include="src\engine\components\pointlightcomponent.h">
+      <Filter>src\engine\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\components\directionallightcomponent.h">
       <Filter>src\engine\components</Filter>
     </ClInclude>
   </ItemGroup>

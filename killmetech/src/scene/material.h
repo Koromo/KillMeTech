@@ -23,6 +23,28 @@ namespace killme
     class Sampler;
     class EffectTechnique;
 
+    /** float parameter */
+    struct MP_float
+    {
+        float x;
+        const float& operator [](size_t i) const;
+        float& operator [](size_t i);
+        static const MP_float INIT;
+    };
+
+    /** float converters */
+    template <>
+    inline MP_float to<MP_float, float>(const float& f)
+    {
+        return{ f };
+    }
+
+    template <>
+    inline float to<float, MP_float>(const MP_float& f)
+    {
+        return f.x;
+    }
+
     /** float3 parameter */
     struct MP_float3
     {

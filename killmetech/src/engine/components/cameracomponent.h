@@ -35,6 +35,7 @@ namespace killme
         /** If true, set this camera as the main camera */
         void setEnable(bool enable);
 
+    private:
         void onTranslated();
         void onRotated();
 

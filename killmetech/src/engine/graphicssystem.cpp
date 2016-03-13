@@ -51,7 +51,7 @@ namespace killme
         const auto frame = getCurrentFrameResource();
         const auto commands = renderSystem_->beginCommands(nullptr);
         commands->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-        commands->clearRenderTarget(frame.backBufferView, { 0, 0, 0, 1 });
+        commands->clearRenderTarget(frame.backBufferView, { 0.1f, 0.1f, 0.1f, 1 });
         commands->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
         commands->clearDepthStencil(frame.depthStencilView, 1);
         commands->close();

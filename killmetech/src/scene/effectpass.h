@@ -44,6 +44,14 @@ namespace killme
         };
     }
 
+    /** Light iteration types */
+    enum class LightIteration
+    {
+        none,
+        directional,
+        point
+    };
+
     /** Effect pass */
     class EffectPass
     {
@@ -55,15 +63,15 @@ namespace killme
         std::unordered_multimap<std::string, detail::ConstantUpdateInfo> constantUpdateInfoMap_;
         std::unordered_multimap<std::string, detail::TextureUpdateInfo> textureUpdateInfoMap_;
         std::unordered_multimap<std::string, detail::SamplerUpdateInfo> samplerUpdateInfoMap_;
-        bool forEachLight_;
+        LightIteration lightIteration_;
 
     public:
         /** Construct */
         EffectPass(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
             const MaterialDescription& matDesc, const PassDescription& passDesc);
 
-        /** Whether this is lighting pass */
-        bool forEachLight() const;
+        /** Retrun light iteration */
+        LightIteration getLightIteration() const;
         
         /** Update constant */
         void updateConstant(const std::string& matParam, const void* data, size_t size);

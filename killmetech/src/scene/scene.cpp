@@ -23,7 +23,8 @@ namespace killme
         : renderSystem_(renderSystem)
         , scissorRect_()
         , ambientLight_(0.2f, 0.2f, 0.2f, 1)
-        , lights_()
+        , dirLights_()
+        , pointLights_()
         , cameras_()
         , meshInstances_()
         , mainCamera_()
@@ -45,12 +46,26 @@ namespace killme
 
     void Scene::addLight(const std::shared_ptr<Light>& light)
     {
-        lights_.emplace(light);
+        if (light->getType() == LightType::directional)
+        {
+            dirLights_.emplace(light);
+        }
+        else
+        {
+            pointLights_.emplace(light);
+        }
     }
 
     void Scene::removeLight(const std::shared_ptr<Light>& light)
     {
-        lights_.erase(light);
+        if (light->getType() == LightType::directional)
+        {
+            dirLights_.erase(light);
+        }
+        else
+        {
+            pointLights_.erase(light);
+        }
     }
 
     void Scene::addCamera(const std::shared_ptr<Camera>& camera)
@@ -159,14 +174,33 @@ namespace killme
                         renderSystem_->executeCommands(commands);
                     };
 
-                    if (pass->forEachLight())
+                    if (pass->getLightIteration() == LightIteration::directional)
                     {
-                        for (const auto& light : lights_)
+                        for (const auto& light : dirLights_)
                         {
                             const auto lightColor = light->getColor();
-                            const auto lightDir = light->getFront();
+                            const auto lightDir = light->getDirection();
                             pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
                             pass->updateConstant("_LightDirection", &lightDir, sizeof(lightDir));
+                            renderPass();
+                        }
+                    }
+                    else if (pass->getLightIteration() == LightIteration::point)
+                    {
+                        for (const auto& light : pointLights_)
+                        {
+                            const auto lightColor = light->getColor();
+                            const auto lightPos = light->getPosition();
+                            const auto lightAttRange = light->getAttenuationRange();
+                            const auto lightAttConstant = light->getAttenuationConstant();
+                            const auto lightAttLiner = light->getAttenuationLiner();
+                            const auto lightAttQuadratic = light->getAttenuationQuadratic();
+                            pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
+                            pass->updateConstant("_LightPosition", &lightPos, sizeof(lightPos));
+                            pass->updateConstant("_LightAttRange", &lightAttRange, sizeof(lightAttRange));
+                            pass->updateConstant("_LightAttConstant", &lightAttConstant, sizeof(lightAttConstant));
+                            pass->updateConstant("_LightAttLiner", &lightAttLiner, sizeof(lightAttLiner));
+                            pass->updateConstant("_LightAttQuadratic", &lightAttQuadratic, sizeof(lightAttQuadratic));
                             renderPass();
                         }
                     }

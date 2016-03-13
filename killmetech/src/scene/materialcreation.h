@@ -1,6 +1,7 @@
 #ifndef _KILLME_MATERIALCREATION_H_
 #define _KILLME_MATERIALCREATION_H_
 
+#include "effectpass.h"
 #include "../renderer/shaders.h"
 #include "../renderer/renderstate.h"
 #include "../core/utility.h"
@@ -40,7 +41,7 @@ namespace killme
     /** Pass description */
     struct PassDescription
     {
-        bool forEachLight;
+        LightIteration lightIteration;
         BlendState blendState;
         std::unordered_map<ShaderType, std::string> shaderRef;
     };

@@ -120,6 +120,7 @@ namespace killme
         }
     }
 
+    /// TODO: Output errors
     EffectPass::EffectPass(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
         const MaterialDescription& matDesc, const PassDescription& passDesc)
         : renderSystem_(renderSystem)
@@ -129,7 +130,7 @@ namespace killme
         , constantUpdateInfoMap_()
         , textureUpdateInfoMap_()
         , samplerUpdateInfoMap_()
-        , forEachLight_(passDesc.forEachLight)
+        , lightIteration_(passDesc.lightIteration)
     {
         // Create pipeline state
         PipelineStateDescription pipelineDesc;
@@ -247,9 +248,9 @@ namespace killme
         pipeline_ = renderSystem_->createPipelineState(pipelineDesc);
     }
 
-    bool EffectPass::forEachLight() const
+    LightIteration EffectPass::getLightIteration() const
     {
-        return forEachLight_;
+        return lightIteration_;
     }
 
     void EffectPass::updateConstant(const std::string& matParam, const void* data, size_t size)

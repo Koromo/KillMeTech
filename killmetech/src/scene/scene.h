@@ -21,7 +21,8 @@ namespace killme
         std::shared_ptr<RenderSystem> renderSystem_;
         ScissorRect scissorRect_;
         Color ambientLight_;
-        std::unordered_set<std::shared_ptr<Light>> lights_;
+        std::unordered_set<std::shared_ptr<Light>> dirLights_;
+        std::unordered_set<std::shared_ptr<Light>> pointLights_;
         std::unordered_set<std::shared_ptr<Camera>> cameras_;
         std::unordered_set<std::shared_ptr<MeshInstance>> meshInstances_;
         std::shared_ptr<Camera> mainCamera_;

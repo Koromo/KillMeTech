@@ -113,6 +113,7 @@ namespace killme
         /** Construct */
         Actor();
 
+    private:
         /** Called on spawned */
         virtual void onSpawn() {}
 

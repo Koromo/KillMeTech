@@ -63,6 +63,7 @@ namespace killme
         /** Construct */
         ActorComponent();
 
+    private:
         /** Called on activate */
         virtual void onActivate() {}
 

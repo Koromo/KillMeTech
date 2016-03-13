@@ -45,12 +45,12 @@ namespace killme
         void setOrientation(const Quaternion& q);
         void setScale(const Vector3& k);
 
+    private:
         /** Called on moved */
         virtual void onTranslated() {}
         virtual void onRotated() {}
         virtual void onScaled() {}
 
-    private:
         void onBeginFrame();
     };
 

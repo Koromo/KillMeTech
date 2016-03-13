@@ -25,6 +25,7 @@ namespace killme
         /** If true, set this listener as the main listener */
         void setEnable(bool enable);
 
+    private:
         void onTranslated();
         void onRotated();
 
