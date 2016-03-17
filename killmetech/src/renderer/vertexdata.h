@@ -19,11 +19,21 @@ namespace killme
     {
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
+        D3D12_RESOURCE_DESC desc_;
         D3D12_VERTEX_BUFFER_VIEW view_;
 
     public:
         /** Construct with the vertices */
         VertexBuffer(ID3D12Resource* buffer, size_t stride);
+
+        /** Return the Direct3D resource */
+        ID3D12Resource* getD3DResource();
+
+        /** Return the Direct3D subresource informations */
+        D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const;
+
+        /** Return Direct3D resource description */
+        D3D12_RESOURCE_DESC describeD3D() const;
 
         /** Return the Direct3D view */
         D3D12_VERTEX_BUFFER_VIEW getD3DView();
@@ -34,11 +44,21 @@ namespace killme
     {
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
+        D3D12_RESOURCE_DESC desc_;
         D3D12_INDEX_BUFFER_VIEW view_;
 
     public:
         /** Construct with the indices */
         explicit IndexBuffer(ID3D12Resource* buffer);
+
+        /** Return the Direct3D resource */
+        ID3D12Resource* getD3DResource();
+
+        /** Return the Direct3D subresource informations */
+        D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const;
+
+        /** Return Direct3D resource description */
+        D3D12_RESOURCE_DESC describeD3D() const;
 
         /** Return the Direct3D view */
         D3D12_INDEX_BUFFER_VIEW getD3DView();

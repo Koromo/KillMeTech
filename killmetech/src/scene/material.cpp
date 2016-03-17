@@ -112,7 +112,7 @@ namespace killme
         return type == typeNumber<MP_tex2d>();
     }
 
-    Material::Material(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc)
+    Material::Material(RenderSystem& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc)
         : params_()
         , useTech_()
         , techMap_()

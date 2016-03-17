@@ -1,13 +1,17 @@
 #include "rendersystem.h"
+#include "commandallocator.h"
+#include "commandlist.h"
+#include "commandqueue.h"
+#include "gpuresourceheap.h"
 #include "vertexdata.h"
 #include "constantbuffer.h"
-#include "image.h"
+//#include "pixels.h"
+//#include "image.h"
 #include "texture.h"
 #include "rootsignature.h"
 #include "pipelinestate.h"
 #include "shaders.h"
 #include "inputlayout.h"
-#include "commandlist.h"
 #include "d3dsupport.h"
 #include "../resources/resource.h"
 #include "../core/math/math.h"
@@ -27,9 +31,6 @@ namespace killme
     RenderSystem::RenderSystem(HWND window)
         : window_(window)
         , device_()
-        , commandQueue_()
-        , commandAllocator_()
-        , commandList_()
         , swapChain_()
         , frameIndex_()
         , backBufferHeap_()
@@ -38,9 +39,11 @@ namespace killme
         , depthStencilHeap_()
         , depthStencil_()
         , depthStencilView_()
-        , fence_()
-        , fenceEvent_(nullptr, CloseHandle)
-        , fenceValue_()
+        , readyAllocators_()
+        , queuedAllocators_()
+        , readyLists_()
+        , queuedLists_()
+        , commandQueue_()
     {
         // Enable the debug layer
 #ifdef _DEBUG
@@ -69,14 +72,14 @@ namespace killme
         enforce<Direct3DException>(
             SUCCEEDED(device_->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue))),
             "Failed create the command queue.");
-        commandQueue_ = makeComUnique(commandQueue);
+        auto safeQueue = makeComUnique(commandQueue);
 
-        // Create the command allocator
-        ID3D12CommandAllocator* commandAllocator;
+        ID3D12Fence* fence;
         enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))),
-            "Failed to create the command allocator.");
-        commandAllocator_ = makeComUnique(commandAllocator);
+            SUCCEEDED(device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))),
+            "Failed to create the fence.");
+
+        commandQueue_ = std::make_shared<CommandQueue>(safeQueue.release(), fence);
 
         // Create the swap chain
         RECT clientRect;
@@ -104,7 +107,7 @@ namespace killme
 
         IDXGISwapChain* swapChain0;
         enforce<Direct3DException>(
-            SUCCEEDED(factory->CreateSwapChain(commandQueue_.get(), &swapChainDesc, &swapChain0)),
+            SUCCEEDED(factory->CreateSwapChain(commandQueue, &swapChainDesc, &swapChain0)),
             "Failed to create the swap chain.");
         KILLME_SCOPE_EXIT{ swapChain0->Release(); };
 
@@ -125,7 +128,7 @@ namespace killme
                 SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&backBuffer))),
                 "Failed to get the back buffer.");
             backBuffers_[i] = std::make_shared<RenderTarget>(backBuffer);
-            backBufferViews_[i] = createGpuResourceView(backBufferHeap_, i, backBuffers_[i]);
+            backBufferViews_[i] = backBufferHeap_->createView(i, backBuffers_[i]);
         }
 
         // Create the depth stencil
@@ -146,24 +149,7 @@ namespace killme
             "Failed to create the depth stencil.");
 
         depthStencil_ = std::make_shared<DepthStencil>(depthStencil);
-        depthStencilView_ = createGpuResourceView(depthStencilHeap_, 0, depthStencil_);
-
-        // Create the fence
-        ID3D12Fence* fence;
-        enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence))),
-            "Failed to create the fence.");
-        fence_ = makeComUnique(fence);
-        fenceEvent_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-        fenceValue_ = 1;
-
-        // Create the command list
-        ID3D12GraphicsCommandList* list;
-        enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.get(), nullptr, IID_PPV_ARGS(&list))),
-            "Failed to create the command list.");
-        list->Close();
-        commandList_ = std::make_shared<CommandList>(list);
+        depthStencilView_ = depthStencilHeap_->createView(0, depthStencil_);
     }
 
     HWND RenderSystem::getTargetWindow()
@@ -180,54 +166,30 @@ namespace killme
         return frame;
     }
 
-    std::shared_ptr<VertexBuffer> RenderSystem::createVertexBuffer(const void* data, size_t size, size_t stride)
+    std::shared_ptr<VertexBuffer> RenderSystem::createVertexBuffer(size_t size, size_t stride)
     {
         assert(stride <= size && "You need satisfy stride <= size.");
 
-        /// TODO: Now, Only use the upload heap. We can use the default heap to store the data.
-        // Use the upload heap
-        const auto uploadHeapProps = getD3DUploadHeapProps();
+        const auto defaultHeapProps = getD3DDefaultHeapProps();
         const auto desc = describeD3DBuffer(size);
 
-        // Create the buffer
         ID3D12Resource* buffer;
         enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+            SUCCEEDED(device_->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create the vertex buffer.");
-
-        // Upload the data into the buffer
-        void* mappedData;
-        enforce<Direct3DException>(
-            SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
-            "Failed to map the vertices memory.");
-
-        std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
-        buffer->Unmap(0, nullptr);
 
         return std::make_shared<VertexBuffer>(buffer, stride);
     }
 
-    std::shared_ptr<IndexBuffer> RenderSystem::createIndexBuffer(const unsigned short* data, size_t size)
+    std::shared_ptr<IndexBuffer> RenderSystem::createIndexBuffer(size_t size)
     {
-        /// TODO: Now, Only use the upload heap. We can use the default heap to store the data.
-        // Use the upload heap
-        const auto uploadHeapProps = getD3DUploadHeapProps();
+        const auto defaultHeapProps = getD3DDefaultHeapProps();
         const auto desc = describeD3DBuffer(size);
 
-        // Create the buffer
         ID3D12Resource* buffer;
         enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer))),
+            SUCCEEDED(device_->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&buffer))),
             "Failed to create the index buffer.");
-
-        // Upload the data into the buffer
-        void* mappedData;
-        enforce<Direct3DException>(
-            SUCCEEDED(buffer->Map(0, nullptr, &mappedData)),
-            "Failed to map the indices memory.");
-
-        std::memcpy(mappedData, data, static_cast<size_t>(desc.Width));
-        buffer->Unmap(0, nullptr);
 
         return std::make_shared<IndexBuffer>(buffer);
     }
@@ -249,36 +211,17 @@ namespace killme
         return std::make_shared<ConstantBuffer>(buffer);
     }
 
-    std::shared_ptr<Texture> RenderSystem::createTexture(const std::shared_ptr<const Image>& img)
+    std::shared_ptr<Texture> RenderSystem::createTexture(size_t width, size_t height, PixelFormat format)
     {
-        const auto w = img->getWidth();
-        const auto h = img->getHeight();
-
-        D3D12_HEAP_PROPERTIES heapProps; /// TODO;
-        heapProps.Type = D3D12_HEAP_TYPE_CUSTOM;
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-        heapProps.CreationNodeMask = 0;
-        heapProps.VisibleNodeMask = 0;
-        const auto desc = describeD3DTex2D(w, h, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_NONE);
+        const auto defaultHeapProps = getD3DDefaultHeapProps();
+        const auto desc = describeD3DTex2D(width, height, toD3DPixelFormat(format), D3D12_RESOURCE_FLAG_NONE);
 
         ID3D12Resource* tex;
         enforce<Direct3DException>(
-            SUCCEEDED(device_->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&tex))),
+            SUCCEEDED(device_->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&tex))),
             "Failed to create the texture.");
 
-        D3D12_BOX box;
-        box.left = 0;
-        box.top = 0;
-        box.right = w;
-        box.bottom = h;
-        box.front = 0;
-        box.back = 1;
-        enforce<Direct3DException>(
-            SUCCEEDED(tex->WriteToSubresource(0, &box, img->getPixelBuffer(), sizeof(Pixel) * w, sizeof(Pixel) * w * h)),
-            "Failed to upload texture.");
-
-        return std::make_shared<Texture>(tex);
+        return std::make_shared<Texture>(tex, format);
     }
 
     namespace
@@ -477,37 +420,104 @@ namespace killme
         return std::make_shared<PipelineState>(pipelineState, pipelineDesc);
     }
 
-    std::shared_ptr<CommandList> RenderSystem::beginCommands(const std::shared_ptr<PipelineState>& pipeline)
+    std::shared_ptr<CommandAllocator> RenderSystem::obtainCommandAllocator()
     {
-        enforce<Direct3DException>(
-            SUCCEEDED(commandAllocator_->Reset()),
-            "Failed to reset the command allocator.");
+        commandQueue_->updateExecutionState();
 
-        const auto d3dPipeline = pipeline ? pipeline->getD3DPipelineState() : nullptr;
-        enforce<Direct3DException>(
-            SUCCEEDED(commandList_->getD3DCommandList()->Reset(commandAllocator_.get(), d3dPipeline)),
-            "Faild to reset the command list.");
+        auto it = std::cbegin(queuedAllocators_);
+        while (it != std::cend(queuedAllocators_))
+        {
+            if ((*it)->isLocked())
+            {
+                ++it;
+            }
+            else
+            {
+                (*it)->reset();
+                readyAllocators_.emplace(*it);
+                it = queuedAllocators_.erase(it);
+            }
+        }
 
-        return commandList_;
+        if (readyAllocators_.empty())
+        {
+            ID3D12CommandAllocator* allocator;
+            enforce<Direct3DException>(
+                SUCCEEDED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&allocator))),
+                "Failed to create the CommandAllocator.");
+            const auto front = std::make_shared<CommandAllocator>(allocator);
+            front->reset();
+            readyAllocators_.emplace(front);
+        }
+
+        const auto front = readyAllocators_.front();
+        readyAllocators_.pop();
+
+        return front;
     }
 
-    void RenderSystem::executeCommands(const std::shared_ptr<CommandList>& list)
+    void RenderSystem::reuseCommandAllocator(const std::shared_ptr<CommandAllocator>& allocator)
     {
-        ID3D12CommandList* d3dLists[] = {list->getD3DCommandList()};
-        commandQueue_->ExecuteCommandLists(1, d3dLists);
+        readyAllocators_.emplace(allocator);
+    }
 
-        // Wait for GPU draw finished
-        enforce<Direct3DException>(
-            SUCCEEDED(commandQueue_->Signal(fence_.get(), fenceValue_)),
-            "Failed to signal of draw end.");
-        if (fence_->GetCompletedValue() < fenceValue_)
+    void RenderSystem::reuseCommandAllocatorAfterExecution(const std::shared_ptr<CommandAllocator>& allocator)
+    {
+        queuedAllocators_.emplace_back(allocator);
+    }
+
+    std::shared_ptr<CommandList> RenderSystem::obtainCommandList(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<PipelineState>& pipeline)
+    {
+        commandQueue_->updateExecutionState();
+
+        auto it = std::cbegin(queuedLists_);
+        while (it != std::cend(queuedLists_))
         {
-            enforce<Direct3DException>(
-                SUCCEEDED(fence_->SetEventOnCompletion(fenceValue_, fenceEvent_.get())),
-                "Failed to set the signal event.");
-            WaitForSingleObject(fenceEvent_.get(), INFINITE);
+            if ((*it)->isLocked())
+            {
+                ++it;
+            }
+            else
+            {
+                readyLists_.emplace(*it);
+                it = queuedLists_.erase(it);
+            }
         }
-        ++fenceValue_;
+
+        if (readyLists_.empty())
+        {
+            /// TODO: Initial pipeline
+            const auto d3dAllocator = allocator->getD3DAllocator();
+            ID3D12GraphicsCommandList* list;
+            enforce<Direct3DException>(
+                SUCCEEDED(device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, d3dAllocator, nullptr, IID_PPV_ARGS(&list))),
+                "Failed to create the command list.");
+
+            const auto front = std::make_shared<CommandList>(list, allocator);
+            front->close();
+            readyLists_.emplace(front);
+        }
+
+        const auto front = readyLists_.front();
+        readyLists_.pop();
+
+        front->reset(allocator, pipeline);
+        return front;
+    }
+
+    void RenderSystem::reuseCommandList(const std::shared_ptr<CommandList>& list)
+    {
+        readyLists_.emplace(list);
+    }
+
+    void RenderSystem::reuseCommandListAfterExecution(const std::shared_ptr<CommandList>& list)
+    {
+        queuedLists_.emplace_back(list);
+    }
+
+    std::shared_ptr<CommandQueue> RenderSystem::getCommandQueue()
+    {
+        return commandQueue_;
     }
 
     void RenderSystem::presentBackBuffer()

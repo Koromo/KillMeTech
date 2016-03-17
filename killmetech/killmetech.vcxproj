@@ -58,8 +58,10 @@
     <ClCompile Include="src\renderer\commandlist.cpp" />
     <ClCompile Include="src\renderer\d3dsupport.cpp" />
     <ClCompile Include="src\renderer\image.cpp" />
+    <ClCompile Include="src\renderer\pixels.cpp" />
     <ClCompile Include="src\renderer\renderstate.cpp" />
     <ClCompile Include="src\renderer\rendersystem.cpp" />
+    <ClCompile Include="src\renderer\resourcebarrior.h" />
     <ClCompile Include="src\renderer\rootsignature.cpp" />
     <ClCompile Include="src\renderer\shaders.cpp" />
     <ClCompile Include="src\renderer\texture.h" />
@@ -121,7 +123,9 @@
     <ClInclude Include="src\physics\rigidbody.h" />
     <ClInclude Include="src\processes\process.h" />
     <ClInclude Include="src\processes\processscheduler.h" />
+    <ClInclude Include="src\renderer\commandallocator.h" />
     <ClInclude Include="src\renderer\commandlist.h" />
+    <ClInclude Include="src\renderer\commandqueue.h" />
     <ClInclude Include="src\renderer\constantbuffer.h" />
     <ClInclude Include="src\renderer\d3dsupport.h" />
     <ClInclude Include="src\renderer\depthstencil.h" />
@@ -129,6 +133,7 @@
     <ClInclude Include="src\renderer\inputlayout.h" />
     <ClInclude Include="src\renderer\pipelinestate.h" />
     <ClInclude Include="src\renderer\gpuresourceheap.h" />
+    <ClInclude Include="src\renderer\pixels.h" />
     <ClInclude Include="src\renderer\renderstate.h" />
     <ClInclude Include="src\renderer\rendersystem.h" />
     <ClInclude Include="src\renderer\rendertarget.h" />

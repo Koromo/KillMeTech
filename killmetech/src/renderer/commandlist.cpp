@@ -1,17 +1,36 @@
 #include "commandlist.h"
-#include "rendertarget.h"
-#include "depthstencil.h"
+#include "commandallocator.h"
+#include "pipelinestate.h"
+#include "vertexdata.h"
 #include "rootsignature.h"
 #include "renderstate.h"
-#include "d3dsupport.h"
+#include "resourcebarrior.h"
 #include "../core/math/color.h"
-#include "../core/exception.h"
 #include <cassert>
 
 namespace killme
 {
-    CommandList::CommandList(ID3D12GraphicsCommandList* list)
+    D3D12_RESOURCE_STATES detail::getD3DResourceState(ResourceState state)
+    {
+        switch (state)
+        {
+        case ResourceState::present: return D3D12_RESOURCE_STATE_PRESENT;
+        case ResourceState::renderTarget: return D3D12_RESOURCE_STATE_RENDER_TARGET;
+        case ResourceState::copyDestination: return D3D12_RESOURCE_STATE_COPY_DEST;
+        case ResourceState::vertexBuffer: return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        case ResourceState::indexBuffer: return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+        case ResourceState::texture: return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        default:
+            assert(false && "Invalid resource state.");
+            return D3D12_RESOURCE_STATE_COMMON; // For warnings
+        }
+    }
+
+    CommandList::CommandList(ID3D12GraphicsCommandList* list, const std::shared_ptr<CommandAllocator>& allocator)
         : list_(makeComUnique(list))
+        , uploaders_()
+        , locked_(false)
+        , allocator_(allocator)
     {
     }
 
@@ -110,40 +129,6 @@ namespace killme
         list_->RSSetScissorRects(1, &d3dRect);
     }
 
-    namespace
-    {
-        // Convert to Direct3D resource state
-        D3D12_RESOURCE_STATES toD3DResourceState(ResourceState state)
-        {
-            switch (state)
-            {
-            case ResourceState::present: return D3D12_RESOURCE_STATE_PRESENT;
-            case ResourceState::renderTarget: return D3D12_RESOURCE_STATE_RENDER_TARGET;
-            default:
-                assert(false && "Invalid resource state.");
-                return D3D12_RESOURCE_STATE_COMMON; // For warnings
-            }
-        }
-    }
-
-    void CommandList::resourceBarrior(const std::shared_ptr<RenderTarget>& renderTarget, ResourceState before, ResourceState after)
-    {
-        D3D12_RESOURCE_BARRIER barrier;
-        ZeroMemory(&barrier, sizeof(barrier));
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrier.Transition.pResource = renderTarget->getD3DRenderTarget();
-        barrier.Transition.StateBefore = toD3DResourceState(before);
-        barrier.Transition.StateAfter = toD3DResourceState(after);
-        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        list_->ResourceBarrier(1, &barrier);
-    }
-
-    void CommandList::close()
-    {
-        enforce<Direct3DException>(SUCCEEDED(list_->Close()), "Failed to close the command list.");
-    }
-
     void CommandList::draw(size_t numVertices)
     {
         list_->DrawInstanced(static_cast<UINT>(numVertices), 1, 0, 0);
@@ -152,6 +137,37 @@ namespace killme
     void CommandList::drawIndexed(size_t numIndices)
     {
         list_->DrawIndexedInstanced(numIndices, 1, 0, 0, 0);
+    }
+
+    void CommandList::reset(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<PipelineState>& pipeline)
+    {
+        assert(!locked_ && "This COmmandList is locking.");
+        const auto d3dAllocator = allocator->getD3DAllocator();
+        const auto d3dPipeline = pipeline ? pipeline->getD3DPipelineState() : nullptr;
+        enforce<Direct3DException>(
+            SUCCEEDED(list_->Reset(d3dAllocator, d3dPipeline)),
+            "Failed to reset command list.");
+        uploaders_.clear();
+    }
+
+    void CommandList::close()
+    {
+        enforce<Direct3DException>(SUCCEEDED(list_->Close()), "Failed to close the command list.");
+    }
+
+    std::shared_ptr<CommandAllocator> CommandList::getAllocator()
+    {
+        return allocator_;
+    }
+
+    void CommandList::lock(bool b)
+    {
+        locked_ = b;
+    }
+
+    bool CommandList::isLocked() const
+    {
+        return locked_;
     }
 
     ID3D12GraphicsCommandList* CommandList::getD3DCommandList()

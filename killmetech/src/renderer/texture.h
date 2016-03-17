@@ -1,6 +1,7 @@
 #ifndef _KILLME_TEXTURE_H_
 #define _KILLME_TEXTURE_H_
 
+#include "pixels.h"
 #include "../resources/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -14,6 +15,7 @@ namespace killme
     private:
         ComUniquePtr<ID3D12Resource> tex_;
         D3D12_RESOURCE_DESC resourceDesc_;
+        PixelFormat format_;
 
     public:
         /** Resource view */
@@ -23,11 +25,28 @@ namespace killme
         };
 
         /** Construct */
-        explicit Texture(ID3D12Resource* tex)
+        Texture(ID3D12Resource* tex, PixelFormat format)
             : tex_(makeComUnique(tex))
             , resourceDesc_(tex->GetDesc())
+            , format_(format)
         {
         }
+
+        /** Return the Direct3D resource */
+        ID3D12Resource* getD3DResource() { return tex_.get(); }
+
+        /** Return the Direct3D subresource informations */
+        D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const
+        {
+            D3D12_SUBRESOURCE_DATA subresource;
+            subresource.pData = data;
+            subresource.RowPitch = static_cast<LONG_PTR>(resourceDesc_.Width * numBitsOfPixelFormat(format_) / 8);
+            subresource.SlicePitch = subresource.RowPitch * resourceDesc_.Height;
+            return subresource;
+        }
+
+        /** Return Durect3D resource description */
+        D3D12_RESOURCE_DESC describeD3D() const { return resourceDesc_; }
 
         /** Create the Direct3D view into a desctipror heap */
         View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)

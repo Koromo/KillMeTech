@@ -1,7 +1,7 @@
 #include "graphicssystem.h"
 #include "../renderer/commandlist.h"
-#include "../renderer/rendertarget.h"
-#include "../renderer/commandlist.h"
+#include "../renderer/resourcebarrior.h"
+#include "../renderer/commandqueue.h"
 #include "../core/math/color.h"
 
 namespace killme
@@ -49,13 +49,18 @@ namespace killme
     void GraphicsSystem::clearBackBuffer()
     {
         const auto frame = getCurrentFrameResource();
-        const auto commands = renderSystem_->beginCommands(nullptr);
-        commands->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+        const auto allocator = renderSystem_->obtainCommandAllocator();
+        const auto commands = renderSystem_->obtainCommandList(allocator, nullptr);
+        commands->transitionBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
         commands->clearRenderTarget(frame.backBufferView, { 0.1f, 0.1f, 0.1f, 1 });
-        commands->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+        commands->transitionBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
         commands->clearDepthStencil(frame.depthStencilView, 1);
         commands->close();
-        renderSystem_->executeCommands(commands);
+
+        const auto commandExe = { commands };
+        renderSystem_->getCommandQueue()->executeCommands(commandExe);
+        renderSystem_->reuseCommandAllocatorAfterExecution(allocator);
+        renderSystem_->reuseCommandListAfterExecution(commands);
     }
 
     void GraphicsSystem::presentBackBuffer()

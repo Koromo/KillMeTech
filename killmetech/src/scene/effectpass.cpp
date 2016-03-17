@@ -33,7 +33,7 @@ namespace killme
         };
 
         template <class Shaders>
-        std::vector<RootParamInfo> getRootParamInfos(const std::shared_ptr<RenderSystem>& renderSystem, Shaders shaders)
+        std::vector<RootParamInfo> getRootParamInfos(RenderSystem& renderSystem, Shaders shaders)
         {
             std::vector<RootParamInfo> rootParams;
             auto offsetInHeap_cbv_srv = 0;
@@ -95,13 +95,13 @@ namespace killme
             std::shared_ptr<GpuResourceHeap> heap_cbv_srv;
             if (offsetInHeap_cbv_srv > 0)
             {
-                heap_cbv_srv = renderSystem->createGpuResourceHeap(offsetInHeap_cbv_srv, GpuResourceHeapType::cbv_srv, GpuResourceHeapFlag::shaderVisible);
+                heap_cbv_srv = renderSystem.createGpuResourceHeap(offsetInHeap_cbv_srv, GpuResourceHeapType::cbv_srv, GpuResourceHeapFlag::shaderVisible);
             }
 
             std::shared_ptr<GpuResourceHeap> heap_sampler;
             if (offsetInHeap_sampler > 0)
             {
-                heap_sampler = renderSystem->createGpuResourceHeap(offsetInHeap_sampler, GpuResourceHeapType::sampler, GpuResourceHeapFlag::shaderVisible);
+                heap_sampler = renderSystem.createGpuResourceHeap(offsetInHeap_sampler, GpuResourceHeapType::sampler, GpuResourceHeapFlag::shaderVisible);
             }
 
             for (auto& rootParam : rootParams)
@@ -121,10 +121,9 @@ namespace killme
     }
 
     /// TODO: Output errors
-    EffectPass::EffectPass(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
+    EffectPass::EffectPass(RenderSystem& renderSystem, ResourceManager& resourceManager,
         const MaterialDescription& matDesc, const PassDescription& passDesc)
-        : renderSystem_(renderSystem)
-        , pipeline_()
+        : pipeline_()
         , resourceHeaps_()
         , resourceHeapTables_()
         , constantUpdateInfoMap_()
@@ -183,7 +182,7 @@ namespace killme
                 {
                     // Initialize constant buffer
                     const auto& cbufferDesc = rootParamInfo.shader->describeConstantBuffer(rangeInfo.resourceName);
-                    const auto cbuffer = renderSystem_->createConstantBuffer(cbufferDesc->getSize());
+                    const auto cbuffer = renderSystem.createConstantBuffer(cbufferDesc->getSize());
                     const auto& boundDesc = eachShaders[rootParamInfo.shader];
 
                     for (const auto& var : cbufferDesc->describeVariables())
@@ -204,7 +203,7 @@ namespace killme
                     }
 
                     // Initialize range and heap
-                    renderSystem->createGpuResourceView(rootParamInfo.heap, rangeInfo.offsetInHeap, cbuffer);
+                    rootParamInfo.heap->createView(rangeInfo.offsetInHeap, cbuffer);
                     rootSigDesc[rootParamIndex][rangeIndex].as(GpuResourceRangeType::cbv, cbufferDesc->getRegisterSlot(), 1, rangeInfo.offsetInHeap);
                 }
                 else if (rangeInfo.type == GpuResourceRangeType::srv) // Texture
@@ -244,8 +243,8 @@ namespace killme
             resourceHeapTables_.emplace(rootParamIndex, rootParamInfo.heap);
         }
 
-        pipelineDesc.rootSignature = renderSystem_->createRootSignature(rootSigDesc);
-        pipeline_ = renderSystem_->createPipelineState(pipelineDesc);
+        pipelineDesc.rootSignature = renderSystem.createRootSignature(rootSigDesc);
+        pipeline_ = renderSystem.createPipelineState(pipelineDesc);
     }
 
     LightIteration EffectPass::getLightIteration() const
@@ -267,7 +266,7 @@ namespace killme
         const auto it = textureUpdateInfoMap_.find(matParam);
         if (it != std::cend(textureUpdateInfoMap_))
         {
-            renderSystem_->createGpuResourceView(it->second.dest, it->second.index, tex.access());
+            it->second.dest->createView(it->second.index, tex.access());
         }
     }
 
@@ -276,7 +275,7 @@ namespace killme
         const auto it = samplerUpdateInfoMap_.find(matParam);
         if (it != std::cend(samplerUpdateInfoMap_))
         {
-            renderSystem_->createGpuResourceView(it->second.dest, it->second.index, sam);
+            it->second.dest->createView(it->second.index, sam);
         }
     }
 

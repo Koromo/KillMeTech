@@ -4,11 +4,14 @@
 #include "../renderer/rendersystem.h"
 #include "../renderer/vertexdata.h"
 #include "../renderer/commandlist.h"
+#include "../renderer/commandqueue.h"
+#include "../renderer/commandallocator.h"
 #include "../renderer/constantbuffer.h"
 #include "../renderer/gpuresourceheap.h"
 #include "../renderer/rootsignature.h"
 #include "../renderer/shaders.h"
 #include "../renderer/pipelinestate.h"
+#include "../renderer/resourcebarrior.h"
 #include "../resources/resourcemanager.h"
 #include "../core/math/matrix44.h"
 #include "../core/math/vector3.h"
@@ -27,7 +30,7 @@ namespace killme
         // Create render resources
         viewProjBuffer_ = renderSystem_->createConstantBuffer(sizeof(Matrix44) * 2);
         viewProjHeap_ = renderSystem_->createGpuResourceHeap(1, GpuResourceHeapType::cbv_srv, GpuResourceHeapFlag::shaderVisible);
-        renderSystem_->createGpuResourceView(viewProjHeap_, 0, viewProjBuffer_);
+        viewProjHeap_->createView(0, viewProjBuffer_);
 
         RootSignatureDescription rootSigDesc(1);
         rootSigDesc[0].asTable(1, ShaderType::vertex);
@@ -98,10 +101,20 @@ namespace killme
         viewProjBuffer_->update(&viewMat, 0, sizeof(Matrix44));
         viewProjBuffer_->update(&projMat, sizeof(Matrix44), sizeof(Matrix44));
 
-        const auto positionBuffer = renderSystem_->createVertexBuffer(
-            positions_.data(), numVertices * sizeof(float) * 3, sizeof(float) * 3);
-        const auto colorBuffer = renderSystem_->createVertexBuffer(
-            colors_.data(), numVertices * sizeof(float) * 4, sizeof(float) * 4);
+        const auto allocator = renderSystem_->obtainCommandAllocator();
+        const auto commands = renderSystem_->obtainCommandList(allocator, nullptr);
+        const auto positionBuffer = renderSystem_->createVertexBuffer(numVertices * sizeof(float) * 3, sizeof(float) * 3);
+        const auto colorBuffer = renderSystem_->createVertexBuffer(numVertices * sizeof(float) * 4, sizeof(float) * 4);
+        commands->updateGpuResource(positionBuffer, positions_.data());
+        commands->transitionBarrior(positionBuffer, ResourceState::copyDestination, ResourceState::vertexBuffer);
+        commands->updateGpuResource(colorBuffer, colors_.data());
+        commands->transitionBarrior(colorBuffer, ResourceState::copyDestination, ResourceState::vertexBuffer);
+        commands->close();
+
+        {
+            const auto commandExe = { commands };
+            renderSystem_->getCommandQueue()->executeCommands(commandExe);
+        }
 
         VertexData vertexData;
         vertexData.addVertices(SemanticNames::position, 0, positionBuffer);
@@ -112,9 +125,10 @@ namespace killme
         const auto& views = vertexData.getVertexViews(inputLayout);
 
         // Begin drawing to all debugs
-        const auto commands = renderSystem_->beginCommands(pipeline_);
-
-        commands->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+        renderSystem_->getCommandQueue()->waitForCommands();
+        allocator->reset();
+        commands->reset(allocator, pipeline_);
+        commands->transitionBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
         commands->setRenderTarget(frame.backBufferView, frame.depthStencilView);
         commands->setViewport(viewport);
         commands->setScissorRect(scissorRect_);
@@ -125,10 +139,16 @@ namespace killme
         commands->setGpuResourceHeaps(heaps);
         commands->setGpuResourceTable(0, viewProjHeap_);
         commands->draw(numVertices);
-        commands->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+        commands->transitionBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
         commands->close();
 
-        renderSystem_->executeCommands(commands);
+        {
+            const auto commandExe = { commands };
+            renderSystem_->getCommandQueue()->executeCommands(commandExe);
+        }
+        
+        renderSystem_->reuseCommandAllocatorAfterExecution(allocator);
+        renderSystem_->reuseCommandListAfterExecution(commands);
 
         clear();
     }

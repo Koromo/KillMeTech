@@ -3,6 +3,7 @@
 #include "../core/exception.h"
 #include <string>
 #include <cstdio>
+#include <cstdint>
 
 namespace killme
 {

@@ -4,7 +4,7 @@
 
 namespace killme
 {
-    EffectTechnique::EffectTechnique(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
+    EffectTechnique::EffectTechnique(RenderSystem& renderSystem, ResourceManager& resourceManager,
         const MaterialDescription& matDesc, const TechniqueDescription& techDesc)
         : passes_()
     {

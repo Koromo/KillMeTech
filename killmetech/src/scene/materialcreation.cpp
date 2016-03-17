@@ -1,6 +1,7 @@
 #include "materialcreation.h"
 #include "material.h"
 #include "../renderer/texture.h"
+#include "../renderer/shaders.h"
 #include "../resources/resource.h"
 #include <fstream>
 #include <iterator>
@@ -835,7 +836,7 @@ namespace killme
     {
     }
 
-    std::shared_ptr<Material> loadMaterial(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const std::string& path)
+    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path)
     {
         std::ifstream stream(path);
         enforce<MaterialLoadException>(stream.is_open(), "Failed to open file (" + path + ").");

@@ -179,7 +179,7 @@ namespace killme
 
     public:
         /** Construct */
-        Material(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc);
+        Material(RenderSystem& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc);
 
         /** Return current technique */
         std::shared_ptr<EffectTechnique> getUseTechnique();

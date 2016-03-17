@@ -6,13 +6,6 @@
 
 namespace killme
 {
-    /** For the resource barrior */
-    enum class ResourceState
-    {
-        present,
-        renderTarget
-    };
-
     /** Render target */
     class RenderTarget
     {
@@ -33,7 +26,7 @@ namespace killme
         }
 
         /** Return the Direct3D render target */
-        ID3D12Resource* getD3DRenderTarget() { return renderTarget_.get(); }
+        ID3D12Resource* getD3DResource() { return renderTarget_.get(); }
 
         /** Create the Direct3D view into a desctipror heap */
         View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)

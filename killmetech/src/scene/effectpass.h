@@ -56,7 +56,6 @@ namespace killme
     class EffectPass
     {
     private:
-        std::shared_ptr<RenderSystem> renderSystem_;
         std::shared_ptr<PipelineState> pipeline_;
         std::set<std::shared_ptr<GpuResourceHeap>> resourceHeaps_;
         std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>> resourceHeapTables_;
@@ -67,7 +66,7 @@ namespace killme
 
     public:
         /** Construct */
-        EffectPass(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
+        EffectPass(RenderSystem& renderSystem, ResourceManager& resourceManager,
             const MaterialDescription& matDesc, const PassDescription& passDesc);
 
         /** Retrun light iteration */

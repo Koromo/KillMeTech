@@ -4,7 +4,7 @@
 namespace killme
 {
     Image::Image(size_t width, size_t height)
-        : map_(width * height)
+        : pixels_(width * height)
         , width_(width)
         , height_(height)
     {
@@ -20,20 +20,20 @@ namespace killme
         return height_;
     }
 
-    const Pixel& Image::at(size_t x, size_t y) const
+    const Pixel_r8g8b8a8& Image::at(size_t x, size_t y) const
     {
         assert(x < width_ && y < height_ && "Index out of range.");
-        return map_[width_ * y + x];
+        return pixels_[width_ * y + x];
     }
 
-    Pixel& Image::at(size_t x, size_t y)
+    Pixel_r8g8b8a8& Image::at(size_t x, size_t y)
     {
-        return const_cast<Pixel&>(static_cast<const Image&>(*this).at(x, y));
+        return const_cast<Pixel_r8g8b8a8&>(static_cast<const Image&>(*this).at(x, y));
     }
 
-    const Pixel* Image::getPixelBuffer() const
+    const Pixel_r8g8b8a8* Image::getPixels() const
     {
-        return map_.data();
+        return pixels_.data();
     }
 
     ImageLoadException::ImageLoadException(const std::string& msg)

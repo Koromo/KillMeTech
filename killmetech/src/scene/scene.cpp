@@ -11,7 +11,8 @@
 #include "../renderer/shaders.h"
 #include "../renderer/vertexdata.h"
 #include "../renderer/commandlist.h"
-#include "../renderer/rendertarget.h"
+#include "../renderer/commandqueue.h"
+#include "../renderer/resourcebarrior.h"
 #include "../resources/resource.h"
 #include "../core/math/matrix44.h"
 #include <Windows.h>
@@ -149,9 +150,10 @@ namespace killme
                     const auto renderPass = [&]()
                     {
                         // Add draw commands
-                        const auto commands = renderSystem_->beginCommands(pipelineState);
+                        const auto allocator = renderSystem_->obtainCommandAllocator();
+                        const auto commands = renderSystem_->obtainCommandList(allocator, pipelineState);
 
-                        commands->resourceBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
+                        commands->transitionBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
                         commands->setRenderTarget(frame.backBufferView, frame.depthStencilView);
                         commands->setViewport(viewport);
                         commands->setScissorRect(scissorRect_);
@@ -167,11 +169,15 @@ namespace killme
                         }
 
                         commands->drawIndexed(indexBuffer->getNumIndices());
-                        commands->resourceBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+                        commands->transitionBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
 
                         commands->close();
 
-                        renderSystem_->executeCommands(commands);
+                        const auto commandExe = { commands };
+                        renderSystem_->getCommandQueue()->executeCommands(commandExe);
+
+                        renderSystem_->reuseCommandAllocatorAfterExecution(allocator);
+                        renderSystem_->reuseCommandListAfterExecution(commands);
                     };
 
                     if (pass->getLightIteration() == LightIteration::directional)
@@ -211,5 +217,7 @@ namespace killme
                 }
             }
         }
+
+        renderSystem_->getCommandQueue()->waitForCommands();
     }
 }

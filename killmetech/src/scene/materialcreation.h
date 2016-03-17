@@ -2,7 +2,6 @@
 #define _KILLME_MATERIALCREATION_H_
 
 #include "effectpass.h"
-#include "../renderer/shaders.h"
 #include "../renderer/renderstate.h"
 #include "../core/utility.h"
 #include "../core/variant.h"
@@ -21,6 +20,7 @@ namespace killme
     class Material;
     class RenderSystem;
     class ResourceManager;
+    enum class ShaderType;
 
     /** Material parameter description */
     struct MaterialParameterDescription
@@ -92,7 +92,7 @@ namespace killme
     };
 
     /** Load a material */
-    std::shared_ptr<Material> loadMaterial(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager, const std::string& path);
+    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path);
 }
 
 #endif

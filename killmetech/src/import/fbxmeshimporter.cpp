@@ -3,6 +3,9 @@
 #include "../scene/material.h"
 #include "../scene/materialcreation.h"
 #include "../renderer/rendersystem.h"
+#include "../renderer/commandlist.h"
+#include "../renderer/commandqueue.h"
+#include "../renderer/resourcebarrior.h"
 #include "../renderer/vertexdata.h"
 #include "../resources/resource.h"
 #include "../core/exception.h"
@@ -490,28 +493,53 @@ namespace killme
                     storeColors(fbxMesh, cache);
                     storeIndices(fbxMesh, cache);
 
-                    const auto positionBuffer = renderSystem.createVertexBuffer(cache.positions.data(), sizeof(float) * cache.positions.size(), sizeof(float) * 3);
-                    const auto indexBuffer = renderSystem.createIndexBuffer(cache.indices.data(), sizeof(unsigned short) * cache.indices.size());
-
+                    std::vector<std::shared_ptr<VertexBuffer>> vertexBuffers;
                     const auto vertexData = std::make_shared<VertexData>();
+                    const auto allocator = renderSystem.obtainCommandAllocator();
+                    const auto commands = renderSystem.obtainCommandList(allocator, nullptr);
+
+                    const auto positionBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.positions.size(), sizeof(float) * 3);
+                    commands->updateGpuResource(positionBuffer, cache.positions.data());
+                    vertexBuffers.emplace_back(positionBuffer);
                     vertexData->addVertices(SemanticNames::position, 0, positionBuffer);
+
+                    const auto indexBuffer = renderSystem.createIndexBuffer(sizeof(unsigned short) * cache.indices.size());
+                    commands->updateGpuResource(indexBuffer, cache.indices.data());
                     vertexData->setIndices(indexBuffer);
 
                     if (!cache.uvs.empty())
                     {
-                        const auto texcoordBuffer = renderSystem.createVertexBuffer(cache.uvs.data(), sizeof(float) * cache.uvs.size(), sizeof(float) * 2);
+                        const auto texcoordBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.uvs.size(), sizeof(float) * 2);
+                        commands->updateGpuResource(texcoordBuffer, cache.uvs.data());
+                        vertexBuffers.emplace_back(texcoordBuffer);
                         vertexData->addVertices(SemanticNames::texcoord, 0, texcoordBuffer);
                     }
                     if (!cache.normals.empty())
                     {
-                        const auto normalBuffer = renderSystem.createVertexBuffer(cache.normals.data(), sizeof(float) * cache.normals.size(), sizeof(float) * 3);
+                        const auto normalBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.normals.size(), sizeof(float) * 3);
+                        commands->updateGpuResource(normalBuffer, cache.normals.data());
+                        vertexBuffers.emplace_back(normalBuffer);
                         vertexData->addVertices(SemanticNames::normal, 0, normalBuffer);
                     }
                     if (!cache.colors.empty())
                     {
-                        const auto colorBuffer = renderSystem.createVertexBuffer(cache.colors.data(), sizeof(float) * cache.colors.size(), sizeof(float) * 4);
+                        const auto colorBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.colors.size(), sizeof(float) * 4);
+                        commands->updateGpuResource(colorBuffer, cache.colors.data());
+                        vertexBuffers.emplace_back(colorBuffer);
                         vertexData->addVertices(SemanticNames::color, 0, colorBuffer);
                     }
+
+                    for (const auto& buffer : vertexBuffers)
+                    {
+                        commands->transitionBarrior(buffer, ResourceState::copyDestination, ResourceState::vertexBuffer);
+                    }
+
+                    commands->close();
+
+                    const auto commandExe = { commands };
+                    renderSystem.getCommandQueue()->executeCommands(commandExe);
+                    renderSystem.reuseCommandAllocatorAfterExecution(allocator);
+                    renderSystem.reuseCommandListAfterExecution(commands);
 
                     const Resource<Material> material(resourceManager, "media/box.material");
                     parsedMesh->createSubmesh(fbxMesh->GetName(), vertexData, material);

@@ -25,7 +25,7 @@ namespace killme
 
     public:
         /** Construct */
-        EffectTechnique(const std::shared_ptr<RenderSystem>& renderSystem, ResourceManager& resourceManager,
+        EffectTechnique(RenderSystem& renderSystem, ResourceManager& resourceManager,
             const MaterialDescription& matDesc, const TechniqueDescription& techDesc);
 
         /** Update constant */

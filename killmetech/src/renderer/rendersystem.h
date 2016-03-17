@@ -4,27 +4,33 @@
 #include "renderstate.h"
 #include "rendertarget.h"
 #include "depthstencil.h"
-#include "gpuresourceheap.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <Windows.h>
 #include <array>
+#include <queue>
 #include <memory>
 #include <type_traits>
 
 namespace killme
 {
+    class CommandAllocator;
+    class CommandList;
+    class CommandQueue;
     class VertexBuffer;
     class IndexBuffer;
     class ConstantBuffer;
-    class Image;
+    //class Image;
     class Texture;
     class RootSignatureDescription;
     class RootSignature;
     struct PipelineStateDescription;
     class PipelineState;
-    class CommandList;
+    class GpuResourceHeap;
+    enum class GpuResourceHeapType;
+    enum class GpuResourceHeapFlag;
+    enum class PixelFormat;
 
     constexpr size_t NUM_BACK_BUFFERS = 2;
 
@@ -41,9 +47,6 @@ namespace killme
     private:
         HWND window_;
         ComUniquePtr<ID3D12Device> device_;
-        ComUniquePtr<ID3D12CommandQueue> commandQueue_;
-        ComUniquePtr<ID3D12CommandAllocator> commandAllocator_;
-        std::shared_ptr<CommandList> commandList_;
         ComUniquePtr<IDXGISwapChain3> swapChain_;
 
         size_t frameIndex_;
@@ -55,9 +58,11 @@ namespace killme
         std::shared_ptr<DepthStencil> depthStencil_;
         DepthStencil::View depthStencilView_;
 
-        ComUniquePtr<ID3D12Fence> fence_;
-        std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&CloseHandle)> fenceEvent_;
-        UINT64 fenceValue_;
+        std::queue<std::shared_ptr<CommandAllocator>> readyAllocators_;
+        std::vector<std::shared_ptr<CommandAllocator>> queuedAllocators_;
+        std::queue<std::shared_ptr<CommandList>> readyLists_;
+        std::vector<std::shared_ptr<CommandList>> queuedLists_;
+        std::shared_ptr<CommandQueue> commandQueue_;
 
     public:
         /** Initialize */
@@ -70,16 +75,16 @@ namespace killme
         FrameResource getCurrentFrameResource();
 
 		/** Create the vertex buffer */
-        std::shared_ptr<VertexBuffer> createVertexBuffer(const void* data, size_t size, size_t stride);
+        std::shared_ptr<VertexBuffer> createVertexBuffer(size_t size, size_t stride);
 
         /** Create the index buffer */
-        std::shared_ptr<IndexBuffer> createIndexBuffer(const unsigned short* data, size_t size);
+        std::shared_ptr<IndexBuffer> createIndexBuffer(size_t size);
 
         /** Create the constant buffer */
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t size);
 
-        /** Create texture */
-        std::shared_ptr<Texture> createTexture(const std::shared_ptr<const Image>& img);
+        /** Create the texture */
+        std::shared_ptr<Texture> createTexture(size_t width, size_t height, PixelFormat format);
 
         /** Create the gpu resource heap */
         std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, GpuResourceHeapFlag flag);
@@ -90,25 +95,28 @@ namespace killme
 		/** Create the pileline state */
         std::shared_ptr<PipelineState> createPipelineState(const PipelineStateDescription& pipelineDesc);
 
-        /** Store a resource into a resource heap */
-        template <class GpuResource>
-        typename GpuResource::View createGpuResourceView(const std::shared_ptr<GpuResourceHeap>& heap, size_t i, const std::shared_ptr<GpuResource>& resource)
-        {
-            const auto d3dHeap = heap->getD3DHeap();
-            const auto heapType = heap->getType();
-            const auto offset = device_->GetDescriptorHandleIncrementSize(heapType) * i;
+        /** Return a reusable command allocator */
+        std::shared_ptr<CommandAllocator> obtainCommandAllocator();
 
-            auto location = d3dHeap->GetCPUDescriptorHandleForHeapStart();
-            location.ptr += offset;
+        /** Add a reusable command allocator */
+        /// NOT: You need reset allocator before reuse
+        void reuseCommandAllocator(const std::shared_ptr<CommandAllocator>& allocator);
 
-            return resource->createD3DView(device_.get(), location);
-        }
+        /** Reuse CommandAllocator that is executiong by CommandQueue. */
+        void reuseCommandAllocatorAfterExecution(const std::shared_ptr<CommandAllocator>& allocator);
 
-		/** Reset a command list */
-        std::shared_ptr<CommandList> beginCommands(const std::shared_ptr<PipelineState>& pipeline);
+        /** Return a reusable command list */
+        std::shared_ptr<CommandList> obtainCommandList(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<PipelineState>& pipeline);
 
-        /** Execute a command list */
-        void executeCommands(const std::shared_ptr<CommandList>& list);
+        /** Add a reusable command list */
+        /// NOT: You need close list before reuse
+        void reuseCommandList(const std::shared_ptr<CommandList>& list);
+
+        /** Reuse CommandList that is executiong by CommandQueue. */
+        void reuseCommandListAfterExecution(const std::shared_ptr<CommandList>& list);
+
+        /** Return command queue */
+        std::shared_ptr<CommandQueue> getCommandQueue();
 
         /** Present the back buffer into the screen */
         void presentBackBuffer();
