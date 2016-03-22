@@ -1,13 +1,10 @@
 #include "effectpass.h"
 #include "materialcreation.h"
-#include "../renderer/shaders.h"
 #include "../renderer/texture.h"
-#include "../renderer/rendersystem.h"
-#include "../renderer/gpuresourceheap.h"
-#include "../renderer/rootsignature.h"
+#include "../renderer/renderdevice.h"
+#include "../renderer/gpuresource.h"
 #include "../renderer/pipelinestate.h"
 #include "../renderer/constantbuffer.h"
-#include <vector>
 #include <utility>
 #include <algorithm>
 
@@ -15,177 +12,59 @@
 
 namespace killme
 {
-    namespace
-    {
-        struct RangeInfo
-        {
-            GpuResourceRangeType type;
-            std::string resourceName;
-            size_t offsetInHeap;
-            /// NOTE: numResource = 1
-        };
-
-        struct RootParamInfo
-        {
-            std::shared_ptr<BasicShader> shader;
-            std::shared_ptr<GpuResourceHeap> heap;
-            std::vector<RangeInfo> rangeInfos; /// NOTE: Count of range is same to the size of heap
-        };
-
-        template <class Shaders>
-        std::vector<RootParamInfo> getRootParamInfos(RenderSystem& renderSystem, Shaders shaders)
-        {
-            std::vector<RootParamInfo> rootParams;
-            auto offsetInHeap_cbv_srv = 0;
-            auto offsetInHeap_sampler = 0;
-
-            for (const auto& pair : shaders)
-            {
-                // For cbv_srv
-                const auto shader = pair.first;
-                RootParamInfo rootParam_cbv_srv;
-                rootParam_cbv_srv.shader = shader;
-
-                auto& resourceDescs = shader->describeBoundResources(BoundResourceType::cbuffer);
-                for (const auto& desc : resourceDescs)
-                {
-                    RangeInfo range;
-                    range.type = GpuResourceRangeType::cbv;
-                    range.resourceName = desc.getName();
-                    range.offsetInHeap = offsetInHeap_cbv_srv++;
-                    rootParam_cbv_srv.rangeInfos.emplace_back(std::move(range));
-                }
-
-                resourceDescs = shader->describeBoundResources(BoundResourceType::texture);
-                for (const auto& desc : resourceDescs)
-                {
-                    RangeInfo range;
-                    range.type = GpuResourceRangeType::srv;
-                    range.resourceName = desc.getName();
-                    range.offsetInHeap = offsetInHeap_cbv_srv++;
-                    rootParam_cbv_srv.rangeInfos.emplace_back(std::move(range));
-                }
-
-                if (!rootParam_cbv_srv.rangeInfos.empty())
-                {
-                    rootParams.emplace_back(std::move(rootParam_cbv_srv));
-                }
-
-                // For sampler
-                RootParamInfo rootParam_sampler;
-                rootParam_sampler.shader = shader;
-
-                resourceDescs = shader->describeBoundResources(BoundResourceType::sampler);
-                for (const auto& desc : resourceDescs)
-                {
-                    RangeInfo range;
-                    range.type = GpuResourceRangeType::sampler;
-                    range.resourceName = desc.getName();
-                    range.offsetInHeap = offsetInHeap_sampler++;
-                    rootParam_sampler.rangeInfos.emplace_back(std::move(range));
-                }
-
-                if (!rootParam_sampler.rangeInfos.empty())
-                {
-                    rootParams.emplace_back(std::move(rootParam_sampler));
-                }
-            }
-
-            // Create resource heaps
-            std::shared_ptr<GpuResourceHeap> heap_cbv_srv;
-            if (offsetInHeap_cbv_srv > 0)
-            {
-                heap_cbv_srv = renderSystem.createGpuResourceHeap(offsetInHeap_cbv_srv, GpuResourceHeapType::cbv_srv, GpuResourceHeapFlag::shaderVisible);
-            }
-
-            std::shared_ptr<GpuResourceHeap> heap_sampler;
-            if (offsetInHeap_sampler > 0)
-            {
-                heap_sampler = renderSystem.createGpuResourceHeap(offsetInHeap_sampler, GpuResourceHeapType::sampler, GpuResourceHeapFlag::shaderVisible);
-            }
-
-            for (auto& rootParam : rootParams)
-            {
-                if (rootParam.rangeInfos[0].type == GpuResourceRangeType::sampler)
-                {
-                    rootParam.heap = heap_sampler;
-                }
-                else
-                {
-                    rootParam.heap = heap_cbv_srv;
-                }
-            }
-
-            return rootParams;
-        }
-    }
-
     /// TODO: Output errors
-    EffectPass::EffectPass(RenderSystem& renderSystem, ResourceManager& resourceManager,
+    EffectPass::EffectPass(RenderDevice& device, ResourceManager& resources,
         const MaterialDescription& matDesc, const PassDescription& passDesc)
-        : pipeline_()
-        , resourceHeaps_()
-        , resourceHeapTables_()
+        : pipeline_(device.createPipelineState())
         , constantUpdateInfoMap_()
         , textureUpdateInfoMap_()
         , samplerUpdateInfoMap_()
         , lightIteration_(passDesc.lightIteration)
     {
-        // Create pipeline state
-        PipelineStateDescription pipelineDesc;
-        pipelineDesc.blend = passDesc.blendState;
-
-        // Create shaders
-        std::unordered_map<std::shared_ptr<BasicShader>, ShaderBoundDescription> eachShaders;
+        std::unordered_map<std::shared_ptr<const BasicShader>, ShaderBoundDescription> eachShaders;
         for (const auto& ref : passDesc.shaderRef)
         {
             const auto& bound = matDesc.getShaderBound(ref.first, ref.second);
-            std::shared_ptr<BasicShader> shaderBase;
             if (ref.first == ShaderType::vertex)
             {
-                const Resource<VertexShader> shader(resourceManager, bound.path);
-                pipelineDesc.vertexShader = shader;
+                const Resource<VertexShader> shader(resources, bound.path);
+                pipeline_->setVShader(shader);
                 eachShaders.emplace(shader.access(), bound);
             }
             else if (ref.first == ShaderType::pixel)
             {
-                const Resource<PixelShader> shader(resourceManager, bound.path);
-                pipelineDesc.pixelShader = shader;
+                const Resource<PixelShader> shader(resources, bound.path);
+                pipeline_->setPShader(shader);
                 eachShaders.emplace(shader.access(), bound);
             }
             else if (ref.first == ShaderType::geometry)
             {
-                const Resource<GeometryShader> shader(resourceManager, bound.path);
-                pipelineDesc.geometryShader = shader;
+                const Resource<GeometryShader> shader(resources, bound.path);
+                pipeline_->setGShader(shader);
                 eachShaders.emplace(shader.access(), bound);
             }
         }
 
-        // Create root signature
-        const auto rootParamInfos = getRootParamInfos(renderSystem, eachShaders);
+        pipeline_->setBlendState(passDesc.blendState);
 
-        const auto numRootParams = rootParamInfos.size();
-        RootSignatureDescription rootSigDesc(numRootParams);
-        for (size_t rootParamIndex = 0; rootParamIndex < numRootParams; ++rootParamIndex) // For each params
+        const auto resourceTable = pipeline_->getGpuResourceTable();
+        const auto numHeaps = resourceTable->getNumRequiredHeaps();
+        for (size_t i = 0; i < numHeaps; ++i)
         {
-            // Create root parameter
-            const auto& rootParamInfo = rootParamInfos[rootParamIndex];
-            const auto numRanges = rootParamInfo.rangeInfos.size();
+            const auto& requiredHeap = resourceTable->getRequiredHeap(i);
+            const auto numResources = requiredHeap.getNumResources();
+            const auto heap = device.createGpuResourceHeap(numResources, requiredHeap.getType(), true);
 
-            rootSigDesc[rootParamIndex].asTable(numRanges, rootParamInfo.shader->getType());
-            for (size_t rangeIndex = 0; rangeIndex < numRanges; ++rangeIndex) // For each ranges
+            for (size_t j = 0; j < numResources; ++j)
             {
-                // Create range
-                const auto& rangeInfo = rootParamInfo.rangeInfos[rangeIndex];
+                const auto& requiredResource = requiredHeap.getResource(j);
+                const auto& boundDesc = eachShaders[requiredResource.boundShader.lock()];
 
-                if (rangeInfo.type == GpuResourceRangeType::cbv) // Constant buffer
+                if (requiredResource.type == BoundResourceType::cbuffer)
                 {
-                    // Initialize constant buffer
-                    const auto& cbufferDesc = rootParamInfo.shader->describeConstantBuffer(rangeInfo.resourceName);
-                    const auto cbuffer = renderSystem.createConstantBuffer(cbufferDesc->getSize());
-                    const auto& boundDesc = eachShaders[rootParamInfo.shader];
+                    const auto cbuffer = device.createConstantBuffer(requiredResource.cbuffer.getSize());
 
-                    for (const auto& var : cbufferDesc->describeVariables())
+                    for (const auto& var : requiredResource.cbuffer.describeVariables())
                     {
                         if (var.second.init)
                         {
@@ -202,49 +81,37 @@ namespace killme
                         }
                     }
 
-                    // Initialize range and heap
-                    rootParamInfo.heap->createView(rangeInfo.offsetInHeap, cbuffer);
-                    rootSigDesc[rootParamIndex][rangeIndex].as(GpuResourceRangeType::cbv, cbufferDesc->getRegisterSlot(), 1, rangeInfo.offsetInHeap);
+                    heap->locate(j, cbuffer);
                 }
-                else if (rangeInfo.type == GpuResourceRangeType::srv) // Texture
+                else if (requiredResource.type == BoundResourceType::texture)
                 {
-                    const auto& boundDesc = eachShaders[rootParamInfo.shader];
-                    const auto it = boundDesc.textureMapping.find(rangeInfo.resourceName);
+                    const auto it = boundDesc.textureMapping.find(requiredResource.texture.getName());
                     if (it != std::cend(boundDesc.textureMapping))
                     {
                         detail::TextureUpdateInfo update;
-                        update.index = rangeInfo.offsetInHeap;
-                        update.dest = rootParamInfo.heap;
+                        update.index = j;
+                        update.dest = heap;
                         textureUpdateInfoMap_.emplace(it->second, std::move(update));
                     }
-
-                    const auto& resourceDesc = rootParamInfo.shader->describeBoundResource(rangeInfo.resourceName);
-                    rootSigDesc[rootParamIndex][rangeIndex].as(GpuResourceRangeType::srv, resourceDesc->getRegisterSlot(), 1, rangeInfo.offsetInHeap);
                 }
-                else if (rangeInfo.type == GpuResourceRangeType::sampler) // Sampler
+                else if (requiredResource.type == BoundResourceType::sampler)
                 {
-                    const auto& boundDesc = eachShaders[rootParamInfo.shader];
-                    const auto it = boundDesc.samplerMapping.find(rangeInfo.resourceName);
+                    const auto it = boundDesc.samplerMapping.find(requiredResource.sampler.getName());
                     if (it != std::cend(boundDesc.samplerMapping))
                     {
                         detail::SamplerUpdateInfo update;
-                        update.index = rangeInfo.offsetInHeap;
-                        update.dest = rootParamInfo.heap;
+                        update.index = j;
+                        update.dest = heap;
                         samplerUpdateInfoMap_.emplace(it->second, std::move(update));
                     }
-
-                    const auto& resourceDesc = rootParamInfo.shader->describeBoundResource(rangeInfo.resourceName);
-                    rootSigDesc[rootParamIndex][rangeIndex].as(GpuResourceRangeType::sampler, resourceDesc->getRegisterSlot(), 1, rangeInfo.offsetInHeap);
                 }
             }
 
-            // Store heap
-            resourceHeaps_.emplace(rootParamInfo.heap);
-            resourceHeapTables_.emplace(rootParamIndex, rootParamInfo.heap);
+            for (const auto rootIndex : requiredHeap.getRootIndices())
+            {
+                resourceTable->set(rootIndex, heap);
+            }
         }
-
-        pipelineDesc.rootSignature = renderSystem.createRootSignature(rootSigDesc);
-        pipeline_ = renderSystem.createPipelineState(pipelineDesc);
     }
 
     LightIteration EffectPass::getLightIteration() const
@@ -254,28 +121,34 @@ namespace killme
 
     void EffectPass::updateConstant(const std::string& matParam, const void* data, size_t size)
     {
-        const auto it = constantUpdateInfoMap_.find(matParam);
-        if (it != std::cend(constantUpdateInfoMap_))
+        auto range = constantUpdateInfoMap_.equal_range(matParam);
+        while (range.first != range.second)
         {
-            it->second.dest->update(data, it->second.desc.offset, std::min(size, it->second.desc.size));
+            const auto& update = range.first->second;
+            update.dest->update(data, update.desc.offset, std::min(size, update.desc.size));
+            ++range.first;
         }
     }
 
     void EffectPass::updateTexture(const std::string& matParam, const Resource<Texture>& tex)
     {
-        const auto it = textureUpdateInfoMap_.find(matParam);
-        if (it != std::cend(textureUpdateInfoMap_))
+        auto range = textureUpdateInfoMap_.equal_range(matParam);
+        while (range.first != range.second)
         {
-            it->second.dest->createView(it->second.index, tex.access());
+            const auto& update = range.first->second;
+            update.dest->locate(update.index, tex.access());
+            ++range.first;
         }
     }
 
     void EffectPass::updateSampler(const std::string& matParam, const std::shared_ptr<Sampler>& sam)
     {
-        const auto it = samplerUpdateInfoMap_.find(matParam);
-        if (it != std::cend(samplerUpdateInfoMap_))
+        auto range = samplerUpdateInfoMap_.equal_range(matParam);
+        while (range.first != range.second)
         {
-            it->second.dest->createView(it->second.index, sam);
+            const auto& update = range.first->second;
+            update.dest->locate(update.index, sam);
+            ++range.first;
         }
     }
 

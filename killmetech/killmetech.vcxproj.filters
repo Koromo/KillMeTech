@@ -16,9 +16,6 @@
     <Filter Include="src\core\math">
       <UniqueIdentifier>{8b8356df-593f-466d-91cd-b397100b1d51}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\renderer">
-      <UniqueIdentifier>{939c5dc6-ea4e-46a4-afbf-fc46b6a4033b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\physics">
       <UniqueIdentifier>{7096531d-cb16-40a9-935b-49b72d1501dc}</UniqueIdentifier>
     </Filter>
@@ -43,6 +40,9 @@
     <Filter Include="src\scene">
       <UniqueIdentifier>{0883153e-8597-4155-afbd-e47cabd61863}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\renderer">
+      <UniqueIdentifier>{063b7a04-2fea-4a1a-a3ab-359af9d14fbd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio\audioclip.cpp">
@@ -60,15 +60,6 @@
     <ClCompile Include="src\core\math\color.cpp">
       <Filter>src\core\math</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\commandlist.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\rootsignature.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\vertexdata.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\math\math.cpp">
       <Filter>src\core\math</Filter>
     </ClCompile>
@@ -81,14 +72,8 @@
     <ClCompile Include="src\core\math\vector3.cpp">
       <Filter>src\core\math</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\rendersystem.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\exception.cpp">
       <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\d3dsupport.cpp">
-      <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\core\optional.cpp">
       <Filter>src\core</Filter>
@@ -132,23 +117,8 @@
     <ClCompile Include="src\scene\effectpass.cpp">
       <Filter>src\scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\renderstate.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\bmpcodec.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\image.cpp">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\texture.h">
-      <Filter>src\renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\scene\materialcreation.cpp">
       <Filter>src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\renderer\shaders.cpp">
-      <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\events\eventdispatcher.cpp">
       <Filter>src\events</Filter>
@@ -204,10 +174,58 @@
     <ClCompile Include="src\engine\components\directionallightcomponent.cpp">
       <Filter>src\engine\components</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\resourcebarrior.h">
+    <ClCompile Include="src\renderer\bmpcodec.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\commandallocator.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\commandlist.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\commandqueue.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\constantbuffer.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\d3dsupport.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\depthstencil.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\image.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\renderer\pixels.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\renderstate.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\rendersystem.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\rendertarget.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\shaders.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\texture.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vertexdata.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\pipelinestate.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\gpuresource.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\renderdevice.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -236,24 +254,6 @@
     <ClInclude Include="src\core\math\color.h">
       <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\commandlist.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\d3dsupport.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\renderstate.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\rootsignature.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\vertexdata.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\constantbuffer.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\math\math.h">
       <Filter>src\core\math</Filter>
     </ClInclude>
@@ -266,26 +266,8 @@
     <ClInclude Include="src\core\math\vector3.h">
       <Filter>src\core\math</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\rendersystem.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\variant.h">
       <Filter>src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\inputlayout.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\pipelinestate.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\depthstencil.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\gpuresourceheap.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\rendertarget.h">
-      <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\core\optional.h">
       <Filter>src\core</Filter>
@@ -374,14 +356,8 @@
     <ClInclude Include="src\scene\light.h">
       <Filter>src\scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\image.h">
-      <Filter>src\renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\scene\materialcreation.h">
       <Filter>src\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\renderer\shaders.h">
-      <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\level.h">
       <Filter>src\engine</Filter>
@@ -437,13 +413,55 @@
     <ClInclude Include="src\engine\components\directionallightcomponent.h">
       <Filter>src\engine\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\pixels.h">
+    <ClInclude Include="src\renderer\commandallocator.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\commandlist.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\renderer\commandqueue.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\renderer\commandallocator.h">
+    <ClInclude Include="src\renderer\constantbuffer.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\d3dsupport.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\depthstencil.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\gpuresource.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\image.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pipelinestate.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\pixels.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\renderstate.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rendersystem.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\rendertarget.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\shaders.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\texture.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vertexdata.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\renderdevice.h">
       <Filter>src\renderer</Filter>
     </ClInclude>
   </ItemGroup>

@@ -8,4 +8,8 @@ namespace killme
         Blend::zero,
         BlendOp::add
     };
+
+    const DepthStencilState DepthStencilState::DEFAULT = {
+        true
+    };
 }

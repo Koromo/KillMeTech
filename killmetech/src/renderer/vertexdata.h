@@ -1,7 +1,8 @@
 #ifndef _KILLME_VERTEXDATA_H_
 #define _KILLME_VERTEXDATA_H_
 
-#include "inputlayout.h"
+#include "renderdevice.h"
+#include "shaders.h"
 #include "d3dsupport.h"
 #include "../windows/winsupport.h"
 #include "../core/exception.h"
@@ -15,7 +16,7 @@
 namespace killme
 {
     /** Vertex buffer */
-    class VertexBuffer
+    class VertexBuffer : public RenderDeviceChild
     {
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
@@ -23,8 +24,8 @@ namespace killme
         D3D12_VERTEX_BUFFER_VIEW view_;
 
     public:
-        /** Construct with the vertices */
-        VertexBuffer(ID3D12Resource* buffer, size_t stride);
+        /** Initialize */
+        void initialize(size_t size, size_t stride, GpuResourceState initialState);
 
         /** Return the Direct3D resource */
         ID3D12Resource* getD3DResource();
@@ -32,15 +33,12 @@ namespace killme
         /** Return the Direct3D subresource informations */
         D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const;
 
-        /** Return Direct3D resource description */
-        D3D12_RESOURCE_DESC describeD3D() const;
-
         /** Return the Direct3D view */
         D3D12_VERTEX_BUFFER_VIEW getD3DView();
     };
 
     /** Index buffer */
-    class IndexBuffer
+    class IndexBuffer : public RenderDeviceChild
     {
     private:
         ComUniquePtr<ID3D12Resource> buffer_;
@@ -48,17 +46,14 @@ namespace killme
         D3D12_INDEX_BUFFER_VIEW view_;
 
     public:
-        /** Construct with the indices */
-        explicit IndexBuffer(ID3D12Resource* buffer);
+        /** Initialize */
+        void initialize(size_t size, GpuResourceState initialState);
 
         /** Return the Direct3D resource */
         ID3D12Resource* getD3DResource();
 
         /** Return the Direct3D subresource informations */
         D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const;
-
-        /** Return Direct3D resource description */
-        D3D12_RESOURCE_DESC describeD3D() const;
 
         /** Return the Direct3D view */
         D3D12_INDEX_BUFFER_VIEW getD3DView();
@@ -105,18 +100,18 @@ namespace killme
         void setIndices(const std::shared_ptr<IndexBuffer>& indices);
 
         /** Return the vertex views from an input layout */
-        auto getVertexViews(const std::shared_ptr<InputLayout>& layout)
+        auto getD3DVertexViews(const std::shared_ptr<VertexShader>& vs)
             -> decltype(emplaceRange(std::vector<D3D12_VERTEX_BUFFER_VIEW>()))
         {
             // Collect vertex buffer views by the input layout
-            const auto d3dLayout = layout->getD3DLayout();
-            std::vector<D3D12_VERTEX_BUFFER_VIEW> views(d3dLayout.NumElements);
+            const auto inputLayout = vs->getD3DInputLayout();
+            std::vector<D3D12_VERTEX_BUFFER_VIEW> views(inputLayout.NumElements);
 
-            for (size_t i = 0; i < d3dLayout.NumElements; ++i)
+            for (size_t i = 0; i < inputLayout.NumElements; ++i)
             {
                 // Find the right buffer view by semantic
-                const auto semanticName = d3dLayout.pInputElementDescs[i].SemanticName;
-                const auto semanticIndex = d3dLayout.pInputElementDescs[i].SemanticIndex;
+                const auto semanticName = inputLayout.pInputElementDescs[i].SemanticName;
+                const auto semanticIndex = inputLayout.pInputElementDescs[i].SemanticIndex;
 
                 bool found = false;
                 for (const auto& vertices : vertexBuffers_)

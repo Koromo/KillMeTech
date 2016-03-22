@@ -102,6 +102,18 @@ namespace killme
             return !!value_;
         }
 
+        /** Return a pointer */
+        const T* ptr() const noexcept
+        {
+            return value_.get();
+        }
+
+        /** ditto */
+        T* ptr() noexcept
+        {
+            return value_.get();
+        }
+
         /** Access into the value */
         const T* operator ->() const noexcept
         {

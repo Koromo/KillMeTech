@@ -104,7 +104,7 @@ namespace killme
 
             std::unordered_set<std::string> identifiers;
 
-            ResourceManager* resourceManager;
+            ResourceManager* resources;
         };
 
         // Parser map type
@@ -341,7 +341,7 @@ namespace killme
                 forward(context, ";");
 
                 value = MP_tex2d::INIT;
-                value.texture = Resource<Texture>(*context.resourceManager, path);
+                value.texture = Resource<Texture>(*context.resources, path);
             }
             else if (*context.token == ";")
             {
@@ -364,6 +364,7 @@ namespace killme
                 { "float", elem_float<MP_float, 1> },
                 { "float3", elem_float<MP_float3, 3> },
                 { "float4", elem_float<MP_float4, 4> },
+                { "float4x4", elem_float<MP_float4x4, 16> },
                 { "tex2d", elem_tex2d }
             });
 
@@ -667,6 +668,7 @@ namespace killme
             addIdentifier(context, "float");
             addIdentifier(context, "float3");
             addIdentifier(context, "float4");
+            addIdentifier(context, "float4x4");
             addIdentifier(context, "tex2d");
             addIdentifier(context, "vertex_shader");
             addIdentifier(context, "pixel_shader");
@@ -836,7 +838,7 @@ namespace killme
     {
     }
 
-    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path)
+    std::shared_ptr<Material> loadMaterial(RenderDevice& device, ResourceManager& resources, const std::string& path)
     {
         std::ifstream stream(path);
         enforce<MaterialLoadException>(stream.is_open(), "Failed to open file (" + path + ").");
@@ -847,7 +849,7 @@ namespace killme
         context.currentShaderBound = nullptr;
         context.currentPass = nullptr;
         context.currentTech = nullptr;
-        context.resourceManager = &resourceManager;
+        context.resources = &resources;
 
         context.tokens.emplace_back("MATERIAL_BEGIN");
         context.numTokensInLine.push(1);
@@ -878,6 +880,6 @@ namespace killme
             parseCurrentToken(context, map);
         }
 
-        return std::make_shared<Material>(renderSystem, resourceManager, context.material);
+        return std::make_shared<Material>(device, resources, context.material);
     }
 }

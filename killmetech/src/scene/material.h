@@ -17,7 +17,7 @@
 namespace killme
 {
     class MaterialDescription;
-    class RenderSystem;
+    class RenderDevice;
     class ResourceManager;
     class Texture;
     class Sampler;
@@ -115,6 +115,9 @@ namespace killme
         const float& operator ()(size_t r, size_t c) const;
         float& operator ()(size_t r, size_t c);
 
+        const float& operator [](size_t i) const;
+        float& operator [](size_t i);
+
         static const MP_float4x4 INIT;
     };
 
@@ -179,7 +182,7 @@ namespace killme
 
     public:
         /** Construct */
-        Material(RenderSystem& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc);
+        Material(RenderDevice& device, ResourceManager& resources, const MaterialDescription& desc);
 
         /** Return current technique */
         std::shared_ptr<EffectTechnique> getUseTechnique();
@@ -216,6 +219,7 @@ namespace killme
         }
 
         /** Set texture parameter */
+        /// NOTE: You can not set to a null texture or sampler
         void setTexture(const std::string& name, const Resource<Texture>& tex);
         void setTexture(const std::string& name, const MP_tex2d& tex);
         void setSampler(const std::string& name, const std::shared_ptr<Sampler>& sam);

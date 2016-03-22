@@ -6,6 +6,7 @@
 #include "../core/string.h"
 #include "../core/optional.h"
 #include "../core/exception.h"
+#include "../core/platform.h"
 #include "../resources/resource.h"
 #include "../windows/winsupport.h"
 #include <d3d12.h>
@@ -18,8 +19,6 @@
 
 namespace killme
 {
-    class InputLayout;
-
     /** Shader type definitions */
     enum class ShaderType
     {
@@ -36,11 +35,6 @@ namespace killme
         sampler
     };
 
-    namespace detail
-    {
-        D3D_SHADER_INPUT_TYPE toD3DSIType(BoundResourceType type);
-    }
-
     /** Bound resource description */
     class BoundResourceDescription
     {
@@ -49,6 +43,7 @@ namespace killme
 
     public:
         /** Construct */
+        BoundResourceDescription() = default;
         explicit BoundResourceDescription(const D3D12_SHADER_INPUT_BIND_DESC& desc);
 
         /** Return the resource type */
@@ -77,7 +72,8 @@ namespace killme
         std::unordered_map<std::string, VariableDescription> variables_;
 
     public:
-        /** Construct with a reflection of constant buffer */
+        /** Construct */
+        ConstantBufferDescription() = default;
         ConstantBufferDescription(ID3D12ShaderReflectionConstantBuffer* reflection, const D3D12_SHADER_INPUT_BIND_DESC& boundDesc);
 
         /** Return the size of buffer */
@@ -113,6 +109,9 @@ namespace killme
         /** Return the byte code */
         D3D12_SHADER_BYTECODE getD3DByteCode() const;
 
+        /** Return the count of bound resources */
+        size_t getNumBoundResources() const;
+
         /** Return the Direct3D input signature */
         auto getD3DInputSignature()
             -> decltype(emplaceRange(std::vector<D3D12_SIGNATURE_PARAMETER_DESC>()))
@@ -135,7 +134,7 @@ namespace killme
         auto describeBoundResources(BoundResourceType type)
             -> decltype(emplaceRange(std::vector<BoundResourceDescription>()))
         {
-            const auto& d3dDescs = describeD3DBoundResources(detail::toD3DSIType(type));
+            const auto& d3dDescs = describeD3DBoundResources(D3DMappings::toD3DShaderInputType(type));
 
             std::vector<BoundResourceDescription> descs;
             descs.reserve(std::cend(d3dDescs) - std::cbegin(d3dDescs));
@@ -196,7 +195,8 @@ namespace killme
     class VertexShader : public BasicShader
     {
     private:
-        std::shared_ptr<InputLayout> inputLayout_;
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputElems_;
+        D3D12_INPUT_LAYOUT_DESC inputLayout_;
 
     public:
         /** Shader model */
@@ -209,7 +209,7 @@ namespace killme
         explicit VertexShader(ID3DBlob* byteCode);
 
         /** Return the input layout of the shader */
-        std::shared_ptr<InputLayout> getInputLayout() const;
+        D3D12_INPUT_LAYOUT_DESC getD3DInputLayout() const;
     };
 
     /** Pixel shader */
@@ -247,7 +247,13 @@ namespace killme
         ID3DBlob* code;
         ID3DBlob* err = NULL;
 
-        const auto hr = D3DCompileFromFile(path.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, Shader::ENTRY.c_str(), Shader::MODEL.c_str(), 0, 0, &code, &err);
+#ifdef KILLME_DEBUG
+        const auto flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#elif
+        const auto flags = 0u;
+#endif
+
+        const auto hr = D3DCompileFromFile(path.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, Shader::ENTRY.c_str(), Shader::MODEL.c_str(), flags, 0, &code, &err);
         if (FAILED(hr))
         {
             if (err)

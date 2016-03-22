@@ -18,7 +18,7 @@
 namespace killme
 {
     class Material;
-    class RenderSystem;
+    class RenderDevice;
     class ResourceManager;
     enum class ShaderType;
 
@@ -92,7 +92,7 @@ namespace killme
     };
 
     /** Load a material */
-    std::shared_ptr<Material> loadMaterial(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path);
+    std::shared_ptr<Material> loadMaterial(RenderDevice& device, ResourceManager& resources, const std::string& path);
 }
 
 #endif

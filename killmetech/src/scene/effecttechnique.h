@@ -11,7 +11,7 @@ namespace killme
 {
     class MaterialDescription;
     struct TechniqueDescription;
-    class RenderSystem;
+    class RenderDevice;
     class ResourceManager;
     class EffectPass;
     class Texture;
@@ -25,7 +25,7 @@ namespace killme
 
     public:
         /** Construct */
-        EffectTechnique(RenderSystem& renderSystem, ResourceManager& resourceManager,
+        EffectTechnique(RenderDevice& device, ResourceManager& resources,
             const MaterialDescription& matDesc, const TechniqueDescription& techDesc);
 
         /** Update constant */

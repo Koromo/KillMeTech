@@ -102,6 +102,16 @@ namespace killme
         return const_cast<float&>(static_cast<const MP_float4x4&>(*this)(r, c));
     }
 
+    const float& MP_float4x4::operator [](size_t i) const
+    {
+        return (*this)(i / 4, i % 4);
+    }
+
+    float& MP_float4x4::operator [](size_t i)
+    {
+        return const_cast<float&>(static_cast<const MP_float4x4&>(*this)[i]);
+    }
+
     bool isNumeric(TypeNumber type)
     {
         return !isTexture(type);
@@ -112,14 +122,14 @@ namespace killme
         return type == typeNumber<MP_tex2d>();
     }
 
-    Material::Material(RenderSystem& renderSystem, ResourceManager& resourceManager, const MaterialDescription& desc)
+    Material::Material(RenderDevice& device, ResourceManager& resources, const MaterialDescription& desc)
         : params_()
         , useTech_()
         , techMap_()
     {
         for (const auto& tech : desc.getTechniques())
         {
-            techMap_.emplace(tech.first, std::make_shared<EffectTechnique>(renderSystem, resourceManager, desc, tech.second));
+            techMap_.emplace(tech.first, std::make_shared<EffectTechnique>(device, resources, desc, tech.second));
             if (useTech_.empty())
             {
                 useTech_ = tech.first;

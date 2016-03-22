@@ -1,72 +1,42 @@
 #include "debugdrawmanager.h"
-#include "scene.h"
+#include "material.h"
+#include "effecttechnique.h"
+#include "effectpass.h"
+#include "materialcreation.h"
 #include "camera.h"
+#include "../renderer/renderdevice.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/vertexdata.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/commandqueue.h"
 #include "../renderer/commandallocator.h"
-#include "../renderer/constantbuffer.h"
-#include "../renderer/gpuresourceheap.h"
-#include "../renderer/rootsignature.h"
-#include "../renderer/shaders.h"
 #include "../renderer/pipelinestate.h"
-#include "../renderer/resourcebarrior.h"
-#include "../resources/resourcemanager.h"
 #include "../core/math/matrix44.h"
-#include "../core/math/vector3.h"
-#include "../core/math/color.h"
-#include "../core/string.h"
 #include <Windows.h>
 
 namespace killme
 {
     DebugDrawManager debugDrawManager;
 
-    void DebugDrawManager::initialize(const std::shared_ptr<RenderSystem>& renderSystem)
+    void DebugDrawManager::initialize(RenderSystem& renderSystem, ResourceManager& resources)
     {
-        renderSystem_ = renderSystem;
+        device_ = renderSystem.getDevice();
+        material_ = Resource<Material>(resources, "media/debugdraw.material");
 
-        // Create render resources
-        viewProjBuffer_ = renderSystem_->createConstantBuffer(sizeof(Matrix44) * 2);
-        viewProjHeap_ = renderSystem_->createGpuResourceHeap(1, GpuResourceHeapType::cbv_srv, GpuResourceHeapFlag::shaderVisible);
-        viewProjHeap_->createView(0, viewProjBuffer_);
-
-        RootSignatureDescription rootSigDesc(1);
-        rootSigDesc[0].asTable(1, ShaderType::vertex);
-        rootSigDesc[0][0].as(GpuResourceRangeType::cbv, 0, 1);
-
-        const auto rootSig = renderSystem_->createRootSignature(rootSigDesc);
-
-        const auto vs = Resource<VertexShader>([] { return compileHlslShader<VertexShader>(toCharSet("media/debugdraw_vs.vhlsl")); });
-        const auto ps = Resource<PixelShader>([] { return compileHlslShader<PixelShader>(toCharSet("media/debugdraw_ps.phlsl")); });
-
-        PipelineStateDescription pipelineDesc;
-        pipelineDesc.rootSignature = rootSig;
-        pipelineDesc.vertexShader = vs;
-        pipelineDesc.pixelShader = ps;
-        pipelineDesc.blend = BlendState::DEFAULT;
-        pipeline_ = renderSystem_->createPipelineState(pipelineDesc);
-
+        const auto window = renderSystem.getTargetWindow();
         RECT clientRect;
-        GetClientRect(renderSystem_->getTargetWindow(), &clientRect);
-        const auto clientWidth = clientRect.right - clientRect.left;
-        const auto clientHeight = clientRect.bottom - clientRect.top;
+        GetClientRect(window, &clientRect);
 
         scissorRect_.top = 0;
         scissorRect_.left = 0;
-        scissorRect_.right = static_cast<int>(clientWidth);
-        scissorRect_.bottom = static_cast<int>(clientHeight);
-
-        clear();
+        scissorRect_.right = clientRect.right - clientRect.left;
+        scissorRect_.bottom = clientRect.bottom - clientRect.top;
     }
 
     void DebugDrawManager::finalize()
     {
-        pipeline_.reset();
-        viewProjHeap_.reset();
-        viewProjBuffer_.reset();
-        renderSystem_.reset();
+        material_.unload();
+        device_.reset();
         clear();
     }
 
@@ -92,63 +62,63 @@ namespace killme
             return;
         }
 
-        // Create render resources that includes all debugs
-        const auto viewport = camera.getViewport();
+        // Prepare debug render resources
+        const auto allocator = device_->obtainCommandAllocator();
+        const auto commands = device_->obtainCommandList(allocator, nullptr);
 
+        const auto positionBuffer = device_->createVertexBuffer(numVertices * sizeof(float) * 3, sizeof(float) * 3, GpuResourceState::copyDestination);
+        const auto colorBuffer = device_->createVertexBuffer(numVertices * sizeof(float) * 4, sizeof(float) * 4, GpuResourceState::copyDestination);
+        commands->updateGpuResource(positionBuffer, positions_.data());
+        commands->updateGpuResource(colorBuffer, colors_.data());
+        commands->transitionBarrior(positionBuffer, GpuResourceState::copyDestination, GpuResourceState::vertexBuffer);
+        commands->transitionBarrior(colorBuffer, GpuResourceState::copyDestination, GpuResourceState::vertexBuffer);
+        commands->close();
+
+        {
+            const auto commandExe = { commands };
+            device_->getCommandQueue()->executeCommands(commandExe);
+            device_->getCommandQueue()->waitForCommands();
+        }
+
+        const auto vertexData = std::make_shared<VertexData>();
+        vertexData->addVertices(SemanticNames::position, 0, positionBuffer);
+        vertexData->addVertices(SemanticNames::color, 0, colorBuffer);
+
+        const auto viewport = camera.getViewport();
         const auto viewMat = transpose(camera.getViewMatrix());
         const auto projMat = transpose(camera.getProjectionMatrix());
 
-        viewProjBuffer_->update(&viewMat, 0, sizeof(Matrix44));
-        viewProjBuffer_->update(&projMat, sizeof(Matrix44), sizeof(Matrix44));
+        material_.access()->setNumeric("ViewMatrix", to<MP_float4x4>(viewMat));
+        material_.access()->setNumeric("ProjMatrix", to<MP_float4x4>(projMat));
 
-        const auto allocator = renderSystem_->obtainCommandAllocator();
-        const auto commands = renderSystem_->obtainCommandList(allocator, nullptr);
-        const auto positionBuffer = renderSystem_->createVertexBuffer(numVertices * sizeof(float) * 3, sizeof(float) * 3);
-        const auto colorBuffer = renderSystem_->createVertexBuffer(numVertices * sizeof(float) * 4, sizeof(float) * 4);
-        commands->updateGpuResource(positionBuffer, positions_.data());
-        commands->transitionBarrior(positionBuffer, ResourceState::copyDestination, ResourceState::vertexBuffer);
-        commands->updateGpuResource(colorBuffer, colors_.data());
-        commands->transitionBarrior(colorBuffer, ResourceState::copyDestination, ResourceState::vertexBuffer);
-        commands->close();
+        const auto tech = material_.access()->getUseTechnique();
+        const auto pass = (*std::cbegin(tech->getPasses()));
+        const auto pipeline = pass->getPipelineState();
+        pipeline->setRenderTarget(frame.backBufferLocation, frame.backBuffer->getPixelFormat(),
+            frame.depthStencilLocation, frame.depthStencil->getPixelFormat());
+        pipeline->setViewport(viewport);
+        pipeline->setScissorRect(scissorRect_);
+        pipeline->setPrimitiveTopology(PrimitiveTopology::lineList);
+        pipeline->setVertexBuffers(vertexData);
 
-        {
-            const auto commandExe = { commands };
-            renderSystem_->getCommandQueue()->executeCommands(commandExe);
-        }
-
-        VertexData vertexData;
-        vertexData.addVertices(SemanticNames::position, 0, positionBuffer);
-        vertexData.addVertices(SemanticNames::color, 0, colorBuffer);
-
-        const auto rootSignature = pipeline_->describe().rootSignature;
-        const auto inputLayout = pipeline_->describe().vertexShader.access()->getInputLayout();
-        const auto& views = vertexData.getVertexViews(inputLayout);
 
         // Begin drawing to all debugs
-        renderSystem_->getCommandQueue()->waitForCommands();
         allocator->reset();
-        commands->reset(allocator, pipeline_);
-        commands->transitionBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-        commands->setRenderTarget(frame.backBufferView, frame.depthStencilView);
-        commands->setViewport(viewport);
-        commands->setScissorRect(scissorRect_);
-        commands->setPrimitiveTopology(PrimitiveTopology::lineList);
-        commands->setVertexBuffers(views);
-        commands->setRootSignature(rootSignature);
-        const auto heaps = { viewProjHeap_ };
-        commands->setGpuResourceHeaps(heaps);
-        commands->setGpuResourceTable(0, viewProjHeap_);
+        commands->reset(allocator, pipeline);
+
+        commands->transitionBarrior(frame.backBuffer, GpuResourceState::present, GpuResourceState::renderTarget);
         commands->draw(numVertices);
-        commands->transitionBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+        commands->transitionBarrior(frame.backBuffer, GpuResourceState::renderTarget, GpuResourceState::present);
         commands->close();
 
         {
             const auto commandExe = { commands };
-            renderSystem_->getCommandQueue()->executeCommands(commandExe);
+            device_->getCommandQueue()->executeCommands(commandExe);
         }
         
-        renderSystem_->reuseCommandAllocatorAfterExecution(allocator);
-        renderSystem_->reuseCommandListAfterExecution(commands);
+        device_->reuseCommandAllocatorAfterExecution(allocator);
+        device_->reuseCommandListAfterExecution(commands);
+        device_->getCommandQueue()->waitForCommands();
 
         clear();
     }

@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "graphicssystem.h"
+#include "resourcemanagesystem.h"
 #include "../scene/scene.h"
 #include "../scene/debugdrawmanager.h"
 
@@ -13,7 +14,7 @@ namespace killme
 
     void detail::Debug::startup()
     {
-        debugDrawManager.initialize(graphicsSystem.getRenderSystem());
+        debugDrawManager.initialize(graphicsSystem.getRenderSystem(), resourceManager.getManager());
     }
 
     void detail::Debug::shutdown()

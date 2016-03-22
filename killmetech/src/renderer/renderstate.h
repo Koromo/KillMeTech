@@ -48,6 +48,14 @@ namespace killme
         /** Default blend state */
         static const BlendState DEFAULT;
     };
+
+    /** Depth stencil state */
+    struct DepthStencilState
+    {
+        bool depthEnable;
+
+        static const DepthStencilState DEFAULT;
+    };
 }
 
 #endif

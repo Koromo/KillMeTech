@@ -2,6 +2,7 @@
 #define _KILLME_DEBUGDRAWMANAGER_H_
 
 #include "../renderer/renderstate.h"
+#include "../resources/resource.h"
 #include <memory>
 #include <vector>
 
@@ -9,11 +10,11 @@ namespace killme
 {
     class Vector3;
     class Color;
-    class PipelineState;
-    class ConstantBuffer;
-    class GpuResourceHeap;
+    class RenderDevice;
     class RenderSystem;
+    class Material;
     class Camera;
+    class ResourceManager;
     struct FrameResource;
 
     /** Debug drawer */
@@ -23,15 +24,13 @@ namespace killme
         std::vector<Vector3> positions_;
         std::vector<Color> colors_;
 
-        std::shared_ptr<RenderSystem> renderSystem_;
-        std::shared_ptr<ConstantBuffer> viewProjBuffer_;
-        std::shared_ptr<GpuResourceHeap> viewProjHeap_;
-        std::shared_ptr<PipelineState> pipeline_;
+        std::shared_ptr<RenderDevice> device_;
         ScissorRect scissorRect_;
+        Resource<Material> material_;
 
     public:
         /** Initialize */
-        void initialize(const std::shared_ptr<RenderSystem>& renderSystem);
+        void initialize(RenderSystem& renderSystem, ResourceManager& resources);
 
         /** Finalize */
         void finalize();

@@ -7,21 +7,20 @@
 #include "effecttechnique.h"
 #include "effectpass.h"
 #include "../renderer/rendersystem.h"
+#include "../renderer/renderdevice.h"
 #include "../renderer/pipelinestate.h"
-#include "../renderer/shaders.h"
+#include "../renderer/rendertarget.h"
+#include "../renderer/depthstencil.h"
 #include "../renderer/vertexdata.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/commandqueue.h"
-#include "../renderer/resourcebarrior.h"
-#include "../resources/resource.h"
 #include "../core/math/matrix44.h"
-#include <Windows.h>
 #include <cassert>
 
 namespace killme
 {
-    Scene::Scene(const std::shared_ptr<RenderSystem>& renderSystem)
-        : renderSystem_(renderSystem)
+    Scene::Scene(RenderSystem& renderSystem)
+        : device_(renderSystem.getDevice())
         , scissorRect_()
         , ambientLight_(0.2f, 0.2f, 0.2f, 1)
         , dirLights_()
@@ -30,7 +29,7 @@ namespace killme
         , meshInstances_()
         , mainCamera_()
     {
-        const auto window = renderSystem_->getTargetWindow();
+        const auto window = renderSystem.getTargetWindow();
         RECT clientRect;
         GetClientRect(window, &clientRect);
 
@@ -135,49 +134,36 @@ namespace killme
 
                 // Get render resources
                 const auto vertexData = submesh.second->getVertexData();
-                const auto indexBuffer = vertexData->getIndexBuffer();
 
                 // For each passes
                 for (const auto& pass : material->getUseTechnique()->getPasses())
                 {
-                    const auto pipelineState = pass->getPipelineState();
-                    const auto rootSignature = pipelineState->describe().rootSignature;
-                    const auto inputLayout = pipelineState->describe().vertexShader.access()->getInputLayout();
-                    const auto& vertexViews = vertexData->getVertexViews(inputLayout);
-                    const auto heaps = pass->getGpuResourceHeaps();
-                    const auto heapTables = pass->getGpuResourceHeapTables();
+                    const auto pipeline = pass->getPipelineState();
 
                     const auto renderPass = [&]()
                     {
+                        pipeline->setRenderTarget(frame.backBufferLocation, frame.backBuffer->getPixelFormat(),
+                            frame.depthStencilLocation, frame.depthStencil->getPixelFormat());
+                        pipeline->setViewport(viewport);
+                        pipeline->setScissorRect(scissorRect_);
+                        pipeline->setPrimitiveTopology(PrimitiveTopology::triangeList);
+                        pipeline->setVertexBuffers(vertexData);
+
                         // Add draw commands
-                        const auto allocator = renderSystem_->obtainCommandAllocator();
-                        const auto commands = renderSystem_->obtainCommandList(allocator, pipelineState);
+                        const auto allocator = device_->obtainCommandAllocator();
+                        const auto commands = device_->obtainCommandList(allocator, pipeline);
 
-                        commands->transitionBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-                        commands->setRenderTarget(frame.backBufferView, frame.depthStencilView);
-                        commands->setViewport(viewport);
-                        commands->setScissorRect(scissorRect_);
-                        commands->setPrimitiveTopology(PrimitiveTopology::triangeList);
-                        commands->setVertexBuffers(vertexViews);
-                        commands->setIndexBuffer(indexBuffer);
-
-                        commands->setRootSignature(rootSignature);
-                        commands->setGpuResourceHeaps(heaps);
-                        for (const auto& t : heapTables)
-                        {
-                            commands->setGpuResourceTable(t.first, t.second);
-                        }
-
-                        commands->drawIndexed(indexBuffer->getNumIndices());
-                        commands->transitionBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
+                        commands->transitionBarrior(frame.backBuffer, GpuResourceState::present, GpuResourceState::renderTarget);
+                        commands->drawIndexed(vertexData->getIndexBuffer()->getNumIndices());
+                        commands->transitionBarrior(frame.backBuffer, GpuResourceState::renderTarget, GpuResourceState::present);
 
                         commands->close();
 
                         const auto commandExe = { commands };
-                        renderSystem_->getCommandQueue()->executeCommands(commandExe);
+                        device_->getCommandQueue()->executeCommands(commandExe);
 
-                        renderSystem_->reuseCommandAllocatorAfterExecution(allocator);
-                        renderSystem_->reuseCommandListAfterExecution(commands);
+                        device_->reuseCommandAllocatorAfterExecution(allocator);
+                        device_->reuseCommandListAfterExecution(commands);
                     };
 
                     if (pass->getLightIteration() == LightIteration::directional)
@@ -218,6 +204,6 @@ namespace killme
             }
         }
 
-        renderSystem_->getCommandQueue()->waitForCommands();
+        device_->getCommandQueue()->waitForCommands();
     }
 }

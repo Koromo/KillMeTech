@@ -9,7 +9,7 @@
 namespace killme
 {
     class Mesh;
-    class RenderSystem;
+    class RenderDevice;
     class ResourceManager;
 
     /** The fbx mesh importer */
@@ -23,7 +23,7 @@ namespace killme
         FbxMeshImporter();
 
         /** Imports a mesh */
-        std::shared_ptr<Mesh> import(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path);
+        std::shared_ptr<Mesh> import(RenderDevice& device, ResourceManager& resources, const std::string& path);
     };
 }
 

@@ -46,11 +46,6 @@ namespace killme
                 , path_(path)
                 , resource_()
             {
-                if (const auto r = store_.lock()->getLoadedResource(path_))
-                {
-                    resource_ = std::dynamic_pointer_cast<T>(r);
-                    assert(resource_.lock() && "Mismatch resource type.");
-                }
             }
 
             std::unique_ptr<Holder> copy() const
@@ -62,7 +57,15 @@ namespace killme
             {
                 if (resource_.expired())
                 {
-                    load();
+                    if (const auto r = store_.lock()->getLoadedResource(path_))
+                    {
+                        resource_ = std::dynamic_pointer_cast<T>(r);
+                        assert(resource_.lock() && "Mismatch resource type.");
+                    }
+                    else
+                    {
+                        load();
+                    }
                 }
                 return resource_.lock();
             }

@@ -1,39 +1,9 @@
 #include "shaders.h"
-#include "inputlayout.h"
 #include <cstring>
 #include <cassert>
 
 namespace killme
 {
-    D3D_SHADER_INPUT_TYPE detail::toD3DSIType(BoundResourceType type)
-    {
-        switch (type)
-        {
-        case BoundResourceType::cbuffer: return D3D_SIT_CBUFFER;
-        case BoundResourceType::texture: return D3D_SIT_TEXTURE;
-        case BoundResourceType::sampler: return D3D_SIT_SAMPLER;
-        default:
-            assert(false && "Item not found.");
-            return D3D_SIT_CBUFFER; // For warnings
-        }
-    }
-
-    namespace
-    {
-        BoundResourceType toBoundResourceType(D3D_SHADER_INPUT_TYPE type)
-        {
-            switch (type)
-            {
-            case D3D_SIT_CBUFFER: return BoundResourceType::cbuffer;
-            case D3D_SIT_TEXTURE: return BoundResourceType::texture;
-            case D3D_SIT_SAMPLER: return BoundResourceType::sampler;
-            default:
-                assert(false && "Item not found.");
-                return BoundResourceType::cbuffer; // For warnings
-            }
-        }
-    }
-
     BoundResourceDescription::BoundResourceDescription(const D3D12_SHADER_INPUT_BIND_DESC& desc)
         : desc_(desc)
     {
@@ -41,7 +11,7 @@ namespace killme
 
     BoundResourceType BoundResourceDescription::getType() const
     {
-        return toBoundResourceType(desc_.Type);
+        return D3DMappings::toBoundResourceType(desc_.Type);
     }
 
     std::string BoundResourceDescription::getName() const
@@ -126,6 +96,11 @@ namespace killme
         return{ byteCode_->GetBufferPointer(), byteCode_->GetBufferSize() };
     }
 
+    size_t BasicShader::getNumBoundResources() const
+    {
+        return desc_.BoundResources;
+    }
+
     Optional<BoundResourceDescription> BasicShader::describeBoundResource(const std::string& name)
     {
         D3D12_SHADER_INPUT_BIND_DESC desc;
@@ -172,10 +147,10 @@ namespace killme
 
     VertexShader::VertexShader(ID3DBlob* byteCode)
         : BasicShader(ShaderType::vertex, byteCode)
+        , inputElems_()
         , inputLayout_()
     {
         // Collect input elements
-        std::vector<D3D12_INPUT_ELEMENT_DESC> elems;
         const auto signature = getD3DInputSignature();
         for (const auto& param : signature)
         {
@@ -183,18 +158,19 @@ namespace killme
             elem.SemanticName = param.SemanticName;
             elem.SemanticIndex = param.SemanticIndex;
             elem.Format = getVertexFormat(param.SemanticName);
-            elem.InputSlot = elems.size();
+            elem.InputSlot = inputElems_.size();
             elem.AlignedByteOffset = 0;
             elem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
             elem.InstanceDataStepRate = 0;
 
-            elems.emplace_back(elem);
+            inputElems_.emplace_back(elem);
         }
 
-        inputLayout_ = std::make_shared<InputLayout>(std::move(elems));
+        inputLayout_.NumElements = inputElems_.size();
+        inputLayout_.pInputElementDescs = inputElems_.data();
     }
 
-    std::shared_ptr<InputLayout> VertexShader::getInputLayout() const
+    D3D12_INPUT_LAYOUT_DESC VertexShader::getD3DInputLayout() const
     {
         return inputLayout_;
     }

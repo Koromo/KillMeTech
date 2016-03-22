@@ -1,7 +1,6 @@
 #ifndef _KILLME_SCENE_H_
 #define _KILLME_SCENE_H_
 
-#include "../renderer/rendersystem.h"
 #include "../renderer/renderstate.h"
 #include "../core/math/color.h"
 #include <memory>
@@ -10,15 +9,17 @@
 namespace killme
 {
     class RenderSystem;
+    class RenderDevice;
     class Camera;
     class Light;
     class MeshInstance;
+    struct FrameResource;
 
     /** Render scene */
     class Scene
     {
     private:
-        std::shared_ptr<RenderSystem> renderSystem_;
+        std::shared_ptr<RenderDevice> device_;
         ScissorRect scissorRect_;
         Color ambientLight_;
         std::unordered_set<std::shared_ptr<Light>> dirLights_;
@@ -29,7 +30,7 @@ namespace killme
 
     public:
         /** Construct */
-        explicit Scene(const std::shared_ptr<RenderSystem>& renderSystem);
+        explicit Scene(RenderSystem& renderSystem);
 
         /** Set the ambient light */
         void setAmbientLight(const Color& c);

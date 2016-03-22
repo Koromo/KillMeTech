@@ -1,6 +1,7 @@
 #include "graphicssystem.h"
+#include "../renderer/renderdevice.h"
 #include "../renderer/commandlist.h"
-#include "../renderer/resourcebarrior.h"
+#include "../renderer/gpuresource.h"
 #include "../renderer/commandqueue.h"
 #include "../core/math/color.h"
 
@@ -23,7 +24,7 @@ namespace killme
         clientViewport_.minDepth = 0;
         clientViewport_.maxDepth = 1;
 
-        renderSystem_ = std::make_shared<RenderSystem>(window);
+        renderSystem_ = std::make_unique<RenderSystem>(window);
     }
 
     void GraphicsSystem::shutdown()
@@ -31,9 +32,14 @@ namespace killme
         renderSystem_.reset();
     }
 
-    std::shared_ptr<RenderSystem> GraphicsSystem::getRenderSystem()
+    RenderSystem& GraphicsSystem::getRenderSystem()
     {
-        return renderSystem_;
+        return *renderSystem_;
+    }
+
+    RenderDevice& GraphicsSystem::getDevice()
+    {
+        return *renderSystem_->getDevice();
     }
 
     FrameResource GraphicsSystem::getCurrentFrameResource()
@@ -48,19 +54,20 @@ namespace killme
 
     void GraphicsSystem::clearBackBuffer()
     {
+        const auto device = renderSystem_->getDevice();
         const auto frame = getCurrentFrameResource();
-        const auto allocator = renderSystem_->obtainCommandAllocator();
-        const auto commands = renderSystem_->obtainCommandList(allocator, nullptr);
-        commands->transitionBarrior(frame.backBuffer, ResourceState::present, ResourceState::renderTarget);
-        commands->clearRenderTarget(frame.backBufferView, { 0.1f, 0.1f, 0.1f, 1 });
-        commands->transitionBarrior(frame.backBuffer, ResourceState::renderTarget, ResourceState::present);
-        commands->clearDepthStencil(frame.depthStencilView, 1);
+        const auto allocator = device->obtainCommandAllocator();
+        const auto commands = device->obtainCommandList(allocator, nullptr);
+        commands->transitionBarrior(frame.backBuffer, GpuResourceState::present, GpuResourceState::renderTarget);
+        commands->clearRenderTarget(frame.backBufferLocation, { 0.1f, 0.1f, 0.1f, 1 });
+        commands->transitionBarrior(frame.backBuffer, GpuResourceState::renderTarget, GpuResourceState::present);
+        commands->clearDepthStencil(frame.depthStencilLocation, 1);
         commands->close();
 
         const auto commandExe = { commands };
-        renderSystem_->getCommandQueue()->executeCommands(commandExe);
-        renderSystem_->reuseCommandAllocatorAfterExecution(allocator);
-        renderSystem_->reuseCommandListAfterExecution(commands);
+        device->getCommandQueue()->executeCommands(commandExe);
+        device->reuseCommandAllocatorAfterExecution(allocator);
+        device->reuseCommandListAfterExecution(commands);
     }
 
     void GraphicsSystem::presentBackBuffer()

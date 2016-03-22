@@ -6,14 +6,13 @@
 #include "../core/utility.h"
 #include <memory>
 #include <unordered_map>
-#include <set>
 #include <string>
 
 namespace killme
 {
     struct PassDescription;
     class MaterialDescription;
-    class RenderSystem;
+    class RenderDevice;
     class PipelineState;
     class GpuResourceHeap;
     class VertexShader;
@@ -57,8 +56,6 @@ namespace killme
     {
     private:
         std::shared_ptr<PipelineState> pipeline_;
-        std::set<std::shared_ptr<GpuResourceHeap>> resourceHeaps_;
-        std::unordered_map<size_t, std::shared_ptr<GpuResourceHeap>> resourceHeapTables_;
         std::unordered_multimap<std::string, detail::ConstantUpdateInfo> constantUpdateInfoMap_;
         std::unordered_multimap<std::string, detail::TextureUpdateInfo> textureUpdateInfoMap_;
         std::unordered_multimap<std::string, detail::SamplerUpdateInfo> samplerUpdateInfoMap_;
@@ -66,7 +63,7 @@ namespace killme
 
     public:
         /** Construct */
-        EffectPass(RenderSystem& renderSystem, ResourceManager& resourceManager,
+        EffectPass(RenderDevice& device, ResourceManager& resources,
             const MaterialDescription& matDesc, const PassDescription& passDesc);
 
         /** Retrun light iteration */
@@ -83,20 +80,6 @@ namespace killme
         
         /** Return pipeline state */
         std::shared_ptr<PipelineState> getPipelineState();
-        
-        /** Return the resource heaps */
-        auto getGpuResourceHeaps()
-            -> decltype(constRange(resourceHeaps_))
-        {
-            return constRange(resourceHeaps_);
-        }
-        
-        /** Return bind tables that are pair of the root parameter index and the heap */
-        auto getGpuResourceHeapTables()
-            -> decltype(constRange(resourceHeapTables_))
-        {
-            return constRange(resourceHeapTables_);
-        }
     };
 }
 

@@ -23,6 +23,9 @@ namespace killme
     {
         return (n + base - 1) / base * base;
     }
+
+    /** Return a hash value by memory (Collision probability is 16^8) */
+    size_t crc32(const void* p, size_t length);
 }
 
 #endif

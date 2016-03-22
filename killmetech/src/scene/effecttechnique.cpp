@@ -4,13 +4,13 @@
 
 namespace killme
 {
-    EffectTechnique::EffectTechnique(RenderSystem& renderSystem, ResourceManager& resourceManager,
+    EffectTechnique::EffectTechnique(RenderDevice& device, ResourceManager& resources,
         const MaterialDescription& matDesc, const TechniqueDescription& techDesc)
         : passes_()
     {
         for (const auto& pass : techDesc.passes)
         {
-            passes_.emplace_back(std::make_shared<EffectPass>(renderSystem, resourceManager, matDesc, pass.second));
+            passes_.emplace_back(std::make_shared<EffectPass>(device, resources, matDesc, pass.second));
         }
     }
 

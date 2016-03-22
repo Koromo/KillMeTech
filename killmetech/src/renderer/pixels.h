@@ -8,7 +8,8 @@ namespace killme
     /** Pixel format definitions */
     enum class PixelFormat
     {
-        r8g8b8a8_unorm
+        r8g8b8a8_unorm,
+        d16_unorm
     };
 
     /** Pixel definition (Red:8 Green:8 Blue:8 Aplha:8) */

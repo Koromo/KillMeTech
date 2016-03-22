@@ -2,10 +2,10 @@
 #include "../scene/mesh.h"
 #include "../scene/material.h"
 #include "../scene/materialcreation.h"
-#include "../renderer/rendersystem.h"
+#include "../renderer/renderdevice.h"
 #include "../renderer/commandlist.h"
 #include "../renderer/commandqueue.h"
-#include "../renderer/resourcebarrior.h"
+#include "../renderer/gpuresource.h"
 #include "../renderer/vertexdata.h"
 #include "../resources/resource.h"
 #include "../core/exception.h"
@@ -468,7 +468,7 @@ namespace killme
         }
 
         // Parse mesh
-        std::shared_ptr<Mesh> parseMeshScene(RenderSystem& renderSystem, ResourceManager& resourceManager, const FbxNode* node)
+        std::shared_ptr<Mesh> parseMeshScene(RenderDevice& device, ResourceManager& resources, const FbxNode* node)
         {
             std::shared_ptr<Mesh> parsedMesh = std::make_shared<Mesh>();
 
@@ -495,35 +495,35 @@ namespace killme
 
                     std::vector<std::shared_ptr<VertexBuffer>> vertexBuffers;
                     const auto vertexData = std::make_shared<VertexData>();
-                    const auto allocator = renderSystem.obtainCommandAllocator();
-                    const auto commands = renderSystem.obtainCommandList(allocator, nullptr);
+                    const auto allocator = device.obtainCommandAllocator();
+                    const auto commands = device.obtainCommandList(allocator, nullptr);
 
-                    const auto positionBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.positions.size(), sizeof(float) * 3);
+                    const auto positionBuffer = device.createVertexBuffer(sizeof(float) * cache.positions.size(), sizeof(float) * 3, GpuResourceState::copyDestination);
                     commands->updateGpuResource(positionBuffer, cache.positions.data());
                     vertexBuffers.emplace_back(positionBuffer);
                     vertexData->addVertices(SemanticNames::position, 0, positionBuffer);
 
-                    const auto indexBuffer = renderSystem.createIndexBuffer(sizeof(unsigned short) * cache.indices.size());
+                    const auto indexBuffer = device.createIndexBuffer(sizeof(unsigned short) * cache.indices.size(), GpuResourceState::copyDestination);
                     commands->updateGpuResource(indexBuffer, cache.indices.data());
                     vertexData->setIndices(indexBuffer);
 
                     if (!cache.uvs.empty())
                     {
-                        const auto texcoordBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.uvs.size(), sizeof(float) * 2);
+                        const auto texcoordBuffer = device.createVertexBuffer(sizeof(float) * cache.uvs.size(), sizeof(float) * 2, GpuResourceState::copyDestination);
                         commands->updateGpuResource(texcoordBuffer, cache.uvs.data());
                         vertexBuffers.emplace_back(texcoordBuffer);
                         vertexData->addVertices(SemanticNames::texcoord, 0, texcoordBuffer);
                     }
                     if (!cache.normals.empty())
                     {
-                        const auto normalBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.normals.size(), sizeof(float) * 3);
+                        const auto normalBuffer = device.createVertexBuffer(sizeof(float) * cache.normals.size(), sizeof(float) * 3, GpuResourceState::copyDestination);
                         commands->updateGpuResource(normalBuffer, cache.normals.data());
                         vertexBuffers.emplace_back(normalBuffer);
                         vertexData->addVertices(SemanticNames::normal, 0, normalBuffer);
                     }
                     if (!cache.colors.empty())
                     {
-                        const auto colorBuffer = renderSystem.createVertexBuffer(sizeof(float) * cache.colors.size(), sizeof(float) * 4);
+                        const auto colorBuffer = device.createVertexBuffer(sizeof(float) * cache.colors.size(), sizeof(float) * 4, GpuResourceState::copyDestination);
                         commands->updateGpuResource(colorBuffer, cache.colors.data());
                         vertexBuffers.emplace_back(colorBuffer);
                         vertexData->addVertices(SemanticNames::color, 0, colorBuffer);
@@ -531,17 +531,17 @@ namespace killme
 
                     for (const auto& buffer : vertexBuffers)
                     {
-                        commands->transitionBarrior(buffer, ResourceState::copyDestination, ResourceState::vertexBuffer);
+                        commands->transitionBarrior(buffer, GpuResourceState::copyDestination, GpuResourceState::vertexBuffer);
                     }
 
                     commands->close();
 
                     const auto commandExe = { commands };
-                    renderSystem.getCommandQueue()->executeCommands(commandExe);
-                    renderSystem.reuseCommandAllocatorAfterExecution(allocator);
-                    renderSystem.reuseCommandListAfterExecution(commands);
+                    device.getCommandQueue()->executeCommands(commandExe);
+                    device.reuseCommandAllocatorAfterExecution(allocator);
+                    device.reuseCommandListAfterExecution(commands);
 
-                    const Resource<Material> material(resourceManager, "media/box.material");
+                    const Resource<Material> material(resources, "media/box.material");
                     parsedMesh->createSubmesh(fbxMesh->GetName(), vertexData, material);
                 }
 
@@ -556,7 +556,7 @@ namespace killme
         }
     }
 
-    std::shared_ptr<Mesh> FbxMeshImporter::import(RenderSystem& renderSystem, ResourceManager& resourceManager, const std::string& path)
+    std::shared_ptr<Mesh> FbxMeshImporter::import(RenderDevice& device, ResourceManager& resources, const std::string& path)
     {
         // Get fullpath
         /// TODO: _fullpath() is windows only
@@ -589,6 +589,6 @@ namespace killme
         converter.Triangulate(scene.get(), true); // Triangle polygon
         converter.SplitMeshesPerMaterial(scene.get(), true); // Submeshes per materials
 
-        return parseMeshScene(renderSystem, resourceManager, scene->GetRootNode());
+        return parseMeshScene(device, resources, scene->GetRootNode());
     }
 }

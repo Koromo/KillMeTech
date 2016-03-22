@@ -1,65 +1,64 @@
 #ifndef _KILLME_TEXTURE_H_
 #define _KILLME_TEXTURE_H_
 
+#include "renderdevice.h"
 #include "pixels.h"
 #include "../resources/resource.h"
 #include "../windows/winsupport.h"
+#include "../core/optional.h"
+#include "../core/math/color.h"
 #include <d3d12.h>
-#include <Windows.h>
+#include <memory>
 
 namespace killme
 {
+    class RenderTarget;
+    class DepthStencil;
+    enum class GpuResourceState;
+
+    /** Texture bindable flags */
+    enum TextureFlags
+    {
+        none = 0,
+        allowRenderTarget = 1 << 0,
+        allowDepthStencil = 1 << 1
+    };
+
     /** Texture resource */
-    class Texture : public IsResource
+    class Texture : public RenderDeviceChild, public IsResource
     {
     private:
-        ComUniquePtr<ID3D12Resource> tex_;
+        ComSharedPtr<ID3D12Resource> tex_;
         D3D12_RESOURCE_DESC resourceDesc_;
         PixelFormat format_;
 
     public:
-        /** Resource view */
-        struct View
+        /** Resource location */
+        struct Location
         {
-            D3D12_CPU_DESCRIPTOR_HANDLE d3dView;
+            D3D12_CPU_DESCRIPTOR_HANDLE ofD3D;
         };
 
-        /** Construct */
-        Texture(ID3D12Resource* tex, PixelFormat format)
-            : tex_(makeComUnique(tex))
-            , resourceDesc_(tex->GetDesc())
-            , format_(format)
-        {
-        }
+        /** Initialize */
+        void initialize(size_t width, size_t height, PixelFormat format, TextureFlags flags,
+            GpuResourceState initialState, Optional<Color> optimizedClear);
+        void initialize(size_t width, size_t height, PixelFormat format, TextureFlags flags,
+            GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil);
+
+        /** Return the render target interface */
+        std::shared_ptr<RenderTarget> asRenderTarget();
+
+        /** Return the depth stencil interface */
+        std::shared_ptr<DepthStencil> asDepthStencil();
 
         /** Return the Direct3D resource */
-        ID3D12Resource* getD3DResource() { return tex_.get(); }
+        ID3D12Resource* getD3DResource();
 
         /** Return the Direct3D subresource informations */
-        D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const
-        {
-            D3D12_SUBRESOURCE_DATA subresource;
-            subresource.pData = data;
-            subresource.RowPitch = static_cast<LONG_PTR>(resourceDesc_.Width * numBitsOfPixelFormat(format_) / 8);
-            subresource.SlicePitch = subresource.RowPitch * resourceDesc_.Height;
-            return subresource;
-        }
-
-        /** Return Durect3D resource description */
-        D3D12_RESOURCE_DESC describeD3D() const { return resourceDesc_; }
+        D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const;
 
         /** Create the Direct3D view into a desctipror heap */
-        View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
-        {
-            D3D12_SHADER_RESOURCE_VIEW_DESC desc;
-            ZeroMemory(&desc, sizeof(desc));
-            desc.Format = resourceDesc_.Format;
-            desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            desc.Texture2D.MipLevels = 1;
-            desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            device->CreateShaderResourceView(tex_.get(), &desc, location);
-            return{ location };
-        }
+        Location locate(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location);
     };
 
     /** Sampler */
@@ -69,34 +68,17 @@ namespace killme
         D3D12_SAMPLER_DESC desc_;
 
     public:
-        /** Resource view */
-        struct View
+        /** Resource location */
+        struct Location
         {
-            D3D12_CPU_DESCRIPTOR_HANDLE d3dView;
+            D3D12_CPU_DESCRIPTOR_HANDLE ofD3D;
         };
 
         /** Construct */
-        Sampler()
-            : desc_()
-        {
-            ZeroMemory(&desc_, sizeof(desc_));
-            desc_.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-            desc_.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-            desc_.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-            desc_.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-            desc_.MinLOD = -D3D12_FLOAT32_MAX;
-            desc_.MaxLOD = D3D12_FLOAT32_MAX;
-            desc_.MipLODBias = 0;
-            desc_.MaxAnisotropy = 1;
-            desc_.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-        }
+        Sampler();
 
         /** Create the Direct3D view into a desctipror heap */
-        View createD3DView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
-        {
-            device->CreateSampler(&desc_, location);
-            return{ location };
-        }
+        Location locate(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location);
     };
 }
 

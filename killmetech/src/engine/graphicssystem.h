@@ -9,12 +9,13 @@
 namespace killme
 {
     class RenderSystem;
+    class RenderDevice;
 
     /** Graphics subsystem */
     class GraphicsSystem
     {
     private:
-        std::shared_ptr<RenderSystem> renderSystem_;
+        std::unique_ptr<RenderSystem> renderSystem_;
         Viewport clientViewport_;
 
     public:
@@ -25,7 +26,10 @@ namespace killme
         void shutdown();
 
         /** Return the render system */
-        std::shared_ptr<RenderSystem> getRenderSystem();
+        RenderSystem& getRenderSystem();
+
+        /** Return the render device */
+        RenderDevice& getDevice();
 
         /** Return current frame resource */
         FrameResource getCurrentFrameResource();
