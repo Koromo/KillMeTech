@@ -94,13 +94,12 @@ namespace killme
         const auto tech = material_.access()->getUseTechnique();
         const auto pass = (*std::cbegin(tech->getPasses()));
         const auto pipeline = pass->getPipelineState();
-        pipeline->setRenderTarget(frame.backBufferLocation, frame.backBuffer->getPixelFormat(),
-            frame.depthStencilLocation, frame.depthStencil->getPixelFormat());
+        pipeline->setRenderTarget(0, frame.backBufferLocation);
+        pipeline->setDepthStencil(frame.depthStencilLocation);
         pipeline->setViewport(viewport);
         pipeline->setScissorRect(scissorRect_);
         pipeline->setPrimitiveTopology(PrimitiveTopology::lineList);
         pipeline->setVertexBuffers(vertexData);
-
 
         // Begin drawing to all debugs
         allocator->reset();

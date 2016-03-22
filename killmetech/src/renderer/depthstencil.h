@@ -22,6 +22,7 @@ namespace killme
         struct Location
         {
             D3D12_CPU_DESCRIPTOR_HANDLE ofD3D;
+            DXGI_FORMAT format;
         };
 
         /** Initialize */

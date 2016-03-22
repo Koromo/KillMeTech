@@ -22,6 +22,6 @@ namespace killme
         viewDesc.Texture2D.MipSlice = 0;
         viewDesc.Flags = D3D12_DSV_FLAG_NONE;
         device->CreateDepthStencilView(texture_.get(), &viewDesc, location);
-        return{ location };
+        return{ location, desc_.Format };
     }
 }

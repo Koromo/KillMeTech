@@ -28,6 +28,6 @@ namespace killme
     RenderTarget::Location RenderTarget::locate(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
     {
         device->CreateRenderTargetView(texture_.get(), nullptr, location);
-        return{ location };
+        return{ location, desc_.Format };
     }
 }

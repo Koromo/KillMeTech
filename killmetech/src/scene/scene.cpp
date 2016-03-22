@@ -142,8 +142,8 @@ namespace killme
 
                     const auto renderPass = [&]()
                     {
-                        pipeline->setRenderTarget(frame.backBufferLocation, frame.backBuffer->getPixelFormat(),
-                            frame.depthStencilLocation, frame.depthStencil->getPixelFormat());
+                        pipeline->setRenderTarget(0, frame.backBufferLocation);
+                        pipeline->setDepthStencil(frame.depthStencilLocation);
                         pipeline->setViewport(viewport);
                         pipeline->setScissorRect(scissorRect_);
                         pipeline->setPrimitiveTopology(PrimitiveTopology::triangeList);

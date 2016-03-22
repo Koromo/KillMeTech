@@ -14,8 +14,8 @@
 #include <d3d12.h>
 #include <memory>
 #include <vector>
-#include <unordered_set>
 #include <unordered_map>
+#include <array>
 
 namespace killme
 {
@@ -118,20 +118,29 @@ namespace killme
         ID3D12RootSignature* createD3DSignature(ID3D12Device* device) const;
     };
 
+    /** Num of max multiple render targets */
+    constexpr size_t MAX_RENDER_TARGETS = D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT;
+
     /** PipelineState */
     class PipelineState : public RenderDeviceChild
     {
     private:
         detail::BoundShaders boundShaders_;
-        Optional<D3D12_CPU_DESCRIPTOR_HANDLE> renderTarget_;
-        Optional<D3D12_CPU_DESCRIPTOR_HANDLE> depthStencil_;
+
+        std::array<D3D12_CPU_DESCRIPTOR_HANDLE, MAX_RENDER_TARGETS> renderTargets_;
+        D3D12_CPU_DESCRIPTOR_HANDLE depthStencil_;
+
         std::shared_ptr<VertexData> vertices_;
         std::vector<D3D12_VERTEX_BUFFER_VIEW> vertexBufferViews_;
-        Optional<D3D12_INDEX_BUFFER_VIEW> indexBufferView_;
+        D3D12_INDEX_BUFFER_VIEW indexBufferView_;
+
         D3D12_PRIMITIVE_TOPOLOGY primitiveTopology_;
+
         D3D12_VIEWPORT viewport_;
         D3D12_RECT scissorRect_;
+
         mutable std::shared_ptr<GpuResourceTable> resourceTable_;
+
         D3D12_GRAPHICS_PIPELINE_STATE_DESC topLevelDesc_;
 
     public:
@@ -148,8 +157,10 @@ namespace killme
         std::shared_ptr<GpuResourceTable> getGpuResourceTable();
 
         /** Set a render target */
-        void setRenderTarget(Optional<RenderTarget::Location> rt, PixelFormat rtFormat,
-            Optional<DepthStencil::Location> ds, PixelFormat dsFormat);
+        void setRenderTarget(size_t i, Optional<RenderTarget::Location> rt);
+
+        /** Set a depth stencil */
+        void setDepthStencil(Optional<DepthStencil::Location> ds);
 
         /** Set vertex buffers */
         void setVertexBuffers(const std::shared_ptr<VertexData>& vertices, bool setIndices = true);
@@ -157,14 +168,14 @@ namespace killme
         /** Set a primitive topology */
         void setPrimitiveTopology(PrimitiveTopology pt);
 
-        /** Set the viewport */
+        /** Set a viewport */
         void setViewport(const Viewport& vp);
 
-        /** Set the scissor rect */
+        /** Set a scissor rect */
         void setScissorRect(const ScissorRect& sr);
 
-        /** Set the blend state */
-        void setBlendState(const BlendState& blend);
+        /** Set a blend state */
+        void setBlendState(size_t i, const BlendState& blend);
 
         /** Return the hash key of top level */
         size_t getTopLevelHash() const;
@@ -184,7 +195,7 @@ namespace killme
         /** Apply pipeline parameters to commands */
         void applyParameters(ID3D12GraphicsCommandList* commands);
 
-        /** Create Direct3D pileline state */
+        /** Create a Direct3D pileline state */
         ID3D12PipelineState* createD3DPipeline(ID3D12Device* device, ID3D12RootSignature* rootSignature) const;
         ID3D12RootSignature* createD3DSignature(ID3D12Device* device) const;
 

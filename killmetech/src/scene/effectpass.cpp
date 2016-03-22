@@ -45,7 +45,7 @@ namespace killme
             }
         }
 
-        pipeline_->setBlendState(passDesc.blendState);
+        pipeline_->setBlendState(0, passDesc.blendState);
 
         const auto resourceTable = pipeline_->getGpuResourceTable();
         const auto numHeaps = resourceTable->getNumRequiredHeaps();

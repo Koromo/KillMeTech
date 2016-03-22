@@ -314,15 +314,77 @@ namespace killme
         return signature;
     }
 
+    namespace
+    {
+        void setNull(D3D12_CPU_DESCRIPTOR_HANDLE& h)
+        {
+            h.ptr = 0;
+        }
+
+        void setNull(D3D12_INDEX_BUFFER_VIEW& v)
+        {
+            ZeroMemory(&v, sizeof(v));
+        }
+
+        void setNull(D3D12_VIEWPORT& vp)
+        {
+            ZeroMemory(&vp, sizeof(vp));
+        }
+
+        void setNull(D3D12_RECT& rect)
+        {
+            ZeroMemory(&rect, sizeof(rect));
+        }
+
+        bool isNull(D3D12_CPU_DESCRIPTOR_HANDLE h)
+        {
+            return h.ptr == 0;
+        }
+
+        bool isNull(const D3D12_INDEX_BUFFER_VIEW& v)
+        {
+            return v.BufferLocation == 0 &&
+                v.SizeInBytes == 0 &&
+                v.Format == 0;
+        }
+
+        bool isNull(const D3D12_VIEWPORT& vp)
+        {
+            return vp.TopLeftX == 0 &&
+                vp.TopLeftY == 0 &&
+                vp.Width == 0 &&
+                vp.Height == 0 &&
+                vp.MinDepth == 0 &&
+                vp.MaxDepth == 0;
+        }
+
+        bool isNull(const D3D12_RECT& rect)
+        {
+            return rect.top == 0 &&
+                rect.bottom == 0 &&
+                rect.left == 0 &&
+                rect.right == 0;
+        }
+    }
+
     void PipelineState::initialize()
     {
         boundShaders_.hashVS = -1;
         boundShaders_.hashPS = -1;
         boundShaders_.hashGS = -1;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE nullDescriptor;
+        setNull(nullDescriptor);
+        renderTargets_.fill(nullDescriptor);
+        setNull(depthStencil_);
+
+        setNull(indexBufferView_);
+
         primitiveTopology_ = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 
-        ZeroMemory(&viewport_, sizeof(viewport_));
-        ZeroMemory(&scissorRect_, sizeof(scissorRect_));
+        setNull(viewport_);
+        setNull(scissorRect_);
+
         ZeroMemory(&topLevelDesc_, sizeof(topLevelDesc_));
 
         topLevelDesc_.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
@@ -362,7 +424,7 @@ namespace killme
 
         topLevelDesc_.SampleMask = UINT_MAX;
         topLevelDesc_.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
-        topLevelDesc_.NumRenderTargets = 1;
+        topLevelDesc_.NumRenderTargets = 0;
         topLevelDesc_.SampleDesc.Count = 1;
     }
 
@@ -425,28 +487,45 @@ namespace killme
         return resourceTable_;
     }
 
-    void PipelineState::setRenderTarget(Optional<RenderTarget::Location> rt, PixelFormat rtFormat,
-        Optional<DepthStencil::Location> ds, PixelFormat dsFormat)
+    void PipelineState::setRenderTarget(size_t i, Optional<RenderTarget::Location> rt)
     {
+        assert(i < MAX_RENDER_TARGETS && "Index out of range.");
+
         if (rt)
         {
-            renderTarget_ = rt->ofD3D;
-            topLevelDesc_.RTVFormats[0] = D3DMappings::toD3DDxgiFormat(rtFormat);
+            renderTargets_[i] = rt->ofD3D;
+            topLevelDesc_.RTVFormats[i] = rt->format;
+            if (topLevelDesc_.NumRenderTargets < i + 1)
+            {
+                topLevelDesc_.NumRenderTargets = i + 1;
+            }
         }
         else
         {
-            renderTarget_ = nullopt;
-            topLevelDesc_.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
-        }
+            setNull(renderTargets_[i]);
+            topLevelDesc_.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
 
+            if (topLevelDesc_.NumRenderTargets == i + 1)
+            {
+                while (topLevelDesc_.NumRenderTargets > 0 &&
+                    isNull(renderTargets_[topLevelDesc_.NumRenderTargets - 1]))
+                {
+                    --topLevelDesc_.NumRenderTargets;
+                }
+            }
+        }
+    }
+
+    void PipelineState::setDepthStencil(Optional<DepthStencil::Location> ds)
+    {
         if (ds)
         {
             depthStencil_ = ds->ofD3D;
-            topLevelDesc_.DSVFormat = D3DMappings::toD3DDxgiFormat(dsFormat);
+            topLevelDesc_.DSVFormat = ds->format;
         }
         else
         {
-            depthStencil_ = nullopt;
+            setNull(depthStencil_);
             topLevelDesc_.DSVFormat = DXGI_FORMAT_UNKNOWN;
         }
     }
@@ -471,7 +550,7 @@ namespace killme
             }
             else
             {
-                indexBufferView_ = nullopt;
+                setNull(indexBufferView_);
             }
         }
     }
@@ -492,9 +571,10 @@ namespace killme
         scissorRect_ = D3DMappings::toD3DRect(sr);
     }
 
-    void PipelineState::setBlendState(const BlendState& blend)
+    void PipelineState::setBlendState(size_t i, const BlendState& blend)
     {
-        topLevelDesc_.BlendState.RenderTarget[0] = D3DMappings::toD3DBlendState(blend);
+        assert(i < MAX_RENDER_TARGETS && "Index out of range.");
+        topLevelDesc_.BlendState.RenderTarget[i] = D3DMappings::toD3DBlendState(blend);
     }
 
     size_t PipelineState::getTopLevelHash() const
@@ -535,15 +615,13 @@ namespace killme
     {
         resourceTable_->applyResourceTable(commands);
 
-        const auto prtv = renderTarget_ ? renderTarget_.ptr() : nullptr;
-        const auto pdsv = renderTarget_ ? depthStencil_.ptr() : nullptr;
-
-        commands->OMSetRenderTargets(1, prtv, TRUE, pdsv);
+        const auto pdsv = isNull(depthStencil_) ? nullptr : &depthStencil_;
+        commands->OMSetRenderTargets(topLevelDesc_.NumRenderTargets, renderTargets_.data(), FALSE, pdsv);
 
         commands->IASetPrimitiveTopology(primitiveTopology_);
         commands->IASetVertexBuffers(0, vertexBufferViews_.size(), vertexBufferViews_.data());
 
-        const auto pibv = indexBufferView_ ? indexBufferView_.ptr() : nullptr;
+        const auto pibv = isNull(indexBufferView_) ? nullptr : &indexBufferView_;
         commands->IASetIndexBuffer(pibv);
 
         commands->RSSetViewports(1, &viewport_);
