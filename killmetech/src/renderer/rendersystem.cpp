@@ -88,14 +88,21 @@ namespace killme
                 SUCCEEDED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&backBuffer))),
                 "Failed to get the back buffer.");
 
-            backBuffers_[i] = createRenderDeviceChild<RenderTarget>(device_, backBuffer);
+            const auto tex = createRenderDeviceChild<Texture>(device_, backBuffer);
+            backBuffers_[i] = renderTargetInterface(tex);
             backBufferLocations_[i] = backBufferHeap_->locate(i, backBuffers_[i]);
         }
 
         // Create the depth stencil
         depthStencilHeap_ = device_->createGpuResourceHeap(1, GpuResourceHeapType::depthStencil, false);
-        const auto depthStencilTexture = device_->createTexture(clientWidth, clientHeight, PixelFormat::d16_unorm, TextureFlags::allowDepthStencil, GpuResourceState::common, 1, 0);
-        depthStencil_ = depthStencilTexture->asDepthStencil();
+
+        TextureDescription dsDesc;
+        dsDesc.width = clientWidth;
+        dsDesc.height = clientHeight;
+        dsDesc.format = PixelFormat::d16_unorm;
+        dsDesc.flags = TextureFlags::allowDepthStencil;
+        const auto depthStencilTexture = device_->createTexture(dsDesc, GpuResourceState::common, 1, 0);
+        depthStencil_ = depthStencilInterface(depthStencilTexture);
         depthStencilLocation_ = depthStencilHeap_->locate(0, depthStencil_);
     }
 

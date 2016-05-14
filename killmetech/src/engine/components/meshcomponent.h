@@ -25,8 +25,8 @@ namespace killme
         /** Construct */
         explicit MeshComponent(const Resource<Mesh>& mesh);
 
-        /** Return the submesh */
-        std::shared_ptr<Submesh> findSubmesh(const std::string& name);
+        /** Return mesh */
+        Resource<Mesh> getMesh();
 
     private:
         void onTranslated();

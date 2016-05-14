@@ -24,7 +24,8 @@ namespace killme
     {
         vertex,
         pixel,
-        geometry
+        geometry,
+        compute
     };
 
     /** Bound resource type definitions */
@@ -32,7 +33,8 @@ namespace killme
     {
         cbuffer,
         texture,
-        sampler
+        sampler,
+        bufferRW
     };
 
     /** Bound resource description */
@@ -238,6 +240,20 @@ namespace killme
 
         /** Construct with a byte code */
         explicit GeometryShader(ID3DBlob* byteCode);
+    };
+
+    /** Compute shader */
+    class ComputeShader : public BasicShader
+    {
+    public:
+        /** Shader model */
+        static const std::string MODEL;
+
+        /** Entry point */
+        static const std::string ENTRY;
+
+        /** Construct with a byte code */
+        explicit ComputeShader(ID3DBlob* byteCode);
     };
 
     /** Compile a shader from file */

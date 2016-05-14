@@ -1,33 +1,30 @@
 #include "rendertarget.h"
-#include "d3dsupport.h"
+#include "texture.h"
+#include <cassert>
 
 namespace killme
 {
-    void RenderTarget::initialize(ID3D12Resource* texture)
+    void RenderTarget::initialize(const std::shared_ptr<Texture>& tex)
     {
-        texture_ = makeComShared(texture);
-        desc_ = texture_->GetDesc();
-    }
-
-    void RenderTarget::initialize(const ComSharedPtr<ID3D12Resource>& texture)
-    {
-        texture_ = texture;
-        desc_ = texture_->GetDesc();
-    }
-
-    PixelFormat RenderTarget::getPixelFormat() const
-    {
-        return D3DMappings::toPixelFormat(desc_.Format);
+        tex_ = tex;
+        desc_ = tex_->describeD3D();
     }
 
     ID3D12Resource* RenderTarget::getD3DResource()
     {
-        return texture_.get();
+        return tex_->getD3DResource();
     }
 
     RenderTarget::Location RenderTarget::locate(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location)
     {
-        device->CreateRenderTargetView(texture_.get(), nullptr, location);
+        device->CreateRenderTargetView(tex_->getD3DResource(), nullptr, location);
         return{ location, desc_.Format };
+    }
+
+    std::shared_ptr<RenderTarget> renderTargetInterface(const std::shared_ptr<Texture>& tex)
+    {
+        assert(tex->describeD3D().Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET &&
+            "This texture can not use as the render target.");
+        return createRenderDeviceChild<RenderTarget>(tex->getOwnerDevice(), tex);
     }
 }

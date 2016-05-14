@@ -123,7 +123,8 @@ namespace killme
     }
 
     Material::Material(RenderDevice& device, ResourceManager& resources, const MaterialDescription& desc)
-        : params_()
+        : priority_(desc.getPriority())
+        , params_()
         , useTech_()
         , techMap_()
     {
@@ -164,6 +165,11 @@ namespace killme
                 }
             }
         }
+    }
+
+    MaterialPriority Material::getPriority() const
+    {
+        return priority_;
     }
 
     std::shared_ptr<EffectTechnique> Material::getUseTechnique()

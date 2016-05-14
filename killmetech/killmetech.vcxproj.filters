@@ -228,6 +228,9 @@
     <ClCompile Include="src\renderer\renderdevice.cpp">
       <Filter>src\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\renderer\unorderedbuffer.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\audio\audioclip.h">
@@ -463,6 +466,12 @@
     </ClInclude>
     <ClInclude Include="src\renderer\renderdevice.h">
       <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\unorderedbuffer.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\renderqueue.h">
+      <Filter>src\scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

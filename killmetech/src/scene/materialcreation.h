@@ -1,6 +1,7 @@
 #ifndef _KILLME_MATERIALCREATION_H_
 #define _KILLME_MATERIALCREATION_H_
 
+#include "material.h"
 #include "effectpass.h"
 #include "../renderer/renderstate.h"
 #include "../core/utility.h"
@@ -17,7 +18,6 @@
 
 namespace killme
 {
-    class Material;
     class RenderDevice;
     class ResourceManager;
     enum class ShaderType;
@@ -56,14 +56,18 @@ namespace killme
     class MaterialDescription
     {
     private:
+        MaterialPriority priority_;
         std::unordered_map<std::string, MaterialParameterDescription> paramMap_;
         std::unordered_map<ShaderType, std::unordered_map<std::string, ShaderBoundDescription>> shaderBoundMap_;
         std::vector<std::pair<std::string, TechniqueDescription>> techs_;
 
     public:
+        void setPriority(MaterialPriority priority);
         void addParameter(const std::string& name, MaterialParameterDescription&& desc);
         void addShaderBound(ShaderType type, const std::string& name, ShaderBoundDescription&& desc);
         void addTechnique(const std::string& name, TechniqueDescription&& desc);
+
+        MaterialPriority getPriority() const;
 
         Optional<TypeNumber> getParameterType(const std::string& name) const;
         bool hasShaderBound(ShaderType type, const std::string& name) const;

@@ -24,7 +24,7 @@ namespace killme
     {
         renderTarget,
         depthStencil,
-        cbufferAndTexture,
+        buffer,
         sampler
     };
 

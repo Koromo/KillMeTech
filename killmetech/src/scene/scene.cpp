@@ -2,10 +2,10 @@
 #include "camera.h"
 #include "light.h"
 #include "meshinstance.h"
-#include "mesh.h"
 #include "material.h"
 #include "effecttechnique.h"
 #include "effectpass.h"
+#include "renderqueue.h"
 #include "../renderer/rendersystem.h"
 #include "../renderer/renderdevice.h"
 #include "../renderer/pipelinestate.h"
@@ -115,91 +115,90 @@ namespace killme
         const auto projMatrix = transpose(mainCamera_->getProjectionMatrix());
         const auto viewport = mainCamera_->getViewport();
 
-        // For each mesh instances
-        for (const auto& inst : meshInstances_)
+        // Collect render meshes
+        RenderQueue queue;
+        for (const auto inst : meshInstances_)
         {
-            // Get instance parameters
-            const auto worldMatrix = transpose(inst->getWorldMatrix());
-            const auto mesh = inst->getMesh();
+            inst->collectMeshes(queue);
+        }
 
-            // For each submeshes
-            for (const auto& submesh : mesh.access()->getSubmeshes())
+        // For each render elements
+        while (!queue.empty())
+        {
+            const auto elem = queue.pop();
+
+            // Update constant buffers
+            elem->material->setNumeric("_ViewMatrix", to<MP_float4x4>(viewMatrix));
+            elem->material->setNumeric("_ProjMatrix", to<MP_float4x4>(projMatrix));
+            elem->material->setNumeric("_WorldMatrix", to<MP_float4x4>(elem->worldMatrix));
+            elem->material->setNumeric("_AmbientLight", to<MP_float4>(ambientLight_));
+
+            // For each passes
+            for (const auto& pass : elem->material->getUseTechnique()->getPasses())
             {
-                // Update constant buffers
-                const auto material = submesh.second->getMaterial();
-                material->setNumeric("_ViewMatrix", to<MP_float4x4>(viewMatrix));
-                material->setNumeric("_ProjMatrix", to<MP_float4x4>(projMatrix));
-                material->setNumeric("_WorldMatrix", to<MP_float4x4>(worldMatrix));
-                material->setNumeric("_AmbientLight", to<MP_float4>(ambientLight_));
+                const auto pipeline = pass->getPipelineState();
 
-                // Get render resources
-                const auto vertexData = submesh.second->getVertexData();
-
-                // For each passes
-                for (const auto& pass : material->getUseTechnique()->getPasses())
+                const auto renderPass = [&]()
                 {
-                    const auto pipeline = pass->getPipelineState();
+                    pipeline->setRenderTarget(0, frame.backBufferLocation);
+                    pipeline->setDepthStencil(frame.depthStencilLocation);
+                    pipeline->setViewport(viewport);
+                    pipeline->setScissorRect(scissorRect_);
+                    pipeline->setPrimitiveTopology(PrimitiveTopology::triangeList);
+                    pipeline->setVertexBuffers(elem->vertices);
 
-                    const auto renderPass = [&]()
+                    // Add draw commands
+                    const auto allocator = device_->obtainCommandAllocator();
+                    const auto commands = device_->obtainCommandList(allocator, pipeline);
+
+                    commands->transitionBarrior(frame.backBuffer,
+                        GpuResourceState::present, GpuResourceState::renderTarget);
+                    commands->drawIndexed(elem->vertices->getIndexBuffer()->getNumIndices());
+                    commands->transitionBarrior(frame.backBuffer,
+                        GpuResourceState::renderTarget, GpuResourceState::present);
+
+                    commands->close();
+
+                    const auto commandExe = { commands };
+                    device_->getCommandQueue()->executeCommands(commandExe);
+
+                    device_->reuseCommandAllocatorAfterExecution(allocator);
+                    device_->reuseCommandListAfterExecution(commands);
+                };
+
+                if (pass->getLightIteration() == LightIteration::directional)
+                {
+                    for (const auto& light : dirLights_)
                     {
-                        pipeline->setRenderTarget(0, frame.backBufferLocation);
-                        pipeline->setDepthStencil(frame.depthStencilLocation);
-                        pipeline->setViewport(viewport);
-                        pipeline->setScissorRect(scissorRect_);
-                        pipeline->setPrimitiveTopology(PrimitiveTopology::triangeList);
-                        pipeline->setVertexBuffers(vertexData);
-
-                        // Add draw commands
-                        const auto allocator = device_->obtainCommandAllocator();
-                        const auto commands = device_->obtainCommandList(allocator, pipeline);
-
-                        commands->transitionBarrior(frame.backBuffer, GpuResourceState::present, GpuResourceState::renderTarget);
-                        commands->drawIndexed(vertexData->getIndexBuffer()->getNumIndices());
-                        commands->transitionBarrior(frame.backBuffer, GpuResourceState::renderTarget, GpuResourceState::present);
-
-                        commands->close();
-
-                        const auto commandExe = { commands };
-                        device_->getCommandQueue()->executeCommands(commandExe);
-
-                        device_->reuseCommandAllocatorAfterExecution(allocator);
-                        device_->reuseCommandListAfterExecution(commands);
-                    };
-
-                    if (pass->getLightIteration() == LightIteration::directional)
-                    {
-                        for (const auto& light : dirLights_)
-                        {
-                            const auto lightColor = light->getColor();
-                            const auto lightDir = light->getDirection();
-                            pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
-                            pass->updateConstant("_LightDirection", &lightDir, sizeof(lightDir));
-                            renderPass();
-                        }
-                    }
-                    else if (pass->getLightIteration() == LightIteration::point)
-                    {
-                        for (const auto& light : pointLights_)
-                        {
-                            const auto lightColor = light->getColor();
-                            const auto lightPos = light->getPosition();
-                            const auto lightAttRange = light->getAttenuationRange();
-                            const auto lightAttConstant = light->getAttenuationConstant();
-                            const auto lightAttLiner = light->getAttenuationLiner();
-                            const auto lightAttQuadratic = light->getAttenuationQuadratic();
-                            pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
-                            pass->updateConstant("_LightPosition", &lightPos, sizeof(lightPos));
-                            pass->updateConstant("_LightAttRange", &lightAttRange, sizeof(lightAttRange));
-                            pass->updateConstant("_LightAttConstant", &lightAttConstant, sizeof(lightAttConstant));
-                            pass->updateConstant("_LightAttLiner", &lightAttLiner, sizeof(lightAttLiner));
-                            pass->updateConstant("_LightAttQuadratic", &lightAttQuadratic, sizeof(lightAttQuadratic));
-                            renderPass();
-                        }
-                    }
-                    else
-                    {
+                        const auto lightColor = light->getColor();
+                        const auto lightDir = light->getDirection();
+                        pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
+                        pass->updateConstant("_LightDirection", &lightDir, sizeof(lightDir));
                         renderPass();
                     }
+                }
+                else if (pass->getLightIteration() == LightIteration::point)
+                {
+                    for (const auto& light : pointLights_)
+                    {
+                        const auto lightColor = light->getColor();
+                        const auto lightPos = light->getPosition();
+                        const auto lightAttRange = light->getAttenuationRange();
+                        const auto lightAttConstant = light->getAttenuationConstant();
+                        const auto lightAttLiner = light->getAttenuationLiner();
+                        const auto lightAttQuadratic = light->getAttenuationQuadratic();
+                        pass->updateConstant("_LightColor", &lightColor, sizeof(lightColor));
+                        pass->updateConstant("_LightPosition", &lightPos, sizeof(lightPos));
+                        pass->updateConstant("_LightAttRange", &lightAttRange, sizeof(lightAttRange));
+                        pass->updateConstant("_LightAttConstant", &lightAttConstant, sizeof(lightAttConstant));
+                        pass->updateConstant("_LightAttLiner", &lightAttLiner, sizeof(lightAttLiner));
+                        pass->updateConstant("_LightAttQuadratic", &lightAttQuadratic, sizeof(lightAttQuadratic));
+                        renderPass();
+                    }
+                }
+                else
+                {
+                    renderPass();
                 }
             }
         }

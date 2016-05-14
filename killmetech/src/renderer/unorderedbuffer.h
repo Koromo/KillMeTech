@@ -1,5 +1,5 @@
-#ifndef _KILLME_DEPTHSTENCIL_H_
-#define _KILLME_DEPTHSTENCIL_H_
+#ifndef _KILLME_UNORDEREDBUFFER_H_
+#define _KILLME_UNORDEREDBUFFER_H_
 
 #include "renderdevice.h"
 #include "../windows/winsupport.h"
@@ -8,12 +8,8 @@
 
 namespace killme
 {
-    class Texture;
-    enum class PixelFormat;
-
-    /** Depth stencil */
-    /// TODO: Not supported stencil buffer
-    class DepthStencil : public RenderDeviceChild
+    /** Unordered access buffer */
+    class UnorderedBuffer : public RenderDeviceChild
     {
     private:
         std::shared_ptr<Texture> tex_;
@@ -34,8 +30,8 @@ namespace killme
         Location locate(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE location);
     };
 
-    /** Create depth stencil interface */
-    std::shared_ptr<DepthStencil> depthStencilInterface(const std::shared_ptr<Texture>& tex);
+    /** Create unordered buffer interface */
+    std::shared_ptr<UnorderedBuffer> unorderedBufferInterface(const std::shared_ptr<Texture>& tex);
 }
 
 #endif

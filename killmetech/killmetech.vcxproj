@@ -71,6 +71,7 @@
     <ClCompile Include="src\renderer\rendertarget.cpp" />
     <ClCompile Include="src\renderer\shaders.cpp" />
     <ClCompile Include="src\renderer\texture.cpp" />
+    <ClCompile Include="src\renderer\unorderedbuffer.cpp" />
     <ClCompile Include="src\renderer\vertexdata.cpp" />
     <ClCompile Include="src\resources\resourcemanager.cpp" />
     <ClCompile Include="src\scene\debugdrawmanager.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="src\renderer\rendertarget.h" />
     <ClInclude Include="src\renderer\shaders.h" />
     <ClInclude Include="src\renderer\texture.h" />
+    <ClInclude Include="src\renderer\unorderedbuffer.h" />
     <ClInclude Include="src\renderer\vertexdata.h" />
     <ClInclude Include="src\resources\resource.h" />
     <ClInclude Include="src\resources\resourcemanager.h" />
@@ -157,6 +159,7 @@
     <ClInclude Include="src\scene\materialcreation.h" />
     <ClInclude Include="src\scene\mesh.h" />
     <ClInclude Include="src\scene\meshinstance.h" />
+    <ClInclude Include="src\scene\renderqueue.h" />
     <ClInclude Include="src\scene\scene.h" />
     <ClInclude Include="src\windows\console.h" />
     <ClInclude Include="src\windows\winsupport.h" />

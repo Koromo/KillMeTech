@@ -31,14 +31,24 @@ namespace killme
         return device_.get();
     }
 
-    ID3D12PipelineState* RenderDevice::getD3DPipelineState(const PipelineState& key)
+    ID3D12PipelineState* RenderDevice::getD3DPipeline(const PipelineState& key)
     {
         return pipelineCache_->getPipeline(device_.get(), key);
+    }
+
+    ID3D12PipelineState* RenderDevice::getD3DPipeline(const ComputePipelineState& key)
+    {
+        return pipelineCache_->getComputePipeline(device_.get(), key);
     }
 
     ID3D12RootSignature* RenderDevice::getD3DRootSignature(const PipelineState& key)
     {
         return pipelineCache_->getSignature(device_.get(), key);
+    }
+
+    ID3D12RootSignature* RenderDevice::getD3DRootSignature(const ComputePipelineState& key)
+    {
+        return pipelineCache_->getComputeSignature(device_.get(), key);
     }
 
     std::shared_ptr<CommandAllocator> RenderDevice::obtainCommandAllocator()
@@ -156,14 +166,14 @@ namespace killme
         return createRenderDeviceChild<ConstantBuffer>(shared_from_this(), size);
     }
 
-    std::shared_ptr<Texture> RenderDevice::createTexture(size_t width, size_t height, PixelFormat format, TextureFlags flags, GpuResourceState initialState, Optional<Color> optimizedClear)
+    std::shared_ptr<Texture> RenderDevice::createTexture(const TextureDescription& desc, GpuResourceState initialState, Optional<Color> optimizedClear)
     {
-        return createRenderDeviceChild<Texture>(shared_from_this(), width, height, format, flags, initialState, optimizedClear);
+        return createRenderDeviceChild<Texture>(shared_from_this(), desc, initialState, optimizedClear);
     }
 
-    std::shared_ptr<Texture> RenderDevice::createTexture(size_t width, size_t height, PixelFormat format, TextureFlags flags, GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil)
+    std::shared_ptr<Texture> RenderDevice::createTexture(const TextureDescription& desc, GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil)
     {
-        return createRenderDeviceChild<Texture>(shared_from_this(), width, height, format, flags, initialState, optimizedDepth, optimizedStencil);
+        return createRenderDeviceChild<Texture>(shared_from_this(), desc, initialState, optimizedDepth, optimizedStencil);
     }
 
     std::shared_ptr<GpuResourceHeap> RenderDevice::createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, bool shaderVisible)

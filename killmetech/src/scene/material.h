@@ -165,6 +165,13 @@ namespace killme
     /** Return whether parameter type is texture or not */
     bool isTexture(TypeNumber type);
 
+    /** Material priority definitions */
+    enum class MaterialPriority : size_t
+    {
+        forward = 10,
+        translucent = 20
+    };
+
     /** Define the view of vertices */
     /// NOTE: See a note about the mesh in mesh.h
     class Material : public IsResource
@@ -176,6 +183,7 @@ namespace killme
             Variant value;
         };
 
+        MaterialPriority priority_;
         std::unordered_map<std::string, Param> params_;
         std::string useTech_;
         std::unordered_map<std::string, std::shared_ptr<EffectTechnique>> techMap_;
@@ -183,6 +191,9 @@ namespace killme
     public:
         /** Construct */
         Material(RenderDevice& device, ResourceManager& resources, const MaterialDescription& desc);
+
+        /** Return material priority */
+        MaterialPriority getPriority() const;
 
         /** Return current technique */
         std::shared_ptr<EffectTechnique> getUseTechnique();

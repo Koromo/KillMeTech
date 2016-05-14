@@ -29,12 +29,12 @@ namespace killme
     /** ShaderBoundRequire */
     struct ShaderBoundRequire
     {
-        /** A bound shader */
-        std::weak_ptr<const BasicShader> boundShader;
+        std::weak_ptr<const BasicShader> boundShader; /** Bound shader */
         BoundResourceType type; /** Resource type */
         ConstantBufferDescription cbuffer; /** If cbuffer type */
         BoundResourceDescription texture; /** If texture type */
         BoundResourceDescription sampler; /** if sampler type */
+        BoundResourceDescription bufferRW; /** if RW buffer type */
     };
 
     /** GpuResourceHeapRequire */
@@ -94,10 +94,14 @@ namespace killme
         std::vector<D3D12_DESCRIPTOR_RANGE> descriptorRanges_;
         std::vector<D3D12_ROOT_PARAMETER> rootParams_;
         D3D12_ROOT_SIGNATURE_DESC rootSignature_;
+        size_t hashRootSig_;
 
     public:
-        /** Construct */
+        /** Construct as the graphics root signature */
         explicit GpuResourceTable(const detail::BoundShaders& boundShaders);
+
+        /** Construct as the compute root signature */
+        explicit GpuResourceTable(const Resource<ComputeShader>& cs);
 
         /** Return the count of required GpuResourceHeaps */
         size_t getNumRequiredHeaps() const;
@@ -116,6 +120,9 @@ namespace killme
 
         /** Create Direct3D RootSignature */
         ID3D12RootSignature* createD3DSignature(ID3D12Device* device) const;
+
+    private:
+        void initialize(const std::vector<std::shared_ptr<BasicShader>>& shaderPriority);
     };
 
     /** Num of max multiple render targets */
@@ -142,6 +149,7 @@ namespace killme
         mutable std::shared_ptr<GpuResourceTable> resourceTable_;
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC topLevelDesc_;
+        size_t hashTopLevel_;
 
     public:
         /** Initialize */
@@ -177,19 +185,61 @@ namespace killme
         /** Set a blend state */
         void setBlendState(size_t i, const BlendState& blend);
 
-        /** Return the hash key of top level */
+        /** Return the hash value of top level pipeline */
         size_t getTopLevelHash() const;
 
-        /** Return the hash key of pixel shader */
+        /** Return the hash value of pixel shader */
         long getPSHash() const;
 
-        /** Return the hash key of vertex shader */
+        /** Return the hash value of vertex shader */
         long getVSHash() const;
 
-        /** Return the hash key of geometry shader */
+        /** Return the hash value of geometry shader */
         long getGSHash() const;
 
-        /** Return the hash key of root signature */
+        /** Return the hash value of root signature */
+        size_t getRootSignatureHash() const;
+
+        /** Apply pipeline parameters to commands */
+        void applyParameters(ID3D12GraphicsCommandList* commands);
+
+        /** Create a Direct3D pileline state */
+        ID3D12PipelineState* createD3DPipeline(ID3D12Device* device, ID3D12RootSignature* rootSignature) const;
+        ID3D12RootSignature* createD3DSignature(ID3D12Device* device) const;
+
+    private:
+        void createGpuResourceTableIf() const;
+    };
+
+    /** Compute pipeline state */
+    class ComputePipelineState : public RenderDeviceChild
+    {
+    private:
+        Resource<ComputeShader> cs_;
+        long hashCS_;
+
+        mutable std::shared_ptr<GpuResourceTable> resourceTable_;
+
+        D3D12_COMPUTE_PIPELINE_STATE_DESC topLevelDesc_;
+        size_t hashTopLevel_;
+
+    public:
+        /** Initialize */
+        void initialize();
+
+        /** Return the gpu resource table for current compute context */
+        std::shared_ptr<GpuResourceTable> getGpuResourceTable();
+
+        /** Set a compute shader */
+        void setCShader(const Resource<ComputeShader>& cs);
+
+        /** Return the hash value of compute shader */
+        long getCSHash() const;
+
+        /** Return the hash value */
+        size_t getTopLevelHash() const;
+
+        /** Return the hash value of root signature */
         size_t getRootSignatureHash() const;
 
         /** Apply pipeline parameters to commands */
@@ -216,12 +266,23 @@ namespace killme
         TopLevelMap pipelineMap_;
         std::unordered_map<size_t, ComUniquePtr<ID3D12RootSignature>> signatureMap_;
 
+        struct CSLevelMap { std::unordered_map<long, ComUniquePtr<ID3D12PipelineState>> map; };
+        struct ComputeSigLevelMap { std::unordered_map<size_t, CSLevelMap> map; };
+        struct ComputeTopLevelMap { std::unordered_map<size_t, ComputeSigLevelMap> map; };
+
+        ComputeTopLevelMap computePipelineMap_;
+        std::unordered_map<size_t, ComUniquePtr<ID3D12RootSignature>> computeSignatureMap_;
+
     public:
         ID3D12PipelineState* getPipeline(ID3D12Device* device, const PipelineState& key);
         ID3D12RootSignature* getSignature(ID3D12Device* device, const PipelineState& key);
 
+        ID3D12PipelineState* getComputePipeline(ID3D12Device* device, const ComputePipelineState& key);
+        ID3D12RootSignature* getComputeSignature(ID3D12Device* device, const ComputePipelineState& key);
+
     private:
         ID3D12PipelineState* create(ID3D12Device* device, const PipelineState& key);
+        ID3D12PipelineState* createCompute(ID3D12Device* device, const ComputePipelineState& key);
     };
 }
 

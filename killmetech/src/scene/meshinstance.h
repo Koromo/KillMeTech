@@ -1,6 +1,8 @@
 #ifndef _KILLME_MESHINSTANCE_H_
 #define _KILLME_MESHINSTANCE_H_
 
+#include "mesh.h"
+#include "renderqueue.h"
 #include "../resources/resource.h"
 #include "../core/math/vector3.h"
 #include "../core/math/quaternion.h"
@@ -36,7 +38,20 @@ namespace killme
         void setPosition(const Vector3& pos) { position_ = pos; }
         void setOrientation(const Quaternion& q) { orientation_ = q; }
         void setScale(const Vector3& k) { scale_ = k; }
-        Matrix44 getWorldMatrix() const { return makeTransformMatrix(scale_, orientation_, position_); }
+
+        /** Collect render elements into queue */
+        void collectMeshes(RenderQueue& queue)
+        {
+            const auto worldMatrix = transpose(makeTransformMatrix(scale_, orientation_, position_));
+            for (const auto& sm : mesh_.access()->getSubmeshes())
+            {
+                const auto elem = std::make_shared<RenderElement>();
+                elem->vertices = sm.second->getVertexData();
+                elem->material = sm.second->getMaterial().access();
+                elem->worldMatrix = worldMatrix;
+                queue.push(elem);
+            }
+        }
     };
 }
 

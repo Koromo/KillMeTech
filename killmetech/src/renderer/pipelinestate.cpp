@@ -49,11 +49,12 @@ namespace killme
         , descriptorRanges_()
         , rootParams_()
         , rootSignature_()
+        , hashRootSig_()
     {
-        // Create priority of each shaders
         std::vector<std::shared_ptr<BasicShader>> shaderPriority;
         if (boundShaders.vs.bound())
         {
+            /// TODO: assert(vs.bound())
             shaderPriority.emplace_back(boundShaders.vs.access());
         }
         if (boundShaders.ps.bound())
@@ -65,6 +66,115 @@ namespace killme
             shaderPriority.emplace_back(boundShaders.gs.access());
         }
 
+        initialize(shaderPriority);
+    }
+
+    GpuResourceTable::GpuResourceTable(const Resource<ComputeShader>& cs)
+        : heapTable_()
+        , d3dHeapUniqueArray_()
+        , d3dHeapTable_()
+        , require_()
+        , descriptorRanges_()
+        , rootParams_()
+        , rootSignature_()
+        , hashRootSig_()
+    {
+        assert(cs.bound() && "You need bind compute shader.");
+        initialize(std::vector<std::shared_ptr<BasicShader>>{ cs.bound() });
+    }
+
+    size_t GpuResourceTable::getNumRequiredHeaps() const
+    {
+        return require_.size();
+    }
+
+    const GpuResourceHeapRequire& GpuResourceTable::getRequiredHeap(size_t i) const
+    {
+        assert(i < require_.size() && "Index out of range");
+        return require_[i];
+    }
+
+    void GpuResourceTable::set(size_t i, const std::shared_ptr<GpuResourceHeap>& heap)
+    {
+        assert(i < rootSignature_.NumParameters && "Index out of range");
+
+        if (heapTable_[i])
+        {
+            const auto begin = std::cbegin(d3dHeapUniqueArray_);
+            const auto end = std::cend(d3dHeapUniqueArray_);
+            const auto it = std::find(begin, end, d3dHeapTable_[i]);
+            if (it != end)
+            {
+                d3dHeapUniqueArray_.erase(it);
+            }
+        }
+
+        heapTable_[i] = heap;
+
+        if (heap)
+        {
+            d3dHeapTable_[i] = heap->getD3DHeap();
+
+            const auto begin = std::cbegin(d3dHeapUniqueArray_);
+            const auto end = std::cend(d3dHeapUniqueArray_);
+            const auto it = std::find(begin, end, d3dHeapTable_[i]);
+            if (it == end)
+            {
+                d3dHeapUniqueArray_.emplace_back(d3dHeapTable_[i]);
+            }
+        }
+        else
+        {
+            d3dHeapTable_[i] = nullptr;
+        }
+    }
+
+    size_t GpuResourceTable::getRootSignatureHash() const
+    {
+        return hashRootSig_;
+    }
+
+    void GpuResourceTable::applyResourceTable(ID3D12GraphicsCommandList* commands)
+    {
+        commands->SetDescriptorHeaps(d3dHeapUniqueArray_.size(), d3dHeapUniqueArray_.data());
+        for (size_t i = 0; i < rootSignature_.NumParameters; ++i)
+        {
+            if (d3dHeapTable_[i])
+            {
+                commands->SetGraphicsRootDescriptorTable(i, d3dHeapTable_[i]->GetGPUDescriptorHandleForHeapStart());
+            }
+        }
+    }
+
+    ID3D12RootSignature* GpuResourceTable::createD3DSignature(ID3D12Device* device) const
+    {
+        ID3DBlob* blob = NULL;
+        ID3DBlob* err = NULL;
+        const auto hr = D3D12SerializeRootSignature(&rootSignature_, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &err);
+        if (FAILED(hr))
+        {
+            std::string msg = "Failed to serialize the root signature.";
+            if (err)
+            {
+                msg += "\n";
+                msg += static_cast<char*>(err->GetBufferPointer());
+                err->Release();
+            }
+            throw Direct3DException(msg);
+        }
+
+        KILLME_SCOPE_EXIT{ blob->Release(); };
+
+        ID3D12RootSignature* signature;
+        enforce<Direct3DException>(
+            SUCCEEDED(device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&signature))),
+            "Failed to create the root sigature.");
+
+        return signature;
+    }
+
+    void GpuResourceTable::initialize(const std::vector<std::shared_ptr<BasicShader>>& shaderPriority)
+    {
         // Reserve memory for D3D12_DESCRIPTOR_RANGEs
         size_t sumResources = 0;
         for (const auto& shader : shaderPriority)
@@ -74,22 +184,24 @@ namespace killme
         descriptorRanges_.reserve(sumResources);
 
         // Create priority of required heap types
-        const auto heapTypePriority = { GpuResourceHeapType::cbufferAndTexture, GpuResourceHeapType::sampler };
+        const auto heapTypePriority = { GpuResourceHeapType::buffer, GpuResourceHeapType::sampler };
         size_t rangeCount = 0;
 
         for (const auto heapType : heapTypePriority)
         {
-            // Initialize for heap of GpuResourceHeapType::cbufferAndTexture
-            if (heapType == GpuResourceHeapType::cbufferAndTexture)
+            // Initialize for heap of GpuResourceHeapType::buffer
+            if (heapType == GpuResourceHeapType::buffer)
             {
                 size_t numResources = 0;
                 for (const auto& shader : shaderPriority)
                 {
                     const auto& cbuffers = shader->describeBoundResources(BoundResourceType::cbuffer);
                     const auto& textures = shader->describeBoundResources(BoundResourceType::texture);
+                    const auto& buffersRW = shader->describeBoundResources(BoundResourceType::bufferRW);
                     const auto numCBuffers = std::cend(cbuffers) - std::cbegin(cbuffers);
                     const auto numTextures = std::cend(textures) - std::cbegin(textures);
-                    numResources += numCBuffers + numTextures;
+                    const auto numRWBuffers = std::cend(buffersRW) - std::cbegin(buffersRW);
+                    numResources += numCBuffers + numTextures + numRWBuffers;
                 }
 
                 if (numResources == 0)
@@ -97,14 +209,12 @@ namespace killme
                     continue;
                 }
 
-                GpuResourceHeapRequire requiredHeap(GpuResourceHeapType::cbufferAndTexture, numResources);
+                GpuResourceHeapRequire requiredHeap(GpuResourceHeapType::buffer, numResources);
                 size_t resourceIndex = 0;
 
                 for (const auto& shader : shaderPriority)
                 {
                     const auto& cbuffers = shader->describeConstnatBuffers();
-                    const auto& textures = shader->describeBoundResources(BoundResourceType::texture);
-
                     for (const auto& cbuffer : cbuffers)
                     {
                         requiredHeap.getResource(resourceIndex).boundShader = shader;
@@ -121,6 +231,8 @@ namespace killme
 
                         ++resourceIndex;
                     }
+
+                    const auto& textures = shader->describeBoundResources(BoundResourceType::texture);
                     for (const auto& texture : textures)
                     {
                         requiredHeap.getResource(resourceIndex).boundShader = shader;
@@ -130,6 +242,24 @@ namespace killme
                         D3D12_DESCRIPTOR_RANGE range;
                         range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
                         range.BaseShaderRegister = texture.getRegisterSlot();
+                        range.NumDescriptors = 1;
+                        range.OffsetInDescriptorsFromTableStart = resourceIndex;
+                        range.RegisterSpace = 0;
+                        descriptorRanges_.emplace_back(std::move(range));
+
+                        ++resourceIndex;
+                    }
+
+                    const auto& buffersRW = shader->describeBoundResources(BoundResourceType::bufferRW);
+                    for (const auto& buf : buffersRW)
+                    {
+                        requiredHeap.getResource(resourceIndex).boundShader = shader;
+                        requiredHeap.getResource(resourceIndex).type = BoundResourceType::bufferRW;
+                        requiredHeap.getResource(resourceIndex).bufferRW = buf;
+
+                        D3D12_DESCRIPTOR_RANGE range;
+                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                        range.BaseShaderRegister = buf.getRegisterSlot();
                         range.NumDescriptors = 1;
                         range.OffsetInDescriptorsFromTableStart = resourceIndex;
                         range.RegisterSpace = 0;
@@ -213,105 +343,16 @@ namespace killme
         }
 
         ZeroMemory(&rootSignature_, sizeof(rootSignature_));
-        rootSignature_.pParameters = rootParams_.data();
+        rootSignature_.pParameters = rootParams_.data(); /// TOOD:
         rootSignature_.NumParameters = rootParams_.size();
         rootSignature_.NumStaticSamplers = 0;
         rootSignature_.pStaticSamplers = nullptr;
         rootSignature_.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        hashRootSig_ = crc32(&rootSignature_, sizeof(rootSignature_));
 
         heapTable_.resize(rootSignature_.NumParameters, nullptr);
         d3dHeapUniqueArray_.reserve(require_.size());
         d3dHeapTable_.resize(rootSignature_.NumParameters, nullptr);
-    }
-
-    size_t GpuResourceTable::getNumRequiredHeaps() const
-    {
-        return require_.size();
-    }
-
-    const GpuResourceHeapRequire& GpuResourceTable::getRequiredHeap(size_t i) const
-    {
-        assert(i < require_.size() && "Index out of range");
-        return require_[i];
-    }
-
-    void GpuResourceTable::set(size_t i, const std::shared_ptr<GpuResourceHeap>& heap)
-    {
-        assert(i < rootSignature_.NumParameters && "Index out of range");
-
-        if (heapTable_[i])
-        {
-            const auto begin = std::cbegin(d3dHeapUniqueArray_);
-            const auto end = std::cend(d3dHeapUniqueArray_);
-            const auto it = std::find(begin, end, d3dHeapTable_[i]);
-            if (it != end)
-            {
-                d3dHeapUniqueArray_.erase(it);
-            }
-        }
-
-        heapTable_[i] = heap;
-
-        if (heap)
-        {
-            d3dHeapTable_[i] = heap->getD3DHeap();
-
-            const auto begin = std::cbegin(d3dHeapUniqueArray_);
-            const auto end = std::cend(d3dHeapUniqueArray_);
-            const auto it = std::find(begin, end, d3dHeapTable_[i]);
-            if (it == end)
-            {
-                d3dHeapUniqueArray_.emplace_back(d3dHeapTable_[i]);
-            }
-        }
-        else
-        {
-            d3dHeapTable_[i] = nullptr;
-        }
-    }
-
-    size_t GpuResourceTable::getRootSignatureHash() const
-    {
-        return crc32(&rootSignature_, sizeof(rootSignature_));
-    }
-
-    void GpuResourceTable::applyResourceTable(ID3D12GraphicsCommandList* commands)
-    {
-        commands->SetDescriptorHeaps(d3dHeapUniqueArray_.size(), d3dHeapUniqueArray_.data());
-        for (size_t i = 0; i < rootSignature_.NumParameters; ++i)
-        {
-            if (d3dHeapTable_[i])
-            {
-                commands->SetGraphicsRootDescriptorTable(i, d3dHeapTable_[i]->GetGPUDescriptorHandleForHeapStart());
-            }
-        }
-    }
-
-    ID3D12RootSignature* GpuResourceTable::createD3DSignature(ID3D12Device* device) const
-    {
-        ID3DBlob* blob = NULL;
-        ID3DBlob* err = NULL;
-        const auto hr = D3D12SerializeRootSignature(&rootSignature_, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &err);
-        if (FAILED(hr))
-        {
-            std::string msg = "Failed to serialize the root signature.";
-            if (err)
-            {
-                msg += "\n";
-                msg += static_cast<char*>(err->GetBufferPointer());
-                err->Release();
-            }
-            throw Direct3DException(msg);
-        }
-
-        KILLME_SCOPE_EXIT{ blob->Release(); };
-
-        ID3D12RootSignature* signature;
-        enforce<Direct3DException>(
-            SUCCEEDED(device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&signature))),
-            "Failed to create the root sigature.");
-
-        return signature;
     }
 
     namespace
@@ -426,6 +467,7 @@ namespace killme
         topLevelDesc_.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
         topLevelDesc_.NumRenderTargets = 0;
         topLevelDesc_.SampleDesc.Count = 1;
+        hashTopLevel_ = crc32(&topLevelDesc_, sizeof(topLevelDesc_));
     }
 
     void PipelineState::setVShader(const Resource<VertexShader>& vs)
@@ -514,6 +556,8 @@ namespace killme
                 }
             }
         }
+
+        hashTopLevel_ = crc32(&topLevelDesc_, sizeof(topLevelDesc_));
     }
 
     void PipelineState::setDepthStencil(Optional<DepthStencil::Location> ds)
@@ -528,6 +572,8 @@ namespace killme
             setNull(depthStencil_);
             topLevelDesc_.DSVFormat = DXGI_FORMAT_UNKNOWN;
         }
+
+        hashTopLevel_ = crc32(&topLevelDesc_, sizeof(topLevelDesc_));
     }
 
     void PipelineState::setVertexBuffers(const std::shared_ptr<VertexData>& vertices, bool setIndices)
@@ -559,6 +605,7 @@ namespace killme
     {
         primitiveTopology_ = D3DMappings::toD3DPrimitiveTopology(pt);
         topLevelDesc_.PrimitiveTopologyType = D3DMappings::toD3DPrimitiveTopologyType(pt);
+        hashTopLevel_ = crc32(&topLevelDesc_, sizeof(topLevelDesc_));
     }
 
     void PipelineState::setViewport(const Viewport& vp)
@@ -575,11 +622,12 @@ namespace killme
     {
         assert(i < MAX_RENDER_TARGETS && "Index out of range.");
         topLevelDesc_.BlendState.RenderTarget[i] = D3DMappings::toD3DBlendState(blend);
+        hashTopLevel_ = crc32(&topLevelDesc_, sizeof(topLevelDesc_));
     }
 
     size_t PipelineState::getTopLevelHash() const
     {
-        return crc32(&topLevelDesc_, sizeof(topLevelDesc_));
+        return hashTopLevel_;
     }
 
     long PipelineState::getPSHash() const
@@ -650,6 +698,82 @@ namespace killme
         return resourceTable_->createD3DSignature(device);
     }
 
+    void ComputePipelineState::initialize()
+    {
+        hashCS_ = -1;
+        ZeroMemory(&topLevelDesc_, sizeof(topLevelDesc_));
+        hashTopLevel_ = crc32(&topLevelDesc_, sizeof(topLevelDesc_));
+    }
+
+    std::shared_ptr<GpuResourceTable> ComputePipelineState::getGpuResourceTable()
+    {
+        createGpuResourceTableIf();
+        return resourceTable_;
+    }
+
+    void ComputePipelineState::setCShader(const Resource<ComputeShader>& cs)
+    {
+        resourceTable_.reset();
+
+        hashCS_ = -1;
+        cs_ = cs;
+        if (cs.bound())
+        {
+            const auto code = cs.access()->getD3DByteCode();
+            hashCS_ = crc32(code.pShaderBytecode, code.BytecodeLength);
+        }
+    }
+
+    long ComputePipelineState::getCSHash() const
+    {
+        return hashCS_;
+    }
+
+    size_t ComputePipelineState::getTopLevelHash() const
+    {
+        return hashTopLevel_;
+    }
+
+    size_t ComputePipelineState::getRootSignatureHash() const
+    {
+        createGpuResourceTableIf();
+        return resourceTable_->getRootSignatureHash();
+    }
+
+    void ComputePipelineState::applyParameters(ID3D12GraphicsCommandList* commands)
+    {
+        resourceTable_->applyResourceTable(commands);
+    }
+
+    ID3D12PipelineState* ComputePipelineState::createD3DPipeline(ID3D12Device* device, ID3D12RootSignature* rootSignature) const
+    {
+        assert(cs_.bound() && "You need bind compute shader.");
+
+        D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineDesc = topLevelDesc_;
+        pipelineDesc.pRootSignature = rootSignature;
+        pipelineDesc.CS = cs_.access()->getD3DByteCode();
+
+        ID3D12PipelineState* pipeline;
+        enforce<Direct3DException>(
+            SUCCEEDED(device->CreateComputePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipeline))),
+            "Failed to create the pipeline state.");
+
+        return pipeline;
+    }
+
+    ID3D12RootSignature* ComputePipelineState::createD3DSignature(ID3D12Device* device) const
+    {
+        return resourceTable_->createD3DSignature(device);
+    }
+
+    void ComputePipelineState::createGpuResourceTableIf() const
+    {
+        if (!resourceTable_)
+        {
+            resourceTable_ = std::make_shared<GpuResourceTable>(cs_);
+        }
+    }
+
     ID3D12PipelineState* PipelineStateCache::getPipeline(ID3D12Device* device, const PipelineState& key)
     {
         const auto rootSigFound = pipelineMap_.map.find(key.getTopLevelHash());
@@ -697,6 +821,41 @@ namespace killme
         return it->second.get();
     }
 
+    ID3D12PipelineState* PipelineStateCache::getComputePipeline(ID3D12Device* device, const ComputePipelineState& key)
+    {
+        const auto rootSigFound = computePipelineMap_.map.find(key.getTopLevelHash());
+        if (rootSigFound == std::cend(computePipelineMap_.map))
+        {
+            return createCompute(device, key);
+        }
+
+        const auto csFound = rootSigFound->second.map.find(key.getRootSignatureHash());
+        if (csFound == std::cend(rootSigFound->second.map))
+        {
+            return createCompute(device, key);
+        }
+
+        const auto found = csFound->second.map.find(key.getCSHash());
+        if (found == std::cend(csFound->second.map))
+        {
+            return createCompute(device, key);
+        }
+
+        return found->second.get();
+    }
+
+    ID3D12RootSignature* PipelineStateCache::getComputeSignature(ID3D12Device* device, const ComputePipelineState& key)
+    {
+        const auto it = computeSignatureMap_.find(key.getRootSignatureHash());
+        if (it == std::cend(computeSignatureMap_))
+        {
+            const auto sig = key.createD3DSignature(device);
+            computeSignatureMap_.emplace(key.getRootSignatureHash(), makeComUnique(sig));
+            return sig;
+        }
+        return it->second.get();
+    }
+
     ID3D12PipelineState* PipelineStateCache::create(ID3D12Device* device, const PipelineState& key)
     {
         const auto signature = getSignature(device, key);
@@ -704,6 +863,17 @@ namespace killme
 
         pipelineMap_.map[key.getTopLevelHash()].map[key.getRootSignatureHash()].
             map[key.getPSHash()].map[key.getVSHash()].map[key.getGSHash()] = makeComUnique(pipeline);
+
+        return pipeline;
+    }
+
+    ID3D12PipelineState* PipelineStateCache::createCompute(ID3D12Device* device, const ComputePipelineState& key)
+    {
+        const auto signature = getComputeSignature(device, key);
+        const auto pipeline = key.createD3DPipeline(device, signature);
+
+        computePipelineMap_.map[key.getTopLevelHash()].map[key.getRootSignatureHash()].
+            map[key.getCSHash()] = makeComUnique(pipeline);
 
         return pipeline;
     }

@@ -14,23 +14,35 @@ namespace killme
 {
     class RenderTarget;
     class DepthStencil;
+    class ShaderResource;
+    class UnorderedBuffer;
+
     enum class GpuResourceState;
 
     /** Texture bindable flags */
     enum TextureFlags
     {
         none = 0,
-        allowRenderTarget = 1 << 0,
-        allowDepthStencil = 1 << 1
+        allowRenderTarget = 1 << 1,
+        allowDepthStencil = 1 << 2,
+        allowUnorderedAccess = 1 << 3
+    };
+
+    /** Texture description */
+    struct TextureDescription
+    {
+        size_t width;
+        size_t height;
+        PixelFormat format;
+        TextureFlags flags;
     };
 
     /** Texture resource */
     class Texture : public RenderDeviceChild, public IsResource
     {
     private:
-        ComSharedPtr<ID3D12Resource> tex_;
-        D3D12_RESOURCE_DESC resourceDesc_;
-        PixelFormat format_;
+        ComUniquePtr<ID3D12Resource> tex_;
+        D3D12_RESOURCE_DESC desc_;
 
     public:
         /** Resource location */
@@ -40,19 +52,15 @@ namespace killme
         };
 
         /** Initialize */
-        void initialize(size_t width, size_t height, PixelFormat format, TextureFlags flags,
-            GpuResourceState initialState, Optional<Color> optimizedClear);
-        void initialize(size_t width, size_t height, PixelFormat format, TextureFlags flags,
-            GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil);
-
-        /** Return the render target interface */
-        std::shared_ptr<RenderTarget> asRenderTarget();
-
-        /** Return the depth stencil interface */
-        std::shared_ptr<DepthStencil> asDepthStencil();
+        void initialize(ID3D12Resource* tex);
+        void initialize(const TextureDescription& desc, GpuResourceState initialState, Optional<Color> optimizedClear);
+        void initialize(const TextureDescription& desc, GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil);
 
         /** Return the Direct3D resource */
         ID3D12Resource* getD3DResource();
+
+        /** Describe Direct3D texture */
+        D3D12_RESOURCE_DESC describeD3D() const;
 
         /** Return the Direct3D subresource informations */
         D3D12_SUBRESOURCE_DATA getD3DSubresource(const void* data) const;

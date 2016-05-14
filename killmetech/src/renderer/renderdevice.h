@@ -21,11 +21,11 @@ namespace killme
     class ConstantBuffer;
     class Texture;
     class PipelineState;
+    class ComputePipelineState;
     class GpuResourceHeap;
     enum class GpuResourceHeapType;
-    enum class PixelFormat;
     enum class GpuResourceState;
-    enum TextureFlags;
+    struct TextureDescription;
 
     /** RenderDevice */
     class RenderDevice : public std::enable_shared_from_this<RenderDevice>
@@ -50,10 +50,16 @@ namespace killme
         ID3D12Device* getD3DDevice();
 
         /** Return Direct3D pipeline state */
-        ID3D12PipelineState* getD3DPipelineState(const PipelineState& key);
+        ID3D12PipelineState* getD3DPipeline(const PipelineState& key);
+
+        /** Return Direct3D compute pipeline state */
+        ID3D12PipelineState* getD3DPipeline(const ComputePipelineState& key);
 
         /** Return Direct3D root signature */
         ID3D12RootSignature* getD3DRootSignature(const PipelineState& key);
+
+        /** Return Direct3D root signature */
+        ID3D12RootSignature* getD3DRootSignature(const ComputePipelineState& key);
 
         /** Return a reusable command allocator */
         std::shared_ptr<CommandAllocator> obtainCommandAllocator();
@@ -88,10 +94,8 @@ namespace killme
         std::shared_ptr<ConstantBuffer> createConstantBuffer(size_t size);
 
         /** Create a texture */
-        std::shared_ptr<Texture> createTexture(size_t width, size_t height, PixelFormat format, TextureFlags flags,
-            GpuResourceState initialState, Optional<Color> optimizedClear = nullopt);
-        std::shared_ptr<Texture> createTexture(size_t width, size_t height, PixelFormat format, TextureFlags flags,
-            GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil);
+        std::shared_ptr<Texture> createTexture(const TextureDescription& desc, GpuResourceState initialState, Optional<Color> optimizedClear = nullopt);
+        std::shared_ptr<Texture> createTexture(const TextureDescription& desc, GpuResourceState initialState, float optimizedDepth, unsigned optimizedStencil);
 
         /** Create a gpu resource heap */
         std::shared_ptr<GpuResourceHeap> createGpuResourceHeap(size_t numResources, GpuResourceHeapType type, bool shaderVisible);

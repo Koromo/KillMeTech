@@ -1,7 +1,6 @@
 #include "meshcomponent.h"
 #include "../level.h"
 #include "../../scene/meshinstance.h"
-#include "../../scene/mesh.h"
 #include "../../scene/scene.h"
 
 namespace killme
@@ -12,9 +11,9 @@ namespace killme
         setMoveRecievable(true);
     }
 
-    std::shared_ptr<Submesh> MeshComponent::findSubmesh(const std::string& name)
+    Resource<Mesh> MeshComponent::getMesh()
     {
-        return inst_->getMesh().access()->findSubmesh(name);
+        return inst_->getMesh();
     }
 
     void MeshComponent::onTranslated()

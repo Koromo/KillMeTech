@@ -127,10 +127,12 @@ namespace killme
     const std::string VertexShader::MODEL = "vs_5_0";
     const std::string PixelShader::MODEL = "ps_5_0";
     const std::string GeometryShader::MODEL = "gs_5_0";
+    const std::string ComputeShader::MODEL = "cs_5_0";
 
     const std::string VertexShader::ENTRY = "vs_main";
     const std::string PixelShader::ENTRY = "ps_main";
     const std::string GeometryShader::ENTRY = "gs_main";
+    const std::string ComputeShader::ENTRY = "cs_main";
 
     namespace
     {
@@ -182,6 +184,11 @@ namespace killme
 
     GeometryShader::GeometryShader(ID3DBlob* byteCode)
         : BasicShader(ShaderType::geometry, byteCode)
+    {
+    }
+
+    ComputeShader::ComputeShader(ID3DBlob* byteCode)
+        : BasicShader(ShaderType::compute, byteCode)
     {
     }
 }

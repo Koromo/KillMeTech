@@ -288,7 +288,7 @@ namespace killme
         {
         case GpuResourceHeapType::renderTarget: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         case GpuResourceHeapType::depthStencil: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-        case GpuResourceHeapType::cbufferAndTexture: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        case GpuResourceHeapType::buffer: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         case GpuResourceHeapType::sampler: return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
         default: assert(false && "Invalid heap type.");
         }
@@ -339,6 +339,7 @@ namespace killme
         case ShaderType::vertex: return D3D12_SHADER_VISIBILITY_VERTEX;
         case ShaderType::pixel: return D3D12_SHADER_VISIBILITY_PIXEL;
         case ShaderType::geometry: return D3D12_SHADER_VISIBILITY_GEOMETRY;
+        case ShaderType::compute: return D3D12_SHADER_VISIBILITY_ALL;
         default:
             assert(false && "An invalid ShaderType.");
             return D3D12_SHADER_VISIBILITY_ALL; // For warnings
@@ -352,6 +353,7 @@ namespace killme
         case BoundResourceType::cbuffer: return D3D_SIT_CBUFFER;
         case BoundResourceType::texture: return D3D_SIT_TEXTURE;
         case BoundResourceType::sampler: return D3D_SIT_SAMPLER;
+        case BoundResourceType::bufferRW: return D3D_SIT_UAV_RWTYPED;
         default:
             assert(false && "Item not found.");
             return D3D_SIT_CBUFFER; // For warnings
@@ -394,6 +396,10 @@ namespace killme
 
                 case TextureFlags::allowDepthStencil:
                     d3dFlags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+                    break;
+
+                case TextureFlags::allowUnorderedAccess:
+                    d3dFlags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
                     break;
 
                 default:

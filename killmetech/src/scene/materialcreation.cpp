@@ -1,5 +1,4 @@
 #include "materialcreation.h"
-#include "material.h"
 #include "../renderer/texture.h"
 #include "../renderer/shaders.h"
 #include "../resources/resource.h"
@@ -83,6 +82,20 @@ namespace killme
                 return BlendOp::max;
             }
             throw std::invalid_argument(s + "is not BlendOp.");
+        }
+
+        // Get MaterialPriority from string
+        MaterialPriority toMaterialPriority(const std::string& s)
+        {
+            if (s == "translucent")
+            {
+                return MaterialPriority::translucent;
+            }
+            else if (s == "forward")
+            {
+                return MaterialPriority::forward;
+            }
+            throw std::invalid_argument(s + "is not MaterialPriority.");
         }
 
         // Context
@@ -288,6 +301,16 @@ namespace killme
             {
                 error(context, "Pass index " + std::to_string(index) + " is already exists.");
             }
+        }
+
+        // Parse "priority" elemts
+        void elem_priority(ParseContext& context)
+        {
+            forward(context, "=");
+            const auto p = forward(context);
+            context.material.setPriority(toMaterialPriority(p));
+            forward(context, ";");
+            forward(context);
         }
 
         // Parse "float", "float3" or float4 elements
@@ -664,6 +687,9 @@ namespace killme
             addIdentifier(context, "subtract");
             addIdentifier(context, "min");
             addIdentifier(context, "max");
+            addIdentifier(context, "deferred");
+            addIdentifier(context, "forward");
+            addIdentifier(context, "priority");
             addIdentifier(context, "parameters");
             addIdentifier(context, "float");
             addIdentifier(context, "float3");
@@ -702,6 +728,7 @@ namespace killme
             addIdentifier(context, "_LightAttLiner");
             addIdentifier(context, "_LightAttQuadratic");
 
+            context.material.setPriority(MaterialPriority::forward);
             context.material.addParameter("_WorldMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
             context.material.addParameter("_ViewMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
             context.material.addParameter("_ProjMatrix", { typeNumber<MP_float4x4>(), Variant(MP_float4x4::INIT) });
@@ -797,6 +824,11 @@ namespace killme
         }
     }
 
+    void MaterialDescription::setPriority(MaterialPriority priority)
+    {
+        priority_ = priority;
+    }
+
     void MaterialDescription::addParameter(const std::string& name, MaterialParameterDescription&& desc)
     {
         paramMap_.emplace(name, std::move(desc));
@@ -810,6 +842,11 @@ namespace killme
     void MaterialDescription::addTechnique(const std::string& name, TechniqueDescription&& desc)
     {
         techs_.emplace_back(std::make_pair(name, std::move(desc)));
+    }
+
+    MaterialPriority MaterialDescription::getPriority() const
+    {
+        return priority_;
     }
 
     Optional<TypeNumber> MaterialDescription::getParameterType(const std::string& name) const
@@ -869,7 +906,8 @@ namespace killme
             { "vertex_shader", block_shader<ShaderType::vertex> },
             { "pixel_shader", block_shader<ShaderType::pixel> },
             { "geometry_shader", block_shader<ShaderType::geometry> },
-            { "technique", block_technique }
+            { "technique", block_technique },
+            { "priority", elem_priority }
         });
 
         initContext(context);

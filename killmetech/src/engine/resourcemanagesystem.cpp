@@ -38,7 +38,13 @@ namespace killme
         {
             auto& device = graphicsSystem.getDevice();
             const auto img = decodeBmpImage(path);
-            const auto tex = device.createTexture(img->getWidth(), img->getHeight(), Pixel_r8g8b8a8::UNORM_FORMAT, TextureFlags::none, GpuResourceState::copyDestination, nullopt);
+
+            TextureDescription desc;
+            desc.width = img->getWidth();
+            desc.height = img->getHeight();
+            desc.format = Pixel_r8g8b8a8::UNORM_FORMAT;
+            desc.flags = TextureFlags::none;
+            const auto tex = device.createTexture(desc, GpuResourceState::copyDestination, nullopt);
 
             const auto allocator = device.obtainCommandAllocator();
             const auto commands = device.obtainCommandList(allocator, nullptr);
@@ -79,6 +85,5 @@ namespace killme
     void ResourceManageSystem::unregisterLoader(const std::string& ext)
     {
         manager_->unregisterLoader(ext);
-
     }
 }

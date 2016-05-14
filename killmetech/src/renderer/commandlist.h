@@ -2,6 +2,7 @@
 #define _KILLME_COMMANDLIST_H_
 
 #include "renderdevice.h"
+#include "commandallocator.h"
 #include "rendertarget.h"
 #include "depthstencil.h"
 #include "gpuresource.h"
@@ -11,11 +12,12 @@
 #include <d3d12.h>
 #include <memory>
 #include <vector>
+#include <cassert>
 
 namespace killme
 {
-    class CommandAllocator;
     class PipelineState;
+    class ComputePipelineState;
     class Color;
 
     /** Command list */
@@ -30,6 +32,7 @@ namespace killme
     public:
         /** Initialize */
         void initialize(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<PipelineState>& pipeline);
+        void initialize(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<ComputePipelineState>& pipeline);
 
         /** Command of clear a render target */
         void clearRenderTarget(RenderTarget::Location location, const Color& c);
@@ -81,6 +84,7 @@ namespace killme
 
         /** Reset commands */
         void reset(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<PipelineState>& pipeline);
+        void reset(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<ComputePipelineState>& pipeline);
 
         /** Ends command recording */
         void close();
@@ -96,6 +100,37 @@ namespace killme
 
         /** Returns the Direct3D command list */
         ID3D12GraphicsCommandList* getD3DCommandList();
+
+    private:
+        template <class Pipeline>
+        void initializeImpl(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<Pipeline>& pipeline)
+        {
+            const auto d3dAllocator = allocator->getD3DAllocator();
+            const auto d3dPipeline = pipeline ? getOwnerDevice()->getD3DPipeline(*pipeline) : nullptr;
+
+            ID3D12GraphicsCommandList* list;
+            enforce<Direct3DException>(
+                SUCCEEDED(getD3DOwnerDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, d3dAllocator, d3dPipeline, IID_PPV_ARGS(&list))),
+                "Failed to create the command list.");
+
+            list_ = makeComUnique(list);
+            protected_ = false;
+            allocator_ = allocator;
+        }
+
+        template <class Pipeline>
+        void resetImpl(const std::shared_ptr<CommandAllocator>& allocator, const std::shared_ptr<Pipeline>& pipeline)
+        {
+            assert(!protected_ && "This CommandList is protected.");
+
+            const auto d3dAllocator = allocator->getD3DAllocator();
+            const auto d3dPipeline = pipeline ? getOwnerDevice()->getD3DPipeline(*pipeline) : nullptr;
+
+            enforce<Direct3DException>(
+                SUCCEEDED(list_->Reset(d3dAllocator, d3dPipeline)),
+                "Failed to reset command list.");
+            uploaders_.clear();
+        }
     };
 }
 

@@ -19,7 +19,6 @@ namespace killme
             SUCCEEDED(getD3DOwnerDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap))),
             "Failed to create the descripter heap.");
         heap_ = makeComUnique(heap);
-
         desc_ = heap_->GetDesc();
     }
 
